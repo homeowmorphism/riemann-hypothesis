@@ -223,7 +223,12 @@ class Project:
         self.source_dir = Path(self.config.get("srcDir", "."))
         self.sources = root / self.source_dir
         self.compiled = root / self.config.get("buildDir", ".lake/build") / self.config.get("leanLibDir", "lib/lean")
-        listing = subprocess.check_output(["lake", "env", "printenv"], cwd=root, text=True)
+        try:
+            listing = subprocess.check_output(["lake", "env", "printenv"], cwd=root, text=True)
+        except FileNotFoundError:
+            raise SystemExit("`lake` is not on the PATH. The script asks it where Lean and the compiled "
+                             "files are.") from None
+
         self.environment = dict(line.split("=", 1) for line in listing.splitlines() if "=" in line)
         self.lean = self.environment["LEAN"]
         toolchain = self.environment.get("LEAN_SYSROOT", "\0")

@@ -268,7 +268,14 @@ class Counts(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "--runs must be at least 1"):
             self.project.run("--runs", "0")
 
+    def test_reports_a_missing_lake(self):
+        (self.project.tools / "lake").unlink()
+        self.project.path = str(self.project.tools)
+        with self.assertRaisesRegex(SystemExit, "`lake` is not on the PATH"):
+            self.project.run()
+
     def test_counts_with_perf_on_linux(self):
+
 
         self.project.write(AFTER)
         self.check(self.project.run(perf="works"))
