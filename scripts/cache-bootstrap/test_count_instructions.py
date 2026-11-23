@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 SPEC = importlib.util.spec_from_file_location("count_instructions", HERE.parent / "count-instructions.py")
@@ -51,6 +52,29 @@ for suffix in (".olean", ".olean.server", ".olean.private", ".ilean"):
     Path(output + suffix).write_text(json.dumps({"digest": digest, "exports": exports}))
 print("COST", int(digest[:8], 16))
 '''.replace("IMPORT", repr(IMPORT))
+
+# A stand-in `perf stat` of the kind named in the file `perf-kind`: "works", "denied" (may not read the
+# counter), "unsupported" (the machine has none) or "old" (no `-j`). It notes each command in `perf-calls`.
+FAKE_PERF = r'''#!/usr/bin/env python3
+import subprocess, sys
+from pathlib import Path
+kind = (Path(__file__).parent / "perf-kind").read_text()
+arguments = sys.argv[1:]
+command = arguments[arguments.index("--") + 1:]
+with (Path(__file__).parent / "perf-calls").open("a") as calls:
+    calls.write(" ".join(command) + "\n")
+if kind == "old":
+    sys.exit(" Error: unknown switch `j'\n\n Usage: perf stat [<options>] [<command>]")
+if kind == "denied":
+    sys.exit("Error:\nAccess to performance monitoring and observability operations is limited.")
+result = subprocess.run(command, capture_output=True, text=True)
+sys.stdout.write(result.stdout)
+sys.stderr.write(result.stderr)
+count = "<not supported>" if kind == "unsupported" else f"{(result.stdout.split() or [1])[-1]}.000000"
+Path(arguments[arguments.index("-o") + 1]).write_text(
+    f'{{"counter-value" : "{count}", "unit" : "", "event" : "instructions:u"}}\n')
+sys.exit(result.returncode)
+'''
 
 BEFORE = {
     "Lib": "module\n",
@@ -104,11 +128,14 @@ class Project:
     def __init__(self, folder):
         self.root = folder / "project"
         self.compiled = self.root / ".lake/build/lib/lean"
-        tools = folder / "bin"
+        self.tools = tools = folder / "bin"
         tools.mkdir()
         (tools / "lean").write_text(FAKE_LEAN)
+        (tools / "perf").write_text(FAKE_PERF)
+        # Like `lake env printenv`, the stand-in passes on the rest of the environment; `perf` is found on its PATH.
         (tools / "lake").write_text(f'#!/bin/sh\necho "LEAN={tools}/lean"\necho "LEAN_PATH={self.compiled}"\n'
-                                    f'echo "LEAN_SRC_PATH={self.root}/src"\necho "LEAN_SYSROOT={folder}/none"\n')
+                                    f'echo "LEAN_SRC_PATH={self.root}/src"\necho "LEAN_SYSROOT={folder}/none"\n'
+                                    'echo "PATH=$PATH"\n')
         for tool in tools.iterdir():
             tool.chmod(0o755)
         self.path = f"{tools}{os.pathsep}{os.environ['PATH']}"
@@ -145,16 +172,26 @@ class Project:
         return {str(path): path.read_bytes() for path in sorted(self.root.rglob("*"))
                 if path.is_file() and ".git/" not in str(path)}
 
-    def run(self, *arguments):
-        """Run the script's `main` in the project; return what it printed."""
-        printed, saved = io.StringIO(), (sys.argv, os.environ["PATH"], counter.counted)
+    def run(self, *arguments, perf=None):
+        """Run the script's `main` in the project; return what it printed.
+
+        With `perf`, the script runs as it does on Linux and counts with a stand-in `perf` of that kind.
+        Without it, `fake_counted` does the counting and the check of the real counter is left out.
+        """
+        printed, saved = io.StringIO(), (sys.argv, os.environ["PATH"], counter.counted, counter.check_perf)
         sys.argv = ["count-instructions.py", "--project", str(self.root), "--base", "main", *arguments]
-        os.environ["PATH"], counter.counted = self.path, fake_counted
+        os.environ["PATH"] = self.path
+        if perf:
+            (self.tools / "perf-kind").write_text(perf)
+            system = mock.patch.object(counter.platform, "system", return_value="Linux")
+        else:
+            counter.counted, counter.check_perf = fake_counted, lambda environment: None
+            system = contextlib.nullcontext()
         try:
-            with contextlib.redirect_stdout(printed), contextlib.redirect_stderr(io.StringIO()):
+            with contextlib.redirect_stdout(printed), contextlib.redirect_stderr(io.StringIO()), system:
                 counter.main()
         finally:
-            sys.argv, os.environ["PATH"], counter.counted = saved
+            sys.argv, os.environ["PATH"], counter.counted, counter.check_perf = saved
         return printed.getvalue()
 
 
@@ -216,6 +253,24 @@ class Counts(unittest.TestCase):
         self.project.write({**AFTER, "Lib.B": AFTER["Lib.B"] + "FAIL\n"})
         with self.assertRaisesRegex(SystemExit, "Lean failed on Lib.B as it is in this checkout"):
             self.project.run()
+
+    def test_counts_with_perf_on_linux(self):
+        self.project.write(AFTER)
+        self.check(self.project.run(perf="works"))
+        calls = (self.project.tools / "perf-calls").read_text().splitlines()
+        self.assertEqual(calls[0], "true")  # The counter is tried before anything is compiled.
+
+    def test_stops_before_compiling_when_perf_cannot_count(self):
+        self.project.write(AFTER)
+        ran = self.project.tools / "lean-ran"
+        (self.project.tools / "lean").write_text(f'#!/bin/sh\ntouch "{ran}"\nexit 1\n')
+        for kind, reason, said in (("denied", "not allowed to count", "Access to performance monitoring"),
+                                   ("unsupported", "no instruction counter", "<not supported>"),
+                                   ("old", "does not know the `-j` flag", "unknown switch")):
+            message = f"(?s)^`perf stat` cannot count instructions here.*{reason}.*perf said:.*{said}"
+            with self.subTest(kind), self.assertRaisesRegex(SystemExit, message):
+                self.project.run(perf=kind)
+            self.assertFalse(ran.exists(), kind)
 
 
 class Parsing(unittest.TestCase):

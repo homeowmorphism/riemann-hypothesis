@@ -166,6 +166,40 @@ def perf_instructions(report):
     return total
 
 
+def perf_stat(command, environment):
+    """Run `command` under `perf stat`. Return the exit status, what perf wrote as its report, the output."""
+    # The counter and the flags of Mathlib's build benchmark (scripts/bench/measure.py).
+    with tempfile.NamedTemporaryFile("r") as report:
+        try:
+            result = subprocess.run(
+                ["perf", "stat", "-j", "-o", report.name, "-e", "instructions:u", "--", *command],
+                env={**environment, "LC_ALL": "C"}, capture_output=True, text=True)
+        except FileNotFoundError:
+            raise SystemExit("`perf` is not installed. On Linux this script counts with `perf stat`.") from None
+        return result.returncode, report.read(), result.stdout + result.stderr
+
+
+def check_perf(environment):
+    """Count the instructions of `true`, and stop if `perf` cannot.
+
+    The script runs this before it compiles anything. Without it, a `perf` that fails would be
+    reported as a failure of Lean, on the first module.
+    """
+    status, report, output = perf_stat(["true"], environment)
+    if status == 0 and perf_instructions(report) is not None:
+        return
+    said = "\n".join(text.strip() for text in (output, report) if text.strip())
+    if "unknown switch" in said or "unknown option" in said:
+        reason = "This `perf` does not know the `-j` flag (JSON output). perf has it from version 6.0 on."
+    elif status:
+        reason = "`perf` was not allowed to count, or could not."
+    else:
+        reason = ("`perf` ran but reported no count. This machine gives it no instruction counter, "
+                  "as on many virtual machines.")
+    raise SystemExit(f"`perf stat` cannot count instructions here, so nothing was compiled. {reason}\n"
+                     f"perf said:\n{said}")
+
+
 def counted(command, environment):
     """Run `command`. Return its exit status, its instruction count (None if none was reported), its output."""
     system = platform.system()
@@ -175,15 +209,8 @@ def counted(command, environment):
         found = RETIRED.search(result.stderr)
         return result.returncode, int(found[1]) if found else None, result.stdout + result.stderr
     if system == "Linux":
-        # The counter and the flags of Mathlib's build benchmark (scripts/bench/measure.py).
-        with tempfile.NamedTemporaryFile("r") as report:
-            try:
-                result = subprocess.run(
-                    ["perf", "stat", "-j", "-o", report.name, "-e", "instructions:u", "--", *command],
-                    env={**environment, "LC_ALL": "C"}, capture_output=True, text=True)
-            except FileNotFoundError:
-                raise SystemExit("`perf` is not installed. On Linux this script counts with `perf stat`.") from None
-            return result.returncode, perf_instructions(report.read()), result.stdout + result.stderr
+        status, report, output = perf_stat(command, environment)
+        return status, perf_instructions(report), output
     raise SystemExit(NO_COUNTER)
 
 
@@ -398,6 +425,8 @@ def main():
         raise SystemExit(NO_COUNTER)
     project = Project(arguments.project.resolve())
     root = project.root
+    if platform.system() == "Linux":
+        check_perf(project.environment)
 
     def commit(name):
         result = subprocess.run(["git", "rev-parse", "--verify", "--quiet", name + "^{commit}"], cwd=root,
