@@ -254,7 +254,13 @@ class Counts(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "Lean failed on Lib.B as it is in this checkout"):
             self.project.run()
 
+    def test_refuses_fewer_than_one_run(self):
+        self.project.write(AFTER)
+        with self.assertRaisesRegex(SystemExit, "--runs must be at least 1"):
+            self.project.run("--runs", "0")
+
     def test_counts_with_perf_on_linux(self):
+
         self.project.write(AFTER)
         self.check(self.project.run(perf="works"))
         calls = (self.project.tools / "perf-calls").read_text().splitlines()

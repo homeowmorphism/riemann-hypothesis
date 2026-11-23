@@ -421,7 +421,10 @@ def main():
     parser.add_argument("--runs", type=int, default=3, help="compile each module this often and keep the lowest count")
     parser.add_argument("--project", type=Path, default=Path.cwd())
     arguments = parser.parse_args()
+    if arguments.runs < 1:
+        raise SystemExit("--runs must be at least 1.")
     if platform.system() not in ("Darwin", "Linux"):
+
         raise SystemExit(NO_COUNTER)
     project = Project(arguments.project.resolve())
     root = project.root
