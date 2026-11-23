@@ -6,6 +6,10 @@ Run it from a checkout whose compiled files are current (`lake exe cache get`):
     python3 scripts/count-instructions.py                # this checkout against upstream/main
     python3 scripts/count-instructions.py --head pr/123  # another commit, without checking it out
 
+Compiling a Lean file runs code from it. `--head` does that with another commit's files and the
+`lean` arguments from its `lakefile.toml`, with no sandbox. Like `lake build`, use it only on a
+change you trust.
+
 Each changed module is compiled as it is at the merge base and as it is after the change. The script
 calls `lean` the way Lake does and keeps what it compiles in a temporary folder, so `.lake` is not
 changed. It prints a Markdown table for the pull request. Modules that import a changed module are
