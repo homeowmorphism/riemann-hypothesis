@@ -427,7 +427,9 @@ def report(number, head, others, results):
     if clean:
         lines += ["", "It changes some of the same files as these, and git merges them without conflict:", ""]
         lines += [f"- #{other} (`{label}`): {count(len(result.shared), 'file')}" for other, label, result in clean]
-    apart = rows("apart")
+    # One named above for a deleted import is left out: "no file in common" beside it reads as
+    # a contradiction.
+    apart = [row for row in rows("apart") if not row[2].stale]
     if apart:
         lines += ["", "It has no file in common with " + ", ".join(f"#{other}" for other, _, _ in apart) + "."]
     lines += ["", f"This compares text, and new imports against deleted Lean files, at `{head[:10]}`. "

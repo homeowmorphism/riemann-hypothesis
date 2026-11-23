@@ -302,6 +302,15 @@ class Reports(unittest.TestCase):
         self.assertIn("#7 deletes `src/G09.lean`, which #11 starts to import in `src/New.lean`; and 3 more\n", body)
         self.assertNotIn("src/G10.lean", body)
 
+    def test_a_deleted_import_is_not_also_listed_as_no_file_in_common(self):
+        found, apart = conflicts.Comparison("apart"), conflicts.Comparison("apart")
+        found.stale = [("theirs", b"src/Gone.lean", b"src/New.lean")]
+        body, _ = conflicts.report(7, "0" * 40, {11: "batch queue", 12: "batch queue"}, {11: found, 12: apart})
+        self.assertIn("- #11 (`batch queue`): #11 deletes `src/Gone.lean`", body)
+        self.assertIn("It has no file in common with #12.\n", body)
+        body, _ = conflicts.report(7, "0" * 40, {11: "batch queue"}, {11: found})
+        self.assertNotIn("no file in common", body)
+
     def test_unread_import_lines_are_reported_without_a_comment(self):
         result = conflicts.Comparison("apart")
         result.unread = True
