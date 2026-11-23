@@ -234,7 +234,16 @@ class Counts(unittest.TestCase):
         self.assertNotIn("| `Lib.A` |", printed)
         self.assertIn(cost(build(AFTER)["Lib.B"]), printed)
 
+    def test_named_files_are_relative_to_the_project(self):
+        self.project.write(AFTER)
+        printed = self.project.run("src/Lib/B.lean")
+        self.assertIn("| `Lib.B` |", printed)
+        self.assertNotIn("| `Lib.A` |", printed)
+        with self.assertRaisesRegex(SystemExit, "outside.lean is not under"):
+            self.project.run("../outside.lean")
+
     def test_refuses_a_checkout_that_fits_neither_side(self):
+
         self.project.git("switch", "-q", "-c", "change")
         self.project.write(AFTER)
         self.project.commit("after")

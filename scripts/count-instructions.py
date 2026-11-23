@@ -415,7 +415,9 @@ def table(before, after):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("files", nargs="*", type=Path, help="count only these changed files (default: all of them)")
+    parser.add_argument("files", nargs="*", type=Path,
+                        help="count only these changed files, given relative to --project (default: all of them)")
+
     parser.add_argument("--base", help="branch the change is against (default: the first of " + ", ".join(BASES) + ")")
     parser.add_argument("--head", help="commit that holds the change (default: the files in this checkout)")
     parser.add_argument("--runs", type=int, default=3, help="compile each module this often and keep the lowest count")
@@ -450,8 +452,14 @@ def main():
     changed = {module: (status != "A", status != "D") for module, status in statuses.items()}
     selected = set(changed)
     if arguments.files:
-        wanted = {".".join(path.resolve().relative_to(project.sources).with_suffix("").parts)
-                  for path in arguments.files}
+        wanted = set()
+        for path in arguments.files:
+            try:
+                relative = (root / path).resolve().relative_to(project.sources)
+            except ValueError:
+                raise SystemExit(f"{path} is not under {project.sources}, the project's Lean files.") from None
+            wanted.add(".".join(relative.with_suffix("").parts))
+
         if wanted - selected:
             raise SystemExit("Not changed against the base: " + ", ".join(sorted(wanted - selected)))
         selected = wanted
