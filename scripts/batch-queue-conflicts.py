@@ -432,7 +432,9 @@ def report(number, head, others, results):
         lines += ["", "It has no file in common with " + ", ".join(f"#{other}" for other, _, _ in apart) + "."]
     lines += ["", f"This compares text, and new imports against deleted Lean files, at `{head[:10]}`. "
                   "Pull requests that pass both can still fail to build together."]
-    return "\n".join(lines) + "\n", bool(conflicts or stale or unread or too_many or unknown)
+    # Unread import lines are no finding. The report names them, and the job summary always gets
+    # the report, so they do not start a comment of their own.
+    return "\n".join(lines) + "\n", bool(conflicts or stale or too_many or unknown)
 
 
 def publish(repo, number, body, needed):

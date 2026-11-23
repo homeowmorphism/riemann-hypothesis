@@ -302,13 +302,22 @@ class Reports(unittest.TestCase):
         self.assertIn("#7 deletes `src/G09.lean`, which #11 starts to import in `src/New.lean`; and 3 more\n", body)
         self.assertNotIn("src/G10.lean", body)
 
-    def test_unread_import_lines_need_a_comment(self):
+    def test_unread_import_lines_are_reported_without_a_comment(self):
         result = conflicts.Comparison("apart")
         result.unread = True
         body, needed = conflicts.report(7, "0" * 40, {11: "batch queue"}, {11: result})
-        self.assertTrue(needed)
+        self.assertFalse(needed)
         self.assertIn("Import lines were not read for these", body)
         self.assertIn("- #11 (`batch queue`)", body)
+
+    def test_unread_import_lines_are_named_beside_a_finding(self):
+        unread, found = conflicts.Comparison("apart"), conflicts.Comparison("apart")
+        unread.unread = True
+        found.stale = [("ours", b"src/Gone.lean", b"src/New.lean")]
+        body, needed = conflicts.report(7, "0" * 40, {11: "batch queue", 12: "batch queue"}, {11: unread, 12: found})
+        self.assertTrue(needed)
+        self.assertIn("Import lines were not read for these", body)
+        self.assertIn("- #11 (`batch queue`)\n", body)
 
     def test_nothing_to_compare(self):
         body, needed = conflicts.report(7, "0" * 40, {}, {})
