@@ -31,7 +31,7 @@ It keeps the published Lean source unchanged and provides a prebuilt cache for i
 | `riemannZeta_eq_zero_re` | the same, written out |
 | `LFunction_ne_zero_of_half_lt_re` | L(χ, s) ≠ 0 for Re s > 1/2, for every modulus and every Dirichlet character, except the trivial character at s = 1 |
 | `LFunction_eq_zero_re` | every zero of L(χ, s) with 0 < Re s < 1 has Re s = 1/2 |
-| `LFunction_eq_zero_re_of_isPrimitive` | the same, for primitive characters |
+| `LFunction_eq_zero_re_of_isPrimitive` | the special case of `LFunction_eq_zero_re` for primitive characters |
 
 [`src/Challenge.lean`](src/Challenge.lean) states the same five with `sorry` in place of the
 proofs, in a file that imports only Mathlib. Comparator checks that `Main.lean` proves exactly
