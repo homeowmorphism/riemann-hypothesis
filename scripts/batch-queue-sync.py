@@ -877,6 +877,10 @@ def sync(gh, now=None):
             members.append((number, sha))
             log.append(f"{'would add' if gh.dry_run else 'added'} #{number} at `{sha[:10]}` to `{batch['ref']}`")
             continue
+        if 500 <= status < 600:
+            log.append(f"GitHub returned {status} while merging #{number}. The next run will retry the queued commit.")
+            stopped = True
+            continue
         on = (state["base"] or {}).get("number")
         if status != 409:
             reason = f"GitHub refused the merge ({status}: `{(data or {}).get('message', 'no reason given')}`)."
