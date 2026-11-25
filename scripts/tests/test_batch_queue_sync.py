@@ -480,6 +480,23 @@ class Assembling(unittest.TestCase):
         self.assertEqual((len(gh.said(12)), merges(gh)), (1, []))
         self.assertIn("#12", batch_pull(gh)["body"])
 
+    def test_server_error_leaves_the_queued_commit_for_the_next_run(self):
+        gh = Fake()
+        queue(gh, 11)
+        sync(gh)
+        queue(gh, 12, 13)
+        gh.routes = [("POST merges", lambda gh, payload: (503, None)), *Fake.routes]
+        sync(gh)
+        self.assertEqual(merges(gh), [sha("head11"), sha("head12")])
+        self.assertEqual(gh.said(12), [])
+
+        gh.routes = Fake.routes
+        gh.push(12, "head12-later")
+        gh.writes = []
+        sync(gh)
+        self.assertEqual(merges(gh), [sha("head12"), sha("head13")])
+        self.assertIn(sha("head12"), gh.inside[gh.refs[FIRST]])
+
     def test_refused_commit_is_not_announced_twice_when_the_note_is_lost(self):
         gh = Fake()
         queue(gh, 11, 12)
