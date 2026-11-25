@@ -395,10 +395,10 @@ def measure(side, targets, runs, log):
         counts[module] = []
         for _ in range(runs):
             status, count, output = counted(command, environment)
+            if count is None:  # Before the exit status: a counter that fails to start also exits with an error.
+                raise SystemExit("The instruction counter reported nothing. Its output was:\n" + output.strip())
             if status:
                 fail(side, module, output)
-            if count is None:
-                raise SystemExit("The instruction counter reported nothing. Its output was:\n" + output.strip())
             counts[module].append(count)
         log(f"{side.label} [{position}/{len(order)}] {module}  {min(counts[module]) / 1e9:.3f}")
     return counts, len(order) - len(counts)

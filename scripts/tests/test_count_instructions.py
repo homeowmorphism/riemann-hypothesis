@@ -54,7 +54,8 @@ print("COST", int(digest[:8], 16))
 '''.replace("IMPORT", repr(IMPORT))
 
 # A stand-in `perf stat` of the kind named in the file `perf-kind`: "works", "denied" (may not read the
-# counter), "unsupported" (the machine has none) or "old" (no `-j`). It notes each command in `perf-calls`.
+# counter), "unsupported" (the machine has none), "old" (no `-j`) or "stops" (counts `true` and is denied
+# after that). It notes each command in `perf-calls`.
 FAKE_PERF = r'''#!/usr/bin/env python3
 import subprocess, sys
 from pathlib import Path
@@ -65,7 +66,7 @@ with (Path(__file__).parent / "perf-calls").open("a") as calls:
     calls.write(" ".join(command) + "\n")
 if kind == "old":
     sys.exit(" Error: unknown switch `j'\n\n Usage: perf stat [<options>] [<command>]")
-if kind == "denied":
+if kind == "denied" or (kind == "stops" and command != ["true"]):
     sys.exit("Error:\nAccess to performance monitoring and observability operations is limited.")
 result = subprocess.run(command, capture_output=True, text=True)
 sys.stdout.write(result.stdout)
@@ -120,7 +121,7 @@ def cost(compiled):
 
 def fake_counted(command, environment):
     result = subprocess.run(command, env=environment, capture_output=True, text=True)
-    count = int(result.stdout.split()[-1]) if result.returncode == 0 else None
+    count = int((result.stdout.split() or [1])[-1])  # Like `time -l` and `perf stat`: a count even if Lean fails.
     return result.returncode, count, result.stdout + result.stderr
 
 
@@ -293,6 +294,12 @@ class Counts(unittest.TestCase):
             with self.subTest(kind), self.assertRaisesRegex(SystemExit, message):
                 self.project.run(perf=kind)
             self.assertFalse(ran.exists(), kind)
+
+    def test_blames_the_counter_when_it_stops_counting_later(self):
+        self.project.write(AFTER)
+        message = "(?s)^The instruction counter reported nothing.*Access to performance monitoring"
+        with self.assertRaisesRegex(SystemExit, message):
+            self.project.run(perf="stops")
 
 
 class Parsing(unittest.TestCase):
