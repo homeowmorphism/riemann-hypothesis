@@ -131,7 +131,7 @@ lemma pointFn_ext {Z : Type} {X : Scheme} {ξ : Z → (Spec (CommRingCat.of ℂ)
   by_contra hs_ne
   -- On a reduced scheme a nonzero section is invertible on a nonempty open set.
   have h_nonempty : (X.basicOpen (s - s') : Set X).Nonempty := by
-    simpa [nonempty_iff_ne_empty] using hs_ne
+    simpa [← ne_empty_iff_nonempty] using hs_ne
   -- By density some `ξ z` lies in it: there `s - s'` is a unit, but `f` and `g` agree.
   obtain ⟨z, hz⟩ := h_dense.exists_mem_open (X.basicOpen (s - s')).isOpen h_nonempty
   have hz_U : LandsIn (ξ z) U := (landsIn_iff_mem.2 hz).mono (X.basicOpen_le _)

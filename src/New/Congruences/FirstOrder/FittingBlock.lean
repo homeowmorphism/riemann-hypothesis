@@ -306,11 +306,11 @@ def IsCommonRibetElement [Fintype J] {I : Type*} (β : I → Y → L) {𝓧 : Se
   (∀ (i : I) (x : 𝓧), β i x = 0) ∧
   ∃ f : S,
     -- (a) `f` multiplies every `β i` into `𝒥`
-    (∀ i : I, f.1 * (fun x : Y ↦ MvPolynomial.C (β i x)) ∈ 𝒥) ∧
+    (∀ i : I, f.val * (fun x : Y ↦ MvPolynomial.C (β i x)) ∈ 𝒥) ∧
     -- (b) on `𝓧`, `f` has no term below `∏ X j`
-    (∀ x : 𝓧, ∀ d < ∑ j : J, Finsupp.single j 1, (f.1 x).coeff d = 0) ∧
+    (∀ x : 𝓧, ∀ d < ∑ j : J, Finsupp.single j 1, (f.val x).coeff d = 0) ∧
     -- (c) the coefficient of `∏ X j` at `π`
-    (f.1 π).coeff (∑ j : J, Finsupp.single j 1) = c
+    (f.val π).coeff (∑ j : J, Finsupp.single j 1) = c
 
 end Definitions
 
@@ -505,7 +505,8 @@ lemma coeff_mul_prod_of_mem_colon [Fintype J] [LinearOrder J] {t : ℕ} (ty : J 
   have h_main : F * ∏ e : Fin t, (d e + ζ e) =
       (F * ∏ e : Fin t, Γ e) * monomial (∑ j : J, Finsupp.single j 1) 1 := by
     simp [hdζ, sum_fiberwise, MvPolynomial.X, ← mul_assoc, ← monomial_sum_one, prod_mul_distrib]
-  rw [h_prod, mul_sub, MvPolynomial.coeff_sub, h_zero, sub_zero, h_main, coeff_mul_monomial']
+  rw [h_prod, mul_sub, AddMonoidAlgebra.coeff_sub_apply, h_zero, sub_zero, h_main,
+    coeff_mul_monomial']
   simp +contextual [hi.ge_iff_eq', ← constantCoeff_eq]
 
 /-- Let `χ x` (`x : Y`) be representations of the group algebra `Λ[G]` by `σ × σ` matrices and `η₀`
@@ -618,7 +619,7 @@ vectors over `O` to rows, and let `N` hold the images under `Φ` of the cocycle 
 `formsMod Φ z N p`, that is, `c = Ψ ∘ z` for a linear form `Ψ` modulo `p` that vanishes on `Φ⁻¹ N`,
 is a cocycle for `ξ` that obeys the linear relations and vanishes at the `δ w`; and if `c γ = 0`,
 then every `ξ g - 1` kills `c a`. -/
-lemma isCharacterCocycle_of_mem_formsMod [DVR O] {n ι R : Type} [CommRing R] [Algebra O R]
+lemma isCharacterCocycle_of_mem_formsMod {n ι R : Type} [CommRing R] [Algebra O R]
     (Φ : (n → O) →ₗ[O] ι → R) (z : G → n → O) (N : Submodule R (ι → R)) {p : O} (ξ : G →* O)
     (δ : W → G) (a γ : G) (c₁ : O) (h_cocycle : ∀ g h : G, Φ (z (g * h) - z g - ξ g • z h) ∈ N)
     (h_δ : ∀ w : W, Φ (z (δ w)) ∈ N)

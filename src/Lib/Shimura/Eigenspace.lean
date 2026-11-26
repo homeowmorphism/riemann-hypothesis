@@ -192,7 +192,7 @@ lemma exists_isEigenQuotient [Fintype ι] [∀ i, Module.Finite ℚ_[ℓ] (V i)]
   -- `R g` is the map that the universal property attaches to the family `F i ∘ ρ i g`.
   have h_eig_comp (g : Γ) (i : ι) (s : σ) (x : V i) :
       F i (ρ i g (T i s x)) = θ s • F i (ρ i g x) := by
-    rw [← h_eig, ← End.mul_apply (T i s), (h_comm i s g).eq, End.mul_apply]
+    rw [← h_eig, ← mul_apply_eq_comp (T i s), (h_comm i s g).eq, mul_apply_eq_comp]
   have h_act (g : Γ) : ∃ R : End (PadicAlgCl ℓ) (Fin _ → PadicAlgCl ℓ),
       ∀ (i : ι) (x : V i), R (F i x) = F i (ρ i g x) :=
     h_univ _ (fun i ↦ F i ∘ₗ ρ i g) (h_eig_comp g)
@@ -276,7 +276,7 @@ lemma IsEigenQuotient.isKilledBy {f : ℕ} {g : Γ} (hg : IsWeilPair (toGp g) f)
   simp only [h_tmul, LinearMap.zero_apply]
   rw [← map_zero (φ.baseChange Bmax), ← h_rel i (a ⊗ₜ x)]
   simp only [eval₂_finsetSum, C_mul_X_pow_eq_monomial, eval₂_monomial, LinearMap.sum_apply,
-    End.mul_apply, h_frob, h_coef, map_sum]
+    mul_apply_eq_comp, h_frob, h_coef, map_sum]
 
 /-- Let `r` with the maps `F i` be the largest quotient on which `T` acts by `θ` (`h`), the `ρ i`
 crystalline (`hρ`), `toGp` (from `[OverGp Γ ℓ]`) of open image, and the `T i s` commuting with each
@@ -316,7 +316,7 @@ lemma IsEigenQuotient.exists_sum_baseChange_eq_zero_of_jump_eq_zero [Fintype ι]
       let := γ.toModule
       have h_eig (i : ι) (s : σ) (x : V i) : (f i).val (T i s x) = γ (θ s) * (f i).val x := by
         have h_f_apply : ((Φ u [s] f) i).val x = (((a ∘ θ) s • f) i).val x := by rw [hf s]
-        simpa [Φ, hodgeTateMaps.pull, ha, Algebra.smul_def] using! h_f_apply
+        simpa [hodgeTateMaps.pull, ha, Algebra.smul_def] using! h_f_apply
       -- the instances are passed by hand, since `ℂ_ℓ` carries another action of `ℚ̄_ℓ`
       obtain ⟨φ, hφ⟩ := @h_univ ℂ_[ℓ] _ _ _ (.of_algHom (γ.extendScalarsOfIsLocalization _ _⁰))
         (fun i ↦ ⟨(f i).val.toAddHom, by simp [Algebra.smul_def]⟩) h_eig
@@ -398,7 +398,7 @@ open scoped NumberField
 
 /-- If `R` is the localization of `𝓞 E` at a set `M` of denominators prime to `w`, then `R` is
 integral at every place `A` of `Ω` above `w`. -/
-lemma New.Variety.algebraMap_mem_of_isLocalization {E : Type} [Field E] [NumberField E]
+lemma New.Variety.algebraMap_mem_of_isLocalization {E : Type} [Field E]
     [Algebra E Ω] {R : Subalgebra (𝓞 E) E} {M : Submonoid (𝓞 E)} [IsLocalization M R]
     {w : FinPlace E} (hM : M ≤ w.asIdeal.primeCompl) {A : ClosurePlace} (hA : IsPlaceOver A w)
     (x : R) :
@@ -545,7 +545,7 @@ the model `X` act through the legs of the levels `l w` (`hT_pull`), whose pull-b
 the Hecke polynomial of `θ` at `w` kills `r s` for every geometric Frobenius `s` at `A`. -/
 lemma New.Variety.Model.aeval_heckePoly_eq_zero_of_isEigenQuotient {E : Type} [Field E] [CMBase E]
     {a d₀ : ℕ} [HasQuadSubfield d₀ E] {𝔑 : 𝓞 E} {ν : ℕ} {R : Subalgebra (𝓞 E) E}
-    (X : Model (Fin a) d₀ 𝔑 ν R) {ℓ : ℕ} [NeZero a] [ThePrime ℓ] [Algebra E Ω]
+    (X : Model (Fin a) d₀ 𝔑 ν R) {ℓ : ℕ} [ThePrime ℓ] [Algebra E Ω]
     (M : Submonoid (𝓞 E)) [IsLocalization M R] [PadicIso ℓ] (θ : SafePlace 𝔑 → ℕ → ℂ)
     {w : SafePlace 𝔑} {A : ClosurePlace} (hA : IsPlaceOver A w.val.val)
     (hR : ∀ x : CommRingCat.of R, algebraMap (CommRingCat.of R) Ω x ∈ A)

@@ -146,7 +146,7 @@ structure IsLayering (T : FockDualPair ε ε' ι) (l ν : HCParam ε) (ρ : (t :
   /-- The weight `ν r` is that of the vacuum plus the signs `New.FockDualPair.varSign` at the pairs
   `(r, κ t i)`, over all `(t, i)` with row `ρ t i = r`. -/
   weight_eq (r : R) :
-      ν r = T.vacuumWeight (ε r) + ∑ t : L, ∑ i : I t with ρ t i = r, (T.varSign (r, κ t i)).1
+      ν r = T.vacuumWeight (ε r) + ∑ t : L, ∑ i : I t with ρ t i = r, (T.varSign (r, κ t i)).val
 
 omit [Fintype ι] in
 /-- Let `(ρ, κ)` be layers and let `P` be the product of their minors, with the matrices transposed.
@@ -205,7 +205,7 @@ theorem IsLayering.isKHighest_and_isTermwiseHarmonic (H : IsLayering T l ν ρ �
         ((if ρ t i = a then if T.varSign (a, κ t i) = 1 then 1 else 0 else 0) -
             if ρ t i = a then if T.varSign (a, κ t i) = -1 then 1 else 0 else 0 :
             MvPolynomial ι ℂ) =
-          MvPolynomial.C (if ρ t i = a then ((T.varSign (a, κ t i)).1 : ℂ) else 0) := by
+          MvPolynomial.C (if ρ t i = a then ((T.varSign (a, κ t i)).val : ℂ) else 0) := by
       split_ifs <;> simp_all [Int.units_ne_iff_eq_neg]
     -- so the difference of the two counts is the sum of the signs
     rw [oscRows_E_eq_polarisation_sub rfl, H.polarisation_prod_det hP a a 1 rfl (.inl rfl),
@@ -628,7 +628,7 @@ and `π'` of `U(ε')` form an oscillator pair for `T` (two commuting oscillator 
 one Fock space, `π` on the rows and `π'` on the columns), then `π'` and `π` form an oscillator pair
 for `T.swap`. `T.swap` exchanges rows and columns, has sign `-T.globalSign`, row shift
 `T.columnShift` and column shift `T.rowShift`. -/
-theorem swap (hp : OscillatorPair T π π') [Nonempty R] [Nonempty C] :
+theorem swap (hp : OscillatorPair T π π') :
     OscillatorPair T.swap π' π where
   toOscillatorRep := hp.column_rep
   column_rep := by
@@ -637,7 +637,7 @@ theorem swap (hp : OscillatorPair T π π') [Nonempty R] [Nonempty C] :
   commute g h := (hp.commute h g).symm
 
 /-- The operator `π(e_λ)` commutes with the action of the second group. -/
-theorem map_integratedRep_dsKernel (hp : OscillatorPair T π π') [Nonempty R] [Nonempty C]
+theorem map_integratedRep_dsKernel (hp : OscillatorPair T π π') [Nonempty R]
     (hΦ : IsJointHarmonic T l l' Φ) (g' : USign ε') (x : fockSpace η) :
     π' g' (integratedRep π l.dsKernel x) = integratedRep π l.dsKernel (π' g' x) := by
   -- `π(e_λ)` is an integral over the first group, and `π' g'` commutes with each `π g`.
@@ -651,7 +651,7 @@ theorem map_integratedRep_dsKernel (hp : OscillatorPair T π π') [Nonempty R] [
 
 /-- Along the map `P ↦ π(e_λ) P` from polynomials to Fock space, the representation `π'` of the
 second group has the column action `T.swap.oscRows` as its derived action. -/
-theorem isDerivedAction_integratedRep (hp : OscillatorPair T π π') [Nonempty R] [Nonempty C]
+theorem isDerivedAction_integratedRep (hp : OscillatorPair T π π') [Nonempty R]
     (hΦ : IsJointHarmonic T l l' Φ) :
     IsDerivedAction π' ((integratedRep π l.dsKernel).toLinearMap ∘ₗ polyVector η)
       T.swap.oscRows := by
@@ -663,7 +663,7 @@ theorem isDerivedAction_integratedRep (hp : OscillatorPair T π π') [Nonempty R
 /-- For an oscillator pair π, π' on Fock space and a joint harmonic Φ of parameters `l = 2λ` and
 `l' = 2λ'`, the real part of ⟨Φ, π(e_λ)Φ⟩ is positive. Here `π(e_λ)` is the operator `∫ e_λ g • π g`
 of the discrete series kernel `e_λ` (`New.HCParam.dsKernel`). -/
-theorem re_inner_integratedRep_pos (hp : OscillatorPair T π π') [Nonempty R] [Nonempty C]
+theorem re_inner_integratedRep_pos (hp : OscillatorPair T π π') [Nonempty R]
     (hΦ : IsJointHarmonic T l l' Φ) :
     0 < (fockInner Φ (integratedRep π l.dsKernel Φ)).re := by
   -- `Φ` is highest of weight `Λ` and `⟨Φ, π z Φ⟩ > 0` for positive definite `z`
@@ -696,7 +696,7 @@ theorem integratedRep_integratedRep_eq_self (hp : OscillatorPair T π π') [None
   have h_second : proj (T.swap.oscRows.centredCasimir T.swap.centre Φ) =
       (∑ c, (l' c / 2 - T.swap.centre) ^ 2 - card C * (card C ^ 2 - 1) / 12 : ℂ) • proj Φ := by
     rw [T.centredCasimir_swap_oscRows_eq_add, LinearMap.add_apply, map_add, h_first,
-      LinearMap.smul_apply, Module.End.one_apply, map_smul, ← add_smul,
+      LinearMap.smul_apply, one_apply_eq_self, map_smul, ← add_smul,
       hΦ.centred_casimirValue_eq]
   -- Restore the centre of the second group.
   have h_casimir' : proj (T.swap.oscRows.casimirK 1 Φ) = (l'.casimirValue : ℂ) • proj Φ := by
@@ -709,7 +709,7 @@ theorem integratedRep_integratedRep_eq_self (hp : OscillatorPair T π π') [None
 
 /-- If `Q` is highest of a weight `ν` with `ν - Λ` outside the cone of the positive roots, where `Λ`
 is the lowest `K`-type of `l`, then `π(e_λ)` kills every derivative `Y Q` of `Q` along the rows. -/
-theorem integratedRep_oscRows_eq_zero (hp : OscillatorPair T π π') [Nonempty R] [Nonempty C]
+theorem integratedRep_oscRows_eq_zero (hp : OscillatorPair T π π') [Nonempty R]
     (hΦ : IsJointHarmonic T l l' Φ) {ν : R → ℤ} {Q : MvPolynomial I ℂ}
     (hQ : l.IsKHighest T.oscRows ν Q) (hν : ν - l.lowestKType ∉ l.rootCone) (Y : Matrix R R ℂ) :
     integratedRep π l.dsKernel (polyVector η (T.oscRows Y Q)) = 0 := by
@@ -775,7 +775,7 @@ theorem exists_bump_integratedRep_eq (hp : OscillatorPair T π π') [Nonempty R]
           smear (fun x : USign ε' ↦ π' x (proj Φ)) (hrep.continuous (proj Φ)) β g := by
         simp [← hβ, ← h_smear β, map_integratedRep hrep (integrable_bump_inv_smul ..) (π' g)]
       have h_right : HasDerivAt (fun t : ℝ ↦ π' (expU (t • Z)) (proj y))
-          (smearΦ (bumpDeriv Z.1 β)) 0 := by
+          (smearΦ (bumpDeriv Z.val β)) 0 := by
         simpa [smearΦ, h_orbit] using
           hasDerivAt_smear _ β (hrep.continuous (proj Φ)) (hasDerivAt_expU Z 1 0)
       exact (hp.isDerivedAction_integratedRep hΦ Z y).unique h_right

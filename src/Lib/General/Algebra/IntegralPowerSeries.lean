@@ -200,6 +200,13 @@ lemma norm_natCast_eq_inv_pow_padicValNat {n : ℕ} (hn : n ≠ 0) :
   simpa [Padic.norm_eq_zpow_neg_valuation, hn, Nat.padicValNat_def] using
     PadicComplex.norm_extends' p n
 
+/-- The `p`-adic norm of a finite product of nonzero natural numbers. -/
+lemma norm_prod_natCast_eq_rpow_neg_sum {X : Type*} [Fintype X] {n : X → ℕ}
+    (hn : ∀ x, n x ≠ 0) :
+    ‖∏ x, (n x : ℂ_[p])‖ = (p : ℝ) ^ (-∑ x, (padicValNat p (n x) : ℝ)) := by
+  simp [norm_natCast_eq_inv_pow_padicValNat, hn, Real.rpow_neg p.cast_nonneg,
+    ← Nat.cast_sum, Finset.prod_pow_eq_pow_sum]
+
 /-- For `p` prime and `n < p ^ K` one has `n / (p - 1) - K ≤ v_p(n!) ≤ n / (p - 1)`, a consequence
 of Legendre's formula. -/
 lemma padicValNat_factorial_mem_Icc {n K : ℕ} (hn : n < p ^ K) :

@@ -182,8 +182,7 @@ lemma algHom_sub_mem_of_mem_gaussFiltration (χ : MvPolynomial σ R →ₐ[R] A)
     have hp : p ∈ gaussFiltration F c (t - c i) := fun α ↦ by
       have h_level : t - c i - weight c α = t - weight c (α + .single i 1) := by
         simp [weight_single, sub_add_eq_sub_sub_swap]
-      rw [h_level, ← coeff_mul_X α i p]
-      exact hf _
+      simpa only [h_level, coeff_mul_X α i p] using hf (α + .single i 1)
     obtain ⟨hψp, h_diff⟩ : ψ p ∈ G (t - c i) ∧ ψ p - χ p ∈ G (t - c i + 20⁻¹) := ih hp
     have hψX : ψ (X i) ∈ G (c i) := by simpa using add_mem (hχ i) (antitone (by simp) (hψ i))
     refine ⟨by simpa using mul_mem_graded hψp hψX, ?_⟩
@@ -904,7 +903,8 @@ lemma HasBoundedIncrements.weight_zeroOrder_mul_card_le [NeZero N]
     exact pow_dvd_coeff_mergedCoeff _ h_cross h_merge_weight (by linarith)
   have Φ_ne : Φ ≠ 0 := by
     refine fun hΦ ↦ h_not_dvd ((dvd_sub_right ?_).1 h_top)
-    simpa [Φ, eq_zero_iff_dvd] using Polynomial.ext_iff.1 hΦ (weight D.poleOrder α)
+    simpa [Φ, eq_zero_iff_dvd] using
+      Finsupp.ext_iff.1 (AddMonoidAlgebra.ext_iff.1 hΦ) (weight D.poleOrder α)
   have Φ_deg : Φ.natDegree ≤ weight D.poleOrder α := by
     refine Polynomial.natDegree_le_iff_coeff_eq_zero.2 fun j hj ↦ ?_
     have h_gap : weight D.poleOrder α * D.slope c < j * D.slope c := by gcongr

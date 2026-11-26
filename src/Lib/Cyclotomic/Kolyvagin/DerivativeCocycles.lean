@@ -147,6 +147,15 @@ lemma cyclotomicPowDirichlet_smul (hg : (cyclotomicCharMod Ω (N * m) g).val = a
   rw [h_scalar]
   linear_combination (norm := module) ψ a • (hb • x + b • hx)
 
+private lemma cyclotomicPowDirichlet_succ_smul
+    (hg : (cyclotomicCharMod Ω (N * m) g).val = a) {V : Type*} [AddCommGroup V] [Module O V]
+    {x : V} (hx : m • x = 0) :
+    (cyclotomicPowDirichlet l (e + 1) ψ g).val • x =
+      (cyclotomicPowDirichlet l e ψ g).val • a • x := by
+  have hax : m • a • x = 0 := by rw [smul_comm m a, hx, smul_zero]
+  rw [cyclotomicPowDirichlet_smul hg hx, cyclotomicPowDirichlet_smul hg hax]
+  module
+
 /-- Discrete logarithm: for a prime `q ≡ 1 mod k` there is a homomorphism `L` from `(ℤ/q)ˣ` to
 `ℤ/k` (written multiplicatively) that sends some unit `g` to `1`, so `L` is onto. -/
 lemma exists_monoidHom_units_zmod_eq_ofAdd_one {q : Nat.Primes} {k : ℕ} (hq : q ≡ 1 [MOD k]) :
@@ -376,12 +385,8 @@ lemma sub_one_smul_sum_eq_zero (hM : N * l ^ n ∣ M)
     cyclotomicPowDirichlet_smul_derivativeSum hM (by simp) hg (by simp) hG
   have h_sub : derivativeSum e ψ L ∅ d (a • F - G) = a • derivativeSum e ψ L ∅ d F := by
     rw [map_sub, map_nsmul, h_zero, sub_zero]
-  -- On `O/lⁿ`, `cycᵉ⁺¹ ψ (g)` acts as `aᵉ⁺¹ ψ(a)` and `cycᵉ ψ (g)` as `aᵉ ψ(a)`.
-  have h_scalar : (cyclotomicPowDirichlet l (e + 1) ψ g : O) • derivativeSum e ψ L ∅ d F =
-      (cyclotomicPowDirichlet l e ψ g : O) • a • derivativeSum e ψ L ∅ d F := by
-    rw [cyclotomicPowDirichlet_smul hg killed, cyclotomicPowDirichlet_smul hg killed]
-    module
-  rw [h_sum, sub_smul, one_smul, h_scalar, ← h_sub, h_equiv, sub_self]
+  rw [h_sum, sub_smul, one_smul, cyclotomicPowDirichlet_succ_smul hg killed,
+    ← h_sub, h_equiv, sub_self]
 
 end Derivative
 
@@ -392,7 +397,7 @@ section CommutatorLog
 is of no use). -/
 noncomputable def commutatorLog (m : ℕ) [NeZero m] (γ : Gal(Ω/ℚ)) (y : DiscreteUnits Ω)
     (g : Gal(Ω/ℚ)) : ZMod m :=
-  invFun (rootPowHom Ω m).1 (galUnitsRep γ y - galUnitsRep (g * γ * g⁻¹) y)
+  invFun (rootPowHom Ω m).val (galUnitsRep γ y - galUnitsRep (g * γ * g⁻¹) y)
 
 /-- If the commutator `γ⁻¹ (g γ g⁻¹)` moves `y` by an `m`-th root of unity, then `commutatorLog`
 is the exponent of `γ y / (g γ g⁻¹) y`: `ζ ^ commutatorLog m γ y g = γ y / (g γ g⁻¹) y`. -/
@@ -788,12 +793,8 @@ private lemma derivativeSum_commutatorLog_mul_eq_of_isJacobiFamily
     exists_cyclotomicPowDirichlet_smul_derivativeSum hM hI_dvd ha h_exponent
   have h_shift (h : Gal(Ω/ℚ)) : derivativeSum e ψ L I f (F h) = derivativeSum e ψ L I 0 (F h) :=
     derivativeSum_commutatorLog_eq_of_isJacobiFamily hJ hM hI_dvd hI_one h le_rfl f 0
-  -- On `O/lⁿ`, `Υ(g)` acts as `aᵉ⁺¹ ψ(a)` and `cyc^e ψ (g)` as `aᵉ ψ(a)`.
-  have h_scalar : (cyclotomicPowDirichlet l (e + 1) ψ g).val • derivativeSum e ψ L I 0 (F g') =
-      (cyclotomicPowDirichlet l e ψ g : O) • derivativeSum e ψ L I 0 (a • F g') := by
-    rw [cyclotomicPowDirichlet_smul ha_N killed, cyclotomicPowDirichlet_smul ha_N killed, map_nsmul]
-    module
-  rw [h_scalar, h_equiv, map_sub, h_shift, h_shift]
+  rw [cyclotomicPowDirichlet_succ_smul ha_N killed, ← map_nsmul, h_equiv, map_sub, h_shift,
+    h_shift]
   abel
 
 /-- The cocycles vanish at `γ`. Let `lⁿ • y` be a Jacobi family at level `M`, with `N lⁿ ∣ M` and

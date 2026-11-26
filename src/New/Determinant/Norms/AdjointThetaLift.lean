@@ -169,9 +169,9 @@ noncomputable def DescentPair.thetaLift [Nonempty r] {l : NumberField.InfinitePl
     -- The level on `V` acts on the datum through the character of `O.FormV`.
     refine mem_levelSpace.2 fun k ↦ ?_
     have h_datum := O.omega_fockDatum_star 1 k (highestVector O.columnCount O.paramV)
-    simp only [map_one, Module.End.one_apply, star_highestVector] at h_datum
+    simp only [map_one, one_apply_eq_self, star_highestVector] at h_datum
     rw [LinearMap.comp_apply, LinearEquiv.coe_coe, ← toAlgForm_formRep,
-      hfit.isArrow_fockDatum.formRep_formLift_of_eq_smul h_datum, map_one, Module.End.one_apply,
+      hfit.isArrow_fockDatum.formRep_formLift_of_eq_smul h_datum, map_one, one_apply_eq_self,
       map_smul]
 
 /-- The function on the adelic group of `V` attached to the algebraic form `Θ_W y` is the theta lift
@@ -416,7 +416,7 @@ lemma DescentPair.thetaLift_eq_integral [WeilData E]
 /-- Over a finite commutative ring `R`, the number of `n × r` matrices whose square block on the
 rows `ι` is invertible is `card (GL r R) · (card R) ^ ((card n − card r) · card r)`: the block is an
 element of `GL r R`, and the other rows are free. -/
-lemma card_isUnit_submatrix {R : Type} [CommRing R] [Finite R] (ι : r ↪ n) :
+lemma card_isUnit_submatrix {R : Type} [CommRing R] (ι : r ↪ n) :
     Nat.card {x : Matrix n r R // IsUnit (x.submatrix ι id)} =
       Nat.card (GL r R) * Nat.card R ^ ((card n - card r) * card r) := by
   let rows : r ⊕ {a : n // a ∉ Set.range ι} ≃ n :=
@@ -842,8 +842,8 @@ theorem inner_singleLift {j : D.LiftIndex} (y : D.principalForms (D.spaceW j))
     (Ξ : (D.descentPair ϑ j).FormV) :
     inner ℂ (D.singleLift ϑ j y) Ξ = (D.spaceW j).petersson y.val
       ((D.descentPair ϑ j).normalizedDescent Ξ) := by
-  rw [D.singleLift_apply]
-  exact (D.descentPair ϑ j).inner_thetaLift (D.fitsParams_descentPair ϑ j) y.val Ξ
+  simpa only [D.singleLift_apply] using!
+    (D.descentPair ϑ j).inner_thetaLift (D.fitsParams_descentPair ϑ j) y.val Ξ
 
 /-- The adjoint of the theta lift `D.singleLift ϑ j` sends a form `Ξ` on `V_j` to the form on `W_j`
 whose function on the adelic group `U(W_j)(𝔸)` is `θ Ξ`: at `g` it is the sum, over the classes `h`
@@ -1062,8 +1062,8 @@ theorem singleLift_principalRep (ϑ : D.TameChar) {j : D.LiftIndex} (s : D.chose
     (y : D.principalForms (D.spaceW j)) :
     D.singleLift ϑ j (D.principalRep (D.spaceW j) s y) =
       (D.descentPair ϑ j).formAction s (D.singleLift ϑ j y) := by
-  rw [D.singleLift_apply, D.singleLift_apply]
-  exact (D.descentPair ϑ j).thetaLift_formRep (D.fitsParams_descentPair ϑ j) _
+  simpa only [D.singleLift_apply] using!
+    (D.descentPair ϑ j).thetaLift_formRep (D.fitsParams_descentPair ϑ j) _
     (reduceFamily_liftResidue (w := D.chosenPlace) s) y.val
 
 end Data

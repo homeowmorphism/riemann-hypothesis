@@ -1,6 +1,5 @@
 module
 
-public import Lib.GLn.SchurModule.Basic
 public import Lib.General.Geometry.ProjectiveSpace
 public import Lib.PadicComparison.Descent.TestCategory
 public import Lib.Shimura.AbelianScheme.TangentCoordinates

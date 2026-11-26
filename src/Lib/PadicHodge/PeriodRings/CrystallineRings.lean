@@ -160,10 +160,10 @@ lemma Amax.exists_lift [IsAdicComplete (span {(p : R)}) R] (f : Ainf →+* R) (x
   let F₀ : AdjoinRoot (C (p : Ainf) * .X - C xi) →+* R := AdjoinRoot.lift f x h_root
   let e : R ≃ₐ[R] AdicCompletion (span {(p : R)}) R := AdicCompletion.ofAlgEquiv (span {(p : R)})
   refine ⟨e.symm.toRingHom.comp (adicMap F₀ (by simp)), fun a ↦ ?_, ?_⟩
-  -- `erw`: the composite is typed through `Amax`, which is the completion only by definition, so a
-  -- plain `rw` finds no type-correct motive.
+  -- The composite is typed through `Amax`, which is the completion only by definition, so its two
+  -- steps are used as equations.
   all_goals
-    erw [RingHom.comp_apply, adicMap_algebraMap]
+    refine (RingHom.comp_apply ..).trans ((congrArg _ (adicMap_algebraMap ..)).trans ?_)
     simp [F₀, e]
 
 /-- The image in `A` of an element of `(p, ξ) ^ n` is divisible by `p ^ n`. -/
@@ -930,8 +930,7 @@ instance [FaithfulSMul R BPlus] : FaithfulSMul R BdRPlus := by
   intro n
   have hy_zero : (y : BdRPlus) = 0 := by simpa using hy
   have h_dvd : (xi : BdRPlus) ^ n ∣ y := by
-    rw [hy_zero]
-    exact dvd_zero _
+    simp [hy_zero]
   simpa using xi_pow_dvd_iff.mp h_dvd
 
 /-! ### `B_dR⁺` is a discrete valuation ring; the period rings are domains -/

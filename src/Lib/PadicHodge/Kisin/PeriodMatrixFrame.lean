@@ -126,8 +126,8 @@ lemma exists_det_ne_zero_and_mulVec_eq_coord {Q : Matrix d d Ainf}
         π (t ⬝ᵥ x).val = 0) : ∀ i : d, π (t i).val = 0 := by
     -- `O^♭` is separated for the `π z`-adic topology, as `z = seriesMap X` is not a unit.
     have h_haus : IsHausdorff (span {π (c.seriesMap PowerSeries.X)}) OFlat :=
-      (OFlat.isHausdorff_and_shiftDiff_surjective
-        (mt Ainf.isUnit_iff_isUnit_constantCoeff.mpr c.not_isUnit_z)).left
+      OFlat.isHausdorff_span_singleton_of_not_isUnit
+        (mt Ainf.isUnit_iff_isUnit_constantCoeff.mpr c.not_isUnit_z)
     -- All coordinates of `(Q t) j` in the adic basis lie in the kernel of `π`.
     have h_coord (j : d) (i : c.adicBasis.Index) :
         π (c.adicBasis.coord i ((Q *ᵥ fun l : d ↦ (t l : Ainf)) j)).val = 0 := by
@@ -249,6 +249,7 @@ lemma not_dvd_det_of_frobenius {Q ρ : Matrix d d Ainf} {B : Matrix d d c.S}
   rw [h_zero, zero_dvd_iff, h_pow] at h_map
   exact h_map.trans (map_zero _).symm
 
+omit [DecidableEq d] in
 /-- Apply `m` to `U Z = E ^ h Q`, given `ρ m(U) = U F` and `w m(E) = E r`: then
 `U w ^ h F m(Z) = E ^ h r ^ h ρ m(Q)`. Here `m` in `FrobGal` acts entrywise on matrices. -/
 lemma mul_smul_mul_smul_eq_smul_map_of_mul_eq {U Z : Matrix d d BPlus} {Q : Matrix d d Ainf} {h : ℕ}
@@ -256,6 +257,7 @@ lemma mul_smul_mul_smul_eq_smul_map_of_mul_eq {U Z : Matrix d d BPlus} {Q : Matr
     (F : Matrix d d BPlus) (w : BPlus) (r : Ainf) (hU : ρ.map ainfToBPlus * m • U = U * F)
     (hE : w * ainfToBPlus (m • c.E.val) = ainfToBPlus (c.E.val * r)) :
     U * w ^ h • (F * m • Z) = c.E.val ^ h • (r ^ h • ρ * m • Q).map ainfToBPlus := by
+  classical
   rw [mul_smul_comm, ← mul_assoc, ← hU, mul_assoc]
   -- `m` acts on matrices entrywise, through the ring map `(toRingHom _ _ m).mapMatrix`
   change w ^ h • (ρ.map ainfToBPlus * ((toRingHom FrobGal BPlus m).mapMatrix U *

@@ -478,7 +478,7 @@ lemma New.scale_mul_le_pow {M M₀ P : ℝ} {n : ℕ} (hM : 1 ≤ M) (hM₀ : M�
     P ^ (2000 * n ^ 2) * (M₀ ^ 5 * (M * (P ^ 20 * P ^ 20)) ^ (2 * n ^ 2)) ≤
       M ^ (10 ^ 5 * n ^ 4) := by
   have h_le_pow_four : n ≤ n ^ 4 := Nat.le_self_pow four_ne_zero n
-  have h_sq_le_pow_four : n ^ 2 ≤ n ^ 4 := by nlinarith [Nat.le_self_pow two_ne_zero (n ^ 2)]
+  have h_sq_le_pow_four : n ^ 2 ≤ n ^ 4 := by linarith [Nat.le_self_pow two_ne_zero (n ^ 2)]
   subst hM₀ hP
   calc _ = M ^ (93600 * n ^ 4 + 2 * n ^ 2 + 45 * n) := by ring
     _ ≤ M ^ (10 ^ 5 * n ^ 4) := pow_le_pow_right₀ hM (by lia)

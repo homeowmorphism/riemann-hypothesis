@@ -83,8 +83,14 @@ noncomputable abbrev Core.numInfPlaces : ℕ := card (InfinitePlace K)
 lemma finrank_eq_two_mul_card_infinitePlace [IsTotallyComplex K] :
     finrank ℚ K = 2 * Core.numInfPlaces K := by simp [← sum_mult_eq, mul_comm]
 
+/-- The root discriminant of a number field is at least `1`. -/
+lemma one_le_rootDiscr : 1 ≤ rootDiscr K := by
+  have h_one : (1 : ℝ) ≤ |(discr K : ℝ)| := mod_cast Int.one_le_abs (discr_ne_zero K)
+  rw [rootDiscr_def, Int.cast_abs]
+  exact one_le_rpow h_one (by positivity)
+
 /-- The root discriminant `|disc K| ^ (1 / [K : ℚ])` of a totally complex field is positive. -/
-lemma rootDiscr_pos [IsTotallyComplex K] : 0 < rootDiscr K := by
+lemma rootDiscr_pos : 0 < rootDiscr K := by
   rw [rootDiscr_def]
   exact rpow_pos_of_pos (by simp [discr_ne_zero]) _
 
@@ -269,7 +275,7 @@ lemma prod_embeddings_eq_prod_pairs {E : Type*} [Field E] [IsTotallyComplex E] [
 
 /-- For a polynomial `P` over a totally complex field, the roots of `P` under the conjugate of an
 embedding `σ` are the complex conjugates of its roots under `σ`, with multiplicity. -/
-lemma roots_map_conjugate {E : Type*} [Field E] [IsTotallyComplex E] (P : E[X]) (σ : E →+* ℂ) :
+lemma roots_map_conjugate {E : Type*} [Field E] (P : E[X]) (σ : E →+* ℂ) :
     (P.map (conjugate σ)).roots = (P.map σ).roots.map star := by
   -- Conjugating the coefficients of a split polynomial conjugates its roots.
   have h_conj : conjugate σ = (starRingEnd ℂ).comp σ := RingHom.ext (conjugate_coe_eq σ)

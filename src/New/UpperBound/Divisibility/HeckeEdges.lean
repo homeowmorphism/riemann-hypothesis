@@ -136,7 +136,7 @@ lemma blockScaling_mem_basicDoubleCoset (q : n ≃ Fin k) (hp : l.valuation E p 
     simp [localGL, coe_blockScaling, s, ϖ, Fin.lt_def, diagonal_apply, apply_ite Units.val,
       apply_ite (algebraMap E (LocField l))]
   simpa [h_diag, s] using
-    (diagGL_mem_basicDoubleCoset (ϖ := ϖ) ((v_algebraMap_eq_valuation (p : E)).trans hp) s).1
+    diagGL_ite_mem_basicDoubleCoset (ϖ := ϖ) ((v_algebraMap_eq_valuation (p : E)).trans hp) s
 
 /-- Over a local ring `W`, a matrix is parahoric for the blocks of sizes `r` and `k - r` exactly if
 its entries at `(i, j)` with `i < r ≤ j` lie in the maximal ideal. -/

@@ -1,5 +1,6 @@
 module
 
+public import Lib.Adelic.AutomorphicForms.BlockPeriods
 public import New.Determinant.AuxiliaryForms.GridFirstColumns
 public import New.Determinant.AuxiliaryForms.RegularParameters
 
@@ -82,8 +83,8 @@ of the weight `(κ₀, e₀)` of `GL n`, where `#n' = #n + 1`. If `l` and `l'` i
 highest weights interlace: entry `q` of the highest weight of `(κ₀, e₀)` lies between the entries
 `q + 1` and `q` of that of `(κ, e)`. An entry is the exponent of the determinant plus a row length
 `diagramWeight`. -/
-lemma add_diagramWeight_mem_Icc_of_interlace {n n' : Type} [DecidableEq Φ] [Fintype n]
-    [DecidableEq n] [Fintype n'] [DecidableEq n'] {l : Φ → n → ℤ} {l' : Φ → n' → ℤ}
+lemma add_diagramWeight_mem_Icc_of_interlace {n n' : Type} [Fintype n]
+    [Fintype n'] {l : Φ → n → ℤ} {l' : Φ → n' → ℤ}
     (hn : card n' = card n + 1) (hl' : IsHCParam κ e l') (hl : IsHCParam κ₀ e₀ l)
     (h_interlace : ∀ (w : Φ) (x : ℤ),
       (#{j : n' | x < l' w j} - #{i : n | x < l w i} : ℤ) ∈ Icc 0 1)
@@ -287,8 +288,8 @@ lemma exists_isBranchingPairing [DecidableEq n'] [DecidableEq n] [Nonempty n]
     grw [Int.natAbs_add_le, Int.natAbs_natCast, h_row, h_term]
   · calc ‖v' ⬝ᵥ (A * b).map (↑) *ᵥ v‖
         ≤ √(weylNormSq v' * weylNormSq (b.map (↑) *ᵥ v)) := by
-          rw [map_intCast_mul_mulVec]
-          exact norm_dotProduct_mulVec_le_of_isDualPairing hA v' _
+          simpa only [map_intCast_mul_mulVec] using
+            norm_dotProduct_mulVec_le_of_isDualPairing hA v' (b.map (↑) *ᵥ v)
       _ ≤ √(weylNormSq v' * (((M ^ M) ^ 3) ^ 2 * weylNormSq v)) := by
           grw [hb_norm M (by simpa using h_boxes.trans hM) v]
           simp
@@ -619,8 +620,8 @@ residue fields that gives it on integral finite points, is `gridTamePart ϑ z j`
 lemma gridChar_hasWeight_lastPathDetExp :
     (gridChar ϑ z j (D.LastPathIndex z j)).HasWeight (D.lastPathDetExp z (j + 1))
       (gridTamePart ϑ z j) := by
-  rw [← D.gridWeight_eq_lastPathDetExp z j]
-  exact gridChar_hasWeight ϑ z j (D.LastPathIndex z j)
+  simpa only [D.gridWeight_eq_lastPathDetExp z j] using
+    gridChar_hasWeight ϑ z j (D.LastPathIndex z j)
 
 /-- The theta kernel of the edge from `(z, j, m)` to `(z, j + 1, m)`, for the characters `gridChar`
 at the two ends and the level at `(z, j, m)`. The derivatives in the Taylor series of the theta

@@ -7,6 +7,7 @@ public import TauCeti.NumberTheory.Bernoulli.Basic
 public import TauCeti.NumberTheory.DirichletCharacter.LFunction.TrivialZeros
 public import TauCeti.NumberTheory.MulChar.Basic
 public import TauCeti.NumberTheory.MulChar.Orthogonality
+import TauCeti.NumberTheory.ZetaValues
 
 /-!
 # A small nonzero integer in all Stickelberger ideals via Voronoi's congruence
@@ -268,34 +269,6 @@ lemma det_ne_zero_of_forall_sum_mul_ne_zero (g : (ZMod N)ˣ → ℂ)
   rw [sum_eq_zero fun χ _ ↦ by rw [h_orth χ⁻¹, mul_zero]] at h
   exact (mul_eq_zero.1 h).resolve_left (Nat.cast_ne_zero.2 Nat.card_pos.ne')
 
-/-- For `e ≥ 1` and `0 ≤ x ≤ 1`, the Bernoulli function satisfies `|B_{e+1}(x)| < 17 (e + 1)!`,
-by its Fourier series. -/
-lemma abs_bernoulliFun_lt (he_ne : e ≠ 0) {x : ℝ} (hx : x ∈ Set.Icc 0 1) :
-    |bernoulliFun (e + 1) x| < (e + 1)! * 17 := by
-  -- The Fourier series gives `(2π)^(e+1) |B_{e+1}(x)| ≤ (e+1)! π²`, and `π² < 17`.
-  have h_fourier :
-      ‖-(2 * π * I) ^ (e + 1) / (e + 1)! * bernoulliFun (e + 1) x‖ ≤ π ^ 2 / 6 * 6 := by
-    refine (hasSum_one_div_nat_pow_mul_fourier (by omega) hx).norm_le_of_bounded
-      (hasSum_zeta_two.mul_right 6) fun n ↦ ?_
-    grw [norm_mul, norm_add_le]
-    cases n with
-    | zero => simp
-    | succ k =>
-      -- `fourier` has norm `1`, and `(k + 1) ^ (e + 1) ≥ (k + 1) ^ 2` as `e ≥ 1`.
-      simp [norm_exp, -Nat.cast_add]
-      bound [he_ne.pos]
-  have h_bound : (2 * |π|) ^ (e + 1) * |bernoulliFun (e + 1) x| ≤ (e + 1)! * π ^ 2 := by
-    simpa [field] using h_fourier
-  have h_base : 1 ≤ (2 * |π|) ^ (e + 1) :=
-    one_le_pow₀ (by linarith [two_le_pi, le_abs_self π])
-  calc |bernoulliFun (e + 1) x|
-      ≤ (2 * |π|) ^ (e + 1) * |bernoulliFun (e + 1) x| :=
-        le_mul_of_one_le_left (abs_nonneg _) h_base
-    _ ≤ (e + 1)! * π ^ 2 := h_bound
-    _ < (e + 1)! * 17 := by
-      gcongr
-      nlinarith [pi_le_four, pi_pos]
-
 omit [NeZero N] in
 /-- For a prime `l`, one of `c = 1 + N` and `c = 1 + 2 N` is prime to `l`. This `c` is `≡ 1 mod N`,
 and `(c ^ e - 1) (c ^ (e + 1) - 1)` divides, for every `Y`,
@@ -386,7 +359,10 @@ lemma exists_isStickelbergerBound (he : e ≠ 0) :
   · simpa [X, tsub_eq_zero_iff_le, add_assoc, hN, he] using hT_ne
   · have hb_lt (t : ℕ) (ht : t ≤ N) : |b t| < M * 17 := by
       have h_bound : |bernoulliFun (e + 1) (t / N)| < (e + 1)! * 17 :=
-        abs_bernoulliFun_lt e he ⟨by positivity, div_le_one_of_le₀ (mod_cast ht) (by positivity)⟩
+        (TauCeti.abs_bernoulliFun_le_four_mul_factorial_div _
+          ⟨by positivity, div_le_one_of_le₀ (mod_cast ht) (by positivity)⟩).trans_lt <|
+          (_root_.div_le_self (by positivity) (one_le_pow₀ (by linarith [two_le_pi]))).trans_lt
+            (by linarith [show (0 : ℝ) < (e + 1)! by positivity])
       simpa [← Int.cast_lt (R := ℝ), M, hb ℝ, abs_mul, mul_assoc, bernoulliFun] using
         mul_lt_mul_of_pos_left h_bound (by positivity : (0 : ℝ) < (e + 2)! * N ^ (e + 1))
     -- The entries of `T` are at most `34 M + 2 ≤ 64 M`.

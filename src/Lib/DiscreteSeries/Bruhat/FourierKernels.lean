@@ -1,6 +1,5 @@
 module
 
-public import Mathlib.Probability.Kernel.Composition.IntegralCompProd
 public import Lib.DiscreteSeries.Bruhat.FloorMeasures
 public import Lib.DiscreteSeries.Bruhat.QuadricBlocks
 
@@ -357,7 +356,6 @@ lemma IsSolvedIn.exists_blockChart (h : IsSolvedIn blk ρ R M)
       e ∘ inl ∘ inr = inner ∧ e ∘ inr = blk ∧ card η = card κ - card ι - card B ∧
       MeasurePreserving (blockChart e) ((volume.prod volume) ⊗ₘ ζ) ρ ∧
       ∀ q : (η → A) × (ι → A), ζ q (coordinateBox B R) ≤ M := by
-  classical
   obtain ⟨η₀, _, e₀, ζ, rfl, _, h_chart, h_mass⟩ := h
   -- Each inner index is a free index `j i`, and `f` lists the free indices.
   have h_free (i : ι) : ∃ k : η₀, e₀ (inl k) = inner i := by

@@ -285,10 +285,11 @@ lemma jump_tateDual (h : IsPotentiallyCrystalline L.ρ) (γ : O →ₐ[ℤ_[p]] 
 
 /-- A lattice `Y` with jointly injective equivariant `O`-linear maps to finitely many lattices of a
 class lies in that class. -/
-lemma InClass.of_jointly_injective [IsDomain O] {ι : Type*} [Fintype ι] {M : ι → GalLattice O Γ}
+lemma InClass.of_jointly_injective [IsDomain O] {ι : Type*} [Finite ι] {M : ι → GalLattice O Γ}
     (h : ∀ a : ι, InClass F K U (M a)) (f : ∀ a : ι, Y →ₗ[O] M a)
     (hf : ∀ (a : ι) (g : Γ) (x : Y), f a (Y.ρ g x) = (M a).ρ g (f a x))
     (h_inj : ∀ x : Y, (∀ a : ι, f a x = 0) → x = 0) : InClass F K U Y := by
+  have := Fintype.ofFinite ι
   refine ⟨?_, fun g u hu ↦ ?_, fun s Q hK hs ↦ ?_⟩
   · exact .of_jointly_injective le_sup_left (fun a ↦ (h a).isAdmissible) (fun a ↦ f a)
       (fun a ↦ .of_forall (hf a)) h_inj
@@ -340,7 +341,7 @@ lemma InClass.tensor (h : InClass F K U Y) (h' : InClass F K' U' L) :
   -- product has Hodge–Tate rows for the tensor product with jumps `k a + l b`.
   obtain ⟨P, k, hPk, hk, -⟩ := h.isPotentiallyCrystalline.exists_isHodgeTateFrame (finBasis ..) g
   obtain ⟨Q, l, hQl, hl, -⟩ := h'.isPotentiallyCrystalline.exists_isHodgeTateFrame (finBasis ..) g
-  have jumps : HasJumps (Y.tensor L).ρ g (Finset.univ.1.map (k · + l ·).uncurry) := by
+  have jumps : HasJumps (Y.tensor L).ρ g (Finset.univ.val.map (k · + l ·).uncurry) := by
     refine (hasJumps_of_rows ((finBasis O Y).tensorProduct (finBasis O L)) (kroneckerGL P⁻¹ Q⁻¹) _
       ?_).1
     filter_upwards [hPk, hQl] with x hPx hQx ⟨a, b⟩ ⟨a', b'⟩

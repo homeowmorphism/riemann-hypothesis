@@ -467,12 +467,8 @@ lemma sum_translate_eq_gluedDatum [hP : IsSplitLevel P N] (hS : IsSplitLevel S N
   -- `t - b / N` and `r - b̄ / N` integral at `P`, and its term is `ψ₀ (-r ⬝ t)`.
   let j : 𝔸f E := idem P
   let p : 𝔸f E := 1 + idem S * ((N : 𝔸f E) - 1)
-  have h_class (i : n') : ∃ b : S → ZMod N, ∀ y : S → ZMod N,
-      j * (T (i, .inr ()) - residueOverN y) ∈ Ô E ∧
-        j * (R (.inr (), i) - star (residueOverN y)) ∈ Ô E ↔
-      (j * (T (i, .inr ()) * p) ∈ Ô E ∧ j * ((N + 1 - p) * R (.inr (), i)) ∈ Ô E) ∧ b = y :=
-    hP.exists_sub_mem_and_sub_star_mem_iff hS rfl _ _
-  choose b hb using h_class
+  choose b hb using fun i : n' ↦
+    hP.exists_sub_mem_and_sub_star_mem_iff hS (p := p) rfl (T (i, .inr ())) (R (.inr (), i))
   have hD_S : (diagN n S).val = diagonal fun i ↦ evalPlaces P (if i.isLeft then 1 else p) := by
     simp +contextual [diagN, funext_iff, apply_ite, p, idem_apply]
   have hD_PS : (diagN m (P \ S)).val =

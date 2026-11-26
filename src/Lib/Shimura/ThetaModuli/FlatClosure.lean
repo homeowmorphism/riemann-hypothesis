@@ -680,7 +680,7 @@ lies in the kernel of `u` exactly when, for every `a` and every `ψ : stalk → 
 factors, the image of `f` under `ψ` vanishes at every point `θ a v / (θ a v) c` with
 `(θ a v) c ≠ 0`. -/
 lemma IsChartPresentation.mem_ker_stalk_iff {J W ι : Type} [Finite ι] {A S : Scheme} [IsReduced A]
-    [IsReduced S] {N : LineBundle A J} {z : A ⟶ S} {p : S} {c : J}
+    {N : LineBundle A J} {z : A ⟶ S} {p : S} {c : J}
     {u : MvPolynomial J (S.presheaf.stalk p) →+*
       Γ(pullback z (S.fromSpecStalk p), (N.pull (fst z (S.fromSpecStalk p))).opens c)}
     (hu : IsChartPresentation (N.pull (fst z (S.fromSpecStalk p))) (snd z (S.fromSpecStalk p)) c u)

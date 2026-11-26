@@ -279,7 +279,7 @@ lemma dataInner_traceChar {𝔪 : Modulus E} (t : Matrix n n' 𝔪.ResidueRing)
   · rw [modDatum, modDatum, rho_integrated_realCoord, dataInner_integrated, h_char,
       𝔪.schrodingerOp_char_eq_translate_projOn, rho_swap, map_smul]
     -- ↓ rewrites operators on integrated vectors before their arguments are simplified.
-    simp [y, zf, finVec, ↓← rho_integrated, vacuumFn]
+    simp [y, zf, finVec, ↓← rho_integrated]
   by_cases hz : ∀ i, finCoord z i ∈ Ô E
   · -- The phase of `ϱ zf` past `ϱ y` is the lift of `traceChar t` at `α⁻¹ z_f`.
     have h_beta : ((adelicHeisenberg E (homSigns s s')).β zf y : ℂ) ^ 2 =
@@ -573,7 +573,7 @@ theorem exists_norm_modKernel_sub_fockInner_le [Nonempty n] [Nonempty n']
           (len y)⁻¹ ^ (2 * q) := by
     calc _ ≤ ‖fockInner v (realHeisenbergOp (realCoord (x y)) (realWeil σ v))‖ := by
           rw [term_eq]
-          split_ifs <;> simp [w, σ, χ, realPairWeil, prod_mul_distrib, norm_coe]
+          split_ifs <;> simp [w, σ, realPairWeil, prod_mul_distrib, norm_coe]
       _ ≤ _ := norm_fockInner_realHeisenbergOp_le σ hv hQ le_rfl (hm_pos.trans_le (h_far y))
   have h_zero : term 0 = fockInner v w := by
     simp [term_eq, x, χ, finCoord, ← ZeroMemClass.zero_def, realCoord.eq_unfold, ← Pi.zero_def]
@@ -620,7 +620,7 @@ namespace New.Rows
 
 /-- A point of the archimedean unitary group has operator norm at least `1` at every place, so the
 largest of these norms is at least `1`. -/
-@[bound] theorem one_le_maxOpNorm {E n : Type} [Field E] [NumberField E] [IsCMField E] [Fintype n]
+@[bound] theorem one_le_maxOpNorm {E n : Type} [Field E] [NumberField E] [Fintype n]
     [DecidableEq n] [Nonempty n] {s : n → ℤˣ} (h : GInf E s) : 1 ≤ maxOpNorm h := by
   obtain ⟨w⟩ : Nonempty (InfinitePlace E) := inferInstance
   exact (U.one_le_norm (h w)).trans (norm_le_pi_norm (fun w ↦ (h w : Matrix n n ℂ)) w)
@@ -796,8 +796,8 @@ lemma integral_norm_holMinorsPi_sq_pos (h_rank : card n ≤ D.t) (ho : IsPosFirs
   obtain ⟨hl_gap, hl_coeff⟩ : (∀ τ : D.Φ, (l τ).HasLargeGap (8 * nStar D)) ∧
       ∀ (τ : D.Φ) (g : USign s), (l τ).dsCoeff g = holMinors s (u τ) g :=
     forall_and.1 fun τ ↦ hasLargeGap_and_dsCoeff_eq_holMinors h_rank ho (hu_dom τ) (hu_gap τ)
-  rw [integral_norm_holMinorsPi_sq_eq_inv_prod hl_coeff]
-  exact inv_pos.2 (prod_pos fun τ _ ↦ formalDegree_pos (hl_gap τ))
+  simpa only [integral_norm_holMinorsPi_sq_eq_inv_prod hl_coeff, inv_pos] using
+    (prod_pos fun τ _ ↦ formalDegree_pos (hl_gap τ))
 
 /-- Let `D` be admissible data, `b = D.b`, `t = D.t`, `n_* = nStar D`, and let the rank satisfy
 `1 ≤ n ≤ t`. Let the order `o` put the signs `+1` first. Let the weights `u τ`, `u' τ` at the

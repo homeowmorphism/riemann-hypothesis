@@ -4,7 +4,9 @@ public import Lib.General.Analysis.GaussianIntegral
 public import Lib.General.Groups.CongruenceSubgroups
 public import Lib.General.Measure.HaarNormalisation
 public import Lib.General.Topology
+public import TauCeti.Analysis.MvPolynomial.Jacobian
 import TauCeti.Analysis.Complex.CauchyIntegralPolydisc
+import TauCeti.MeasureTheory.Function.StronglyMeasurable.FiniteDimensional
 
 /-!
 # Strong operator integrals, analyticity of parameter integrals, and Hua's integral bound
@@ -14,8 +16,7 @@ measurability in the operator norm is needed. In the results on analytic familie
 finite-dimensional complex normed space, K a compact R₁ space and f : E → K → ℂ a family of
 functions on K with parameter in E. The file also contains the Schwarz lemma in normed spaces,
 holomorphy of dominated parameter integrals, a uniqueness result for analytic functions along
-submersions, and Euler's beta integral together with Hua's bound for negative powers of
-determinants.
+submersions, and Hua's bound for negative powers of determinants.
 
 ## Main definitions and results
 
@@ -134,7 +135,7 @@ variable {E F K : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [FiniteDimen
 functionals `evalCLM ℂ k : g ↦ g k` (see `New.strongIntegral`) sends a continuous f : K → ℂ to
 ∫ f dμ. -/
 lemma strongIntegral_eval {mK : MeasurableSpace K} [BorelSpace K] (μ : Measure K)
-    [IsFiniteMeasure μ] [R1Space K] (f : C(K, ℂ)) :
+    [IsFiniteMeasure μ] (f : C(K, ℂ)) :
     strongIntegral μ (evalCLM ℂ) f = ∫ k : K, f k ∂μ :=
   strongIntegral_apply μ (evalCLM ℂ) (fun g ↦ (g.memLp μ ℂ).integrable le_rfl) f
 
@@ -144,11 +145,11 @@ def DiscreteSeries.IsAnalyticFamily (f : E → K → ℂ) (a : E) : Prop :=
   ∃ g : E → C(K, ℂ), AnalyticAt ℂ g a ∧ ∀ᶠ x : E in nhds a, g x = f x
 
 omit [FiniteDimensional ℂ E] in
-/-- Let E be a complex normed space, K a compact R₁ space and μ a finite Borel
+/-- Let E be a complex normed space, K a compact space and μ a finite Borel
 measure on K. If x ↦ f(x, ·) is analytic at p ∈ E as a map to C(K, ℂ) (`IsAnalyticFamily f p`), then
 its integral against μ is an analytic function of x at p. -/
 lemma DiscreteSeries.IsAnalyticFamily.analyticAt_integral {mK : MeasurableSpace K} [BorelSpace K]
-    (μ : Measure K) [IsFiniteMeasure μ] [R1Space K] (hf : IsAnalyticFamily f p) :
+    (μ : Measure K) [IsFiniteMeasure μ] (hf : IsAnalyticFamily f p) :
     AnalyticAt ℂ (fun x : E ↦ ∫ k : K, f x k ∂μ) p := by
   obtain ⟨g, hg, h_eq⟩ := hf
   -- The integral is the continuous functional `strongIntegral μ (evalCLM ℂ)` applied to `g`.
@@ -302,14 +303,8 @@ lemma analyticAt_of_eventually_differentiableAt [FiniteDimensional ℂ F] {f : E
 derivative v ↦ ∑ᵢ (∂P/∂Xᵢ)(x)·vᵢ, given by the formal partial derivatives. -/
 @[fun_prop]
 lemma hasFDerivAt_mvPolynomial_eval {ι : Type*} [Fintype ι] (P : MvPolynomial ι ℂ) (x : ι → ℂ) :
-    HasFDerivAt (𝕜 := ℂ) (P.eval ·) (∑ i : ι, (P.pderiv i).eval x • .proj i) x := by
-  classical
-  induction P using MvPolynomial.induction_on with
-  | C a => simpa using hasFDerivAt_const a x
-  | add P Q hP hQ => simpa [add_smul, sum_add_distrib] using hP.fun_add hQ
-  | mul_X P i hP =>
-    simpa [add_smul, sum_add_distrib, Pi.single_apply, mul_smul, ← smul_sum, apply_ite] using
-      hP.fun_mul (hasFDerivAt_apply i x)
+    HasFDerivAt (𝕜 := ℂ) (P.eval ·) (∑ i : ι, (P.pderiv i).eval x • .proj i) x :=
+  P.hasFDerivAt_eval x
 
 end New
 
@@ -354,21 +349,6 @@ lemma New.norm_sub_le_of_holomorphic_bdd {f : E → F} {c : E} {r B : ℝ}
       ((norm_sub_le_of_le (hf_bound w hw) (hf_bound c hc)).trans_eq (two_mul B).symm)
   simpa [dist_eq_norm] using dist_le_div_mul_dist_of_mapsTo_ball hf_diff h_maps hz
 
-/-- A family `A` of bounded operators on a finite-dimensional space `E` is a.e. strongly measurable
-if `x ↦ A x y` is so for every vector `y`. -/
-lemma New.aestronglyMeasurable_clm_of_apply [FiniteDimensional ℂ E] {A : X → E →L[ℂ] F}
-    (hA : ∀ y : E, AEStronglyMeasurable (fun x : X ↦ A x y) μ) :
-    AEStronglyMeasurable A μ := by
-  -- With a basis `b` of `E`, the operator `A x` is the sum of the rank-one operators
-  -- `y ↦ (i-th coordinate of y) • A x (b i)`.
-  let b : Basis (Fin (finrank ℂ E)) ℂ E := finBasis ℂ E
-  let rankOne (i : Fin (finrank ℂ E)) : F →L[ℂ] E →L[ℂ] F :=
-    ContinuousLinearMap.smulRightL ℂ ℂ ℂ E F (b.coord i).toContinuousLinearMap
-  have h_sum (x : X) : ∑ i, rankOne i (A x (b i)) = A x :=
-    ContinuousLinearMap.coe_injective (b.ext fun i ↦ by simp [rankOne, Finsupp.single_apply])
-  exact (Finset.aestronglyMeasurable_fun_sum _ fun i _ ↦
-    (rankOne i).continuous.comp_aestronglyMeasurable (hA (b i))).congr (.of_forall h_sum)
-
 /-- Holomorphy of a parameter integral, the parameter `w` lying in a finite-dimensional space `E`.
 Let each `f w : X → F` be a.e. strongly measurable for the measure `μ`, and for all `w` near `z`
 and all `x` let `f · x` be complex differentiable at `w` with `‖f w x‖ ≤ g x`, `g` integrable.
@@ -399,7 +379,7 @@ lemma New.eventually_differentiableAt_integral {f : E → X → F} {z : E} {g : 
   have h_hasFDerivAt :
       HasFDerivAt (fun u : E ↦ ∫ x, f u x ∂μ) (∫ x, fderiv ℂ (f · x) w ∂μ) w :=
     (hasFDerivAt_integral_of_dominated_loc_of_lip' (ball_mem_nhds w hr) (fun u _ ↦ hf u) h_int
-      (aestronglyMeasurable_clm_of_apply h_dir) h_lip (by fun_prop) h_deriv).2
+      (TauCeti.aestronglyMeasurable_clm_apply_iff.mpr h_dir) h_lip (by fun_prop) h_deriv).2
   exact h_hasFDerivAt.differentiableAt
 
 /-- A Mellin integral that converges at two points converges between them. Let N > 0 be a
@@ -475,7 +455,7 @@ lemma New.eq_zero_of_submersion {E F : Type*} [NormedAddCommGroup E] [NormedSpac
   exact congrFun (hG.eq_of_eventuallyEq analyticOnNhd_const h_near) y
 
 /-!
-## Euler's beta integral and Hua's integral bound
+## Hua's integral bound
 
 The integrals are lower Lebesgue integrals with values in `[0, ∞]`.
 -/
@@ -483,24 +463,6 @@ The integrals are lower Lebesgue integrals with values in `[0, ∞]`.
 section HuaIntegral
 
 open ComplexOrder Fintype Function Matrix MatrixOrder MeasureTheory Real
-
-/-- Euler's beta integral: for Im z > 0 and s > 1/2, the integral over real t of |z + t|^{−2s}
-equals √π Γ(s − 1/2)/Γ(s) · (Im z)^{−(2s−1)}. -/
-lemma New.lintegral_norm_add_rpow (z : ℂ) {s : ℝ} (hz : 0 < z.im) (hs : 1 / 2 < s) :
-    ∫⁻ t : ℝ, ENNReal.ofReal (‖z + t‖ ^ (-2 * s)) =
-      ENNReal.ofReal (√π * Gamma (s - 1 / 2) / Gamma s * z.im ^ (-(2 * s - 1))) := by
-  -- After the shift by `z.re` the integrand is `(z.im ^ 2 + t ^ 2)⁻¹ ^ s`.
-  have shift (t : ℝ) : ‖z + ↑(t - z.re)‖ ^ (-2 * s) = (z.im ^ 2 + t ^ 2)⁻¹ ^ s := by
-    simp (disch := positivity) [rpow_neg, rpow_mul, Complex.norm_eq_sqrt_sq_add_sq, add_comm,
-      inv_rpow]
-  rw [← lintegral_sub_right_eq_self _ z.re]
-  simp_rw [shift]
-  rw [lintegral_inv_add_rpow (pow_pos hz 2) hs sq_nonneg (by bound)]
-  have im_pow : (1 / z.im ^ 2) ^ (s - 1 / 2) = z.im ^ (-(2 * s - 1)) := by
-    rw [one_div, inv_rpow (by positivity), ← rpow_natCast_mul hz.le, ← rpow_neg hz.le]
-    norm_num [mul_sub]
-  rw [← sqrt_eq_rpow π, im_pow]
-  ring_nf
 
 /-- For a square matrix C over ℂ and a row vector y, |det (C⋆C + (yC)⋆(yC))| = |det C|² (1 + |y|²),
 where ⋆ is the conjugate transpose. -/

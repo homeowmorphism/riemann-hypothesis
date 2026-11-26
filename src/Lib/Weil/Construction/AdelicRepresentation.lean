@@ -275,7 +275,7 @@ end Space
 that multiplies the coordinates at τ by (2π Im τ(ȷ))^(−1/2), ȷ being the element `j` of the Weil
 data, and puts zero at the finite places. -/
 def realVec : (InfinitePlace E × n → ℂ) →+ n → 𝔸 E :=
-  AddMonoidHom.mk' (fun y i ↦ ((scaleIdele E).1.1 * fun w ↦ y (w, i), 0)) <| by
+  AddMonoidHom.mk' (fun y i ↦ ((scaleIdele E).val.1 * fun w ↦ y (w, i), 0)) <| by
     simp [mul_add, funext_iff]
 
 /-- The archimedean part of an adelic vector y in Fock coordinates: the complex numbers (2π Im
@@ -383,9 +383,10 @@ lemma dataInner_vacElem_vacElem : V.dataInner V.vacElem V.vacElem = 1 := by
 `y`. -/
 lemma dataInner_vacElem_rho_vacElem : V.dataInner V.vacElem (V.ϱ y V.vacElem) = vacuumFn y := by
   -- Conjugating swaps the arguments, the reproducing property gives the value of the vacuum
-  -- function at `y`, and that function is real. `erw`: the rewrites must see through `V.dataInner`,
-  -- `V.ϱ` and `V.vacElem`.
-  erw [← conj_modelInner, modelInner_heisenbergOp_vacElem, (adelicSum E s).isVacuum.conj_apply]
+  -- function at `y`, and that function is real.
+  exact (conj_modelInner ..).symm.trans <|
+    (congrArg conj (modelInner_heisenbergOp_vacElem ..)).trans <|
+      (adelicSum E s).isVacuum.conj_apply ..
 
 /-- For a hermitian space `V` over a CM field `E` with Weil data, and `g` in the adelic unitary
 group `G E s`, let `vacElem` be the vacuum vector of `𝒮 V` (a Gaussian times a twisted lattice
@@ -397,8 +398,7 @@ lemma dataInner_vacElem_omega_vacElem :
   -- Pairing with the vacuum evaluates `ω g vacElem` at `0`.
   have h_eval : V.dataInner V.vacElem (V.ω g V.vacElem) =
       weilRep adelicAction g Heisenberg.IsVacuum.vacElem 0 := modelInner_vacElem ..
-  rw [h_eval]
-  exact eq_inv_of_mul_eq_one_right (conj_delta_mul_weilRep_vacElem adelicAction g)
+  exact h_eval.trans (eq_inv_of_mul_eq_one_right (conj_delta_mul_weilRep_vacElem adelicAction g))
 
 /-- The operator norm of `ω g` is at most the norm of the vacuum times `|Δ g|`. -/
 lemma norm_omega_le : ‖V.ω g‖ ≤ ‖V.vacElem‖ * ‖weilMultiplier g‖ :=
@@ -490,7 +490,7 @@ lemma beta_vecAtPoint_eq_one (x y : n → E) :
 Heisenberg operators: ℓ(ρ(γ)v) = ℓ(v) for all v and all γ in `V.ratVectors`, where ρ(γ) =
 `heisenbergOp γ` is the Heisenberg operator of γ. -/
 def IsRatInvariant : Prop :=
-  ∀ᵉ (γ ∈ V.ratVectors) (v : Model (adelicHeisenberg E s)), ℓ (heisenbergOp γ v) = ℓ v
+  ∀ γ ∈ V.ratVectors, ∀ v : Model (adelicHeisenberg E s), ℓ (heisenbergOp γ v) = ℓ v
 
 /-- A theta functional of V: a bounded functional θ on `Model (adelicHeisenberg E s)` such that
 (1) θ is invariant under the rational Heisenberg operators (`IsRatInvariant`), and

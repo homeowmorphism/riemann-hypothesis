@@ -185,7 +185,7 @@ lemma val_reduction_of_eq_smul_one {z : S.latticeStabilizer} {ζ : Ô E}
     (S.reduction z i w).val = New.reduceAt (w : FinPlace E) ζ • 1 := by
   ext a b
   change New.reduceAt (w : FinPlace E) ⟨((z : S.GFin) : GL 𝔰.BesselIndex (𝔸f E)).val a b, _⟩ = _
-  by_cases hab : a = b <;> simp [hz, hab, ← ZeroMemClass.zero_def]
+  by_cases hab : a = b <;> simp [hz, hab]
 
 /-- The classes `c`, `c'` are double cosets of the unitary group of the middle space `X₀`, with
 representatives `h_c`, `h_c'`; a rational `γ` lies over the block `(c, s, c')` (`termsOver`) if
@@ -299,14 +299,14 @@ lemma amplitudeSum_besselS_eq_zero {side : FullOrCut} {s : S.ResidueGL}
 
 /-- The complement of the Bessel subgroup is stable under multiplication by the unipotent group
 `besselU` on both sides. -/
-lemma isStable_compl_besselS [HasPrimitiveRoot5040 E] :
+lemma isStable_compl_besselS :
     S.IsStable ((S.ratMiddle E).besselS : Set (S.G E))ᶜ :=
   fun u hu u' hu' γ ↦ (S.isStable_besselS u hu u' hu' γ).not
 
-/-- Let `E` contain a primitive `5040`-th root of unity and let the filling `S` be admissible
-(`IsAdmissible`). An integral `ζ ∈ E` with `ζ ζ̄ = 1` that is `1` modulo every place of
+/-- Let `E` contain a primitive `5040`-th root of unity. An integral `ζ ∈ E`
+with `ζ ζ̄ = 1` that is `1` modulo every place of
 `chosenPlaces i`, the finite places of norm `p_i = levelPrime i` chosen in `S`, is `1`. -/
-lemma eq_one_of_reduceAt_scalar_eq_one [HasPrimitiveRoot5040 E] [S.IsAdmissible] {ζ : E}
+lemma eq_one_of_reduceAt_scalar_eq_one [HasPrimitiveRoot5040 E] {ζ : E}
     (hζ : ζ * star ζ = 1) (h_int : (ζ : 𝔸f E) ∈ Ô E) (i : Fin 2)
     (h_residue : ∀ w : S.chosenPlaces i, New.reduceAt (w : FinPlace E) ⟨ζ, h_int⟩ = 1) : ζ = 1 := by
   -- View `ζ` as an isometry `z` of the standard lattice of rank one and apply freeness to it.
@@ -405,18 +405,12 @@ lemma exists_unitary_besselFn_mul {side : FullOrCut} {γ : S.G E} (hγ : γ ∈ 
     ∃ M ∈ unitaryGroup S.BesselCoord ℂ, ∀ y : NumberField.InfinitePlace E → 𝔰.G₁,
       S.besselFn side (S.ratToInf γ * y) = M *ᵥ S.besselFn side y := by
   obtain ⟨u, hu, η, hη, rfl⟩ := mem_besselS.1 hγ
-  have h_comp (v : NumberField.InfinitePlace E) :
-      ∃ k : U (1 : Matrix 𝔰.κ 𝔰.κ ℂ), S.ratToInf η v = RealPlace.embedH k :=
-    exists_eq_toBesselH (hη.ratToInf_mem_agreeWithOneOn v) isUnit_one
-  choose k hk using h_comp
-  let M : Matrix S.BesselCoord S.BesselCoord ℂ := (S.unipotentChar (S.ratToFin u))⁻¹ •
-    kroneckerPi fun v : NumberField.InfinitePlace E ↦ ((S.besselSystem v).rep (k v)).1
-  refine ⟨M, ?_, besselFn_mul_of_eq_embedH hu hk⟩
+  choose k hk using fun v ↦ exists_eq_toBesselH (hη.ratToInf_mem_agreeWithOneOn v) isUnit_one
+  refine ⟨_, ?_, besselFn_mul_of_eq_embedH hu hk⟩
   -- A scalar of modulus one times a tensor product of unitary matrices is unitary.
   have h_star : star (kroneckerPi fun v ↦ ((S.besselSystem v).rep (k v)).1) =
-      kroneckerPi fun v ↦ star ((S.besselSystem v).rep (k v)).1 := by
-    ext
-    simp [kroneckerPi]
+      kroneckerPi fun v ↦ star ((S.besselSystem v).rep (k v)).1 :=
+    Matrix.ext fun _ _ ↦ by simp [kroneckerPi]
   have h_norm : ‖S.unipotentChar (S.ratToFin u)‖ = 1 := norm_selfDualChar
   rw [mem_unitaryGroup_iff, star_smul, smul_mul_smul_comm, h_star, ← kroneckerPi_mul,
     Complex.star_def, mul_conj', norm_inv, h_norm]
@@ -505,7 +499,8 @@ lemma amplitudeSum_mul_inv_apply [HasPrimitiveRoot5040 E] [S.IsAdmissible] {T : 
   have h_kernel (γ : S.G E) (y : NumberField.InfinitePlace E → 𝔰.G₁) :
       S.besselKernel .full (1 * γ * δ⁻¹) (S.ratToInf 1 * y) = L (S.besselKernel .full γ y) := by
     ext ⟨a, b⟩
-    simp [hL, besselKernel, mul_assoc, hN, mulVec, dotProduct, mul_sum, mul_left_comm]
+    simp [hL, besselKernel, mul_assoc, hN, mulVec, dotProduct, mul_sum]
+    exact Finset.sum_congr rfl fun _ _ ↦ mul_left_comm ..
   have h_move : S.amplitudeSum .full T c (s * t⁻¹) d = L (S.amplitudeSum .full T c s d') := by
     simpa using amplitudeSum_mul_mul_inv hT (one_mem _) (S.classUnipotent c).one_mem.2 hδ hδ_over
       (by simpa using hT_mul_inv) L h_kernel s
@@ -593,12 +588,11 @@ theorem sqrt_secondMoment_compl_besselS_le [HasPrimitiveRoot5040 E] [S.IsAdmissi
     _ = √C + 2 * (S.b ^ 5)⁻¹ * ((S.b ^ 15)⁻¹ * √S.identitySecondMoment) := by ring
     _ ≤ √C + (S.b ^ 15)⁻¹ * √S.identitySecondMoment := by grw [h_small, one_mul]
 
-/-- Let `E` contain a primitive `5040`-th root of unity and let the filling `S` be admissible
-(`IsAdmissible`). Let `s` coincide, at the chosen places above `p_i = levelPrime i`, with an element
-`t` of `reducedImage besselS`, the reduction of the Bessel subgroup. Then the product of the norms
+/-- Let `s` coincide at the chosen places above `p_i = levelPrime i` with an element `t` of
+`reducedImage besselS`, the reduction of the Bessel subgroup. Then the product of the norms
 `p_i` of these places and their conjugates is at most `meetNorm s`, the product of the norms of the
 places at which `s` meets, as `s` meets at each of them. -/
-lemma prod_levelPrime_le_meetNorm_of_eq [HasPrimitiveRoot5040 E] [S.IsAdmissible]
+lemma prod_levelPrime_le_meetNorm_of_eq
     {s t : S.ResidueGL} (ht : t ∈ S.reducedImage besselS) {i : Fin 2} (hs : s i = t i) :
     ∏ _ : S.chosenPlaces i × Bool, S.levelPrime i ≤ S.meetNorm s := by
   classical
@@ -647,7 +641,6 @@ theorem secondMoment_compl_besselS_le [HasPrimitiveRoot5040 E] [hS : S.IsAdmissi
     secondMoment (S.amplitudeSum .full (S.ratMiddle E).besselSᶜ)
       {s : S.ResidueGL | ∃ t ∈ S.reducedImage besselS, s i = t i} ≤ (S.b ^ 12)⁻¹ *
         S.identitySecondMoment := by
-  classical
   have hb : 1000 ≤ S.b := S.thousand_le_b
   have h_id_nonneg : 0 ≤ S.identitySecondMoment := identitySecondMoment_nonneg
   have h_main_nonneg : 0 ≤ S.mainSecondMoment := mainSecondMoment_nonneg

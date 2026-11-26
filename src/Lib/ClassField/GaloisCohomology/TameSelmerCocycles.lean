@@ -178,7 +178,7 @@ lemma eq_zero_on_decompGroup {A' : ClosurePlace} {v : FinPlace E} (hA' : IsPlace
     (h_zero : ∀ g ∈ inertiaGroup Gal(Ω/E) A', c g = 0) {φ : Gal(Ω/E)} (hφ : IsFrob A' v.q φ)
     (hφ_zero : c φ = 0) (g : decompGroup Gal(Ω/E) A') : c g = 0 :=
   -- The zeros of `c` form an open subgroup containing inertia and `φ`.
-  hA'.decompGroup_le hφ (U := cocycleKer ρ hc) (hc_lc {0}) h_zero hφ_zero g.2
+  hA'.decompGroup_le hφ (U := cocycleKer ρ hc) (hc_lc {0}) h_zero hφ_zero g.property
 
 /-- An upper bound on length, of the kind given by the local Euler characteristic formula and local
 duality. Let `A` be a place of `Ω` over `P`, let `ℓ ^ M` kill `B`, let `ρ` be trivial on inertia at
@@ -210,7 +210,7 @@ lemma length_localCocycles_le (hB : ∀ b : B, ℓ ^ M • b = 0) (hA : IsPlaceO
     rintro _ ⟨⟨y, hy, rfl⟩, h_tame : y hA.tameGenerator = 0⟩
     obtain ⟨h_cocycle, -, -, -⟩ := mem_selmerModule_iff.1 hy
     have h_conj_mem : φ⁻¹ * (γ * φ) ∈ inertiaGroup Gal(Ω/E) A :=
-      .inv_mul_mem_inertiaGroup (by simpa) (γ.2.mul_iff.2 hφ : IsFrob A (1 * P.q) (γ * φ))
+      .inv_mul_mem_inertiaGroup (by simpa) (γ.property.mul_iff.2 hφ : IsFrob A (1 * P.q) (γ * φ))
     have h_fix : ρ γ • y φ = y φ := by
       simpa [h_cocycle γ, h_unram hy h_tame _ h_conj_mem, h_unram hy h_tame γ γ.property]
         using h_cocycle φ (φ⁻¹ * (γ * φ))

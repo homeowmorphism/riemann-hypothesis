@@ -301,7 +301,7 @@ lemma hcParameter_strictAnti {w : Φ} : StrictAnti (hcParameter κ e N w) :=
 
 /-- Index the entries of the decreasing sequence `hcParameter κ e (card n) w` by `n` through the
 enumeration `Fintype.equivFin n`. The resulting vector satisfies `IsHCParam κ e`. -/
-lemma isHCParam_hcParameter [DecidableEq Φ] (n : Type) [Fintype n] (κ : Φ → ℕ → ℕ) (e : Φ → ℤ) :
+lemma isHCParam_hcParameter (n : Type) [Fintype n] (κ : Φ → ℕ → ℕ) (e : Φ → ℤ) :
     IsHCParam κ e fun (w : Φ) (i : n) ↦
       hcParameter κ e (Fintype.card n) w (Fintype.equivFin n i) := by
   simp [IsHCParam, Function.Injective, hcParameter_strictAnti.injective.eq_iff, Fin.val_inj]

@@ -68,7 +68,7 @@ attribute [local simp] WithZero.exp_neg
 cosets in `K0 t K0 / K0`, the factor in `New.heckeFun_iwahoriDoubleCoset_eq_iwahoriDegree_smul`. -/
 @[simp]
 def iwahoriDegree (t : Fin N → (LocField w)ˣ) : ℂ :=
-  ∏ p : Fin N × Fin N with p.1 < p.2, ‖(t p.2 / t p.1).1‖
+  ∏ p : Fin N × Fin N with p.1 < p.2, ‖(t p.2 / t p.1).val‖
 
 /-- Multiplying on the left by an upper unitriangular `u` keeps the difference of the entries
 `(i, l)` of two matrices whose columns `l` agree below row `i`. -/

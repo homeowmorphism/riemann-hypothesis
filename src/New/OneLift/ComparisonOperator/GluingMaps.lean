@@ -95,13 +95,13 @@ def formTupleNormSq (σ : ℂ ≃+* ℂ) (ζ : FormTuples j) : ℝ :=
 /-- The rank `r + 9 m + 1` of `V″` is at most `2 n_m`. -/
 lemma card_firstFactorIndex_le_two_mul_n : card (FirstFactorIndex j) ≤ 2 * D.n D.m := by
   rw [card_firstFactorIndex]
-  linarith [D.six_mul_r_le_n, D.r_add_one, D.hundred_mul_m_add_nine_lt_k]
+  linarith only [D.six_mul_r_le_n, D.r_add_one, D.hundred_mul_m_add_nine_lt_k]
 
 variable (D) in
 /-- The rank `r + t = 6 r` of `V_j` is at most `2 n_m`. -/
 lemma card_rowIndex_sum_fin_le_two_mul_n : card (D.RowIndex ⊕ Fin D.t) ≤ 2 * D.n D.m := by
   rw [D.card_rowIndex_sum_fin]
-  linarith [D.six_mul_r_le_n, D.t_eq_five_mul_r]
+  linarith only [D.six_mul_r_le_n, D.t_eq_five_mul_r]
 
 /-- The basis of `V″` is large enough to hold the divided directions: `D.CarrierIndex` embeds in
 `FirstFactorIndex j`. -/
@@ -109,7 +109,7 @@ lemma nonempty_carrierIndex_embedding_firstFactorIndex :
     Nonempty (D.CarrierIndex ↪ FirstFactorIndex j) := by
   have r_add_one : D.r + 1 = D.k + D.m := D.r_add_one
   refine nonempty_of_card_le ?_
-  rw [card_firstFactorIndex, Fintype.card_sum, Fintype.card_fin, Fintype.card_fin]
+  simp only [Fintype.card_sum, Fintype.card_fin]
   omega
 
 /-- If `card N ≤ card n` and the diagram `κ` has no column of height at least `card N`, then
@@ -257,15 +257,16 @@ def firstFactorPairing (i : ChoiceIndex j) (g : G D.E (D.signsW j)) : ℂ :=
 the class sum over `U(V″)` whose multiple by a number is the twist-free function `choiceFn`. -/
 lemma firstFactorPairing_eq_mul_thirdExchangeLeftSide (i : ChoiceIndex j) (g : G D.E (D.signsW j)) :
     firstFactorPairing j ϑ i g = firstFactorScale j * thirdExchangeLeftSide ϑ j i g := by
-  have h_rows : Matrix.fromCols 1 0 * (splittingV j ϑ).stackOverGenScalar i.1 = i.1 := by
-    -- `erw`, since `stackOverGenScalar` is a `fromRows` only up to unfolding
-    erw [Matrix.fromCols_mul_fromRows, Matrix.zero_mul, Matrix.one_mul, add_zero]
   have h_star : (fun h : Gf D.E (FirstFactorIndex j) ↦ star (firstFactor j ϑ i h)) =
       fun h ↦ firstFactorScale j • leftSideSeries ϑ j i h := funext fun h ↦ star_star _
-  rw [thirdExchangeLeftSide_eq_kernelClassSum ϑ j h_rows, firstFactorPairing]
+  rw [firstFactorPairing]
   -- rewrite by `h_star` with `congrArg`, as the motive of `rw` is not type correct
-  exact (congrArg (kernelClassSum (D.descentPair ϑ j) (firstFactorChar ϑ j) _ _ · g) h_star).trans
-    (kernelClassSum_smul (O := D.descentPair ϑ j) ..)
+  refine ((congrArg (kernelClassSum (D.descentPair ϑ j) (firstFactorChar ϑ j) _ _ · g) h_star).trans
+    (kernelClassSum_smul (O := D.descentPair ϑ j) ..)).trans
+    (congrArg (firstFactorScale j * ·)
+      (thirdExchangeLeftSide_eq_kernelClassSum ϑ j (u := Matrix.fromCols 1 0) ?_ g).symm)
+  -- `erw`, since `stackOverGenScalar` is a `fromRows` only up to unfolding
+  erw [Matrix.fromCols_mul_fromRows, Matrix.zero_mul, Matrix.one_mul, add_zero]
 
 /-- Let `y` be a good form on the hermitian space `W_j = D.spaceW j`. The theta series
 `firstFactorPairing j ϑ i` on `U(W_j)` of a twist `ϑ` and a choice `i` is a finite combination of
@@ -685,7 +686,8 @@ lemma M_pow_denominatorExponent_sq_mul_le_exp :
   set L : ℕ := card D.Φ * (D.t * (D.t * D.gap)) with hL
   have h_det (τ : NumberField.InfinitePlace D.E) :
       ∑ i ∈ range (card (FirstFactorIndex j)), (untwistedDescentPair j).colsPlus τ i ≤
-        D.natB + D.offWeight + D.gap + D.m * D.gap := by grind [card_detIndex j τ]
+        D.natB + D.offWeight + D.gap + D.m * D.gap := by
+    grind [card_detIndex_eq_sum j τ, card_detIndex_le j τ]
   set e : ℕ := card D.Φ * (3 * D.m * (D.natB + D.offWeight + D.gap + D.m * D.gap)) + L with he
   have h_exponent : (splittingV j 1).denominatorExponent ≤ e := by
     grw [DividedSplitting.denominatorExponent, h_det, colsMinus_le]

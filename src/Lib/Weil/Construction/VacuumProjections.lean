@@ -194,19 +194,14 @@ lemma _root_.New.mulVec_finVec {n₁ : Type*} [Fintype n₁] (m : Matrix n n₁ 
     m *ᵥ finVec y = finVec ((m.map fun a : 𝔸 E ↦ a.snd) *ᵥ y) := by
   ext i <;> simp [mulVec_eq_sum, Finset.mul_sum, mul_assoc, finVec, fst_sum, snd_sum]
 
-omit [WeilData E] in
-/-- The finite components of the matrix of `g : G E s` form the matrix of its finite part. -/
-private lemma adeleMatrix_map_snd (g : G E s) :
-    (g.adeleMatrix.map fun a : 𝔸 E ↦ a.snd) = (g.snd : Matrix n n (𝔸f E)) :=
-  rfl
-
 /-- The Weil representation intertwines the finite Heisenberg operators:
 `ω g ∘ finHeisenbergOp x = finHeisenbergOp (g_f x) ∘ ω g`, where `g_f = g.snd` is the finite
 component. -/
 @[simp]
 lemma omega_finHeisenbergOp (g : G E s) (x : n → 𝔸f E) (f : 𝒮 V) :
     V.ω g (V.finHeisenbergOp x f) = V.finHeisenbergOp (g.snd *ᵥ x) (V.ω g f) := by
-  simp [semichar, mulVec_finVec, finHeisenbergOp, omega_rho, adeleMatrix_map_snd]
+  simp [semichar, mulVec_finVec, finHeisenbergOp, omega_rho]
+  rfl
 
 omit [WeilData E] in
 @[simp]
@@ -330,9 +325,7 @@ lemma omega_integrated (g : G E s) (v : Model (realHeisenberg (realSigns E s))) 
       tm (heisenbergOp ((adelicSum E s).equiv.symm y).fst IsVacuum.vacElem)
         (heisenbergOp ((adelicSum E s).equiv.symm y).snd IsVacuum.vacElem) := by
     rw [map_one, one_apply_eq_self, vacElem, ← (adelicSum E s).tmul_vacElem]
-    -- `erw`: after unfolding `vacElem` the vector lies in `Model (adelicHeisenberg E s)`, which is
-    -- `𝒮 V` only up to definitions.
-    erw [heisenbergOp_tmul]
+    exact heisenbergOp_tmul ..
   rw [h_tensor]
   exact h_pure _ _
 
@@ -342,9 +335,10 @@ lemma dataInner_vacElem_smul_vacElem :
     V.dataInner V.vacElem f • V.vacElem = V.projReal (V.projOn univ f) := by
   -- The left side is `f 0 • vacElem = ∫ vacElem y • ϱ y f`. As `vacElem` is the tensor product of
   -- the real and the finite vacuum, the integral splits, and its finite part is the mean
-  -- `projOn univ`. (`erw`: `𝒮 V` and its vacuum are the model and the tensor-product vacuum only
-  -- up to definitions.)
-  erw [modelInner_vacElem, ← integrated_eq_smul, vacElem, ← (adelicSum E s).tmul_vacElem,
+  -- `projOn univ`.
+  have h_int : V.dataInner V.vacElem f • V.vacElem = V.heisenbergRep.integrated V.vacElem f :=
+    (congrArg (· • V.vacElem) (modelInner_vacElem ..)).trans (integrated_eq_smul ..).symm
+  rw [h_int, vacElem, ← (adelicSum E s).tmul_vacElem,
     integrated_tmul, map_projOn_eq_integral, map_integrated_eq_integral]
   -- By definition, the finite vacuum is `semichar` on the lattice and `0` off it.
   have h_finVac (y) : finVac y = (stdLattice E n : Set (n → 𝔸f E)).indicator semichar y := rfl

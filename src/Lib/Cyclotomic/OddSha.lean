@@ -113,7 +113,7 @@ lemma New.OddPart.classNumber_mul_index_idelesPowAt_le (M l : ℕ) [NeZero M] [T
   have h_index : (idelesPowAt (placesDividing K l) M).index ≤ (2 ^ M) ^ (2 * M + M) := by
     refine (index_idelesPowAt_ne_zero_and_le M (placesDividing K l)).right.trans
       ((Nat.pow_le_pow_left hM_le _).trans (Nat.pow_le_pow_right h_one ?_))
-    linarith [ncard_placesDividing_le_finrank K l, h_deg]
+    linarith only [ncard_placesDividing_le_finrank K l, h_deg]
   calc classNumber K * (idelesPowAt (placesDividing K l) M).index
       ≤ (2 ^ M * (2 ^ M) ^ M) ^ (M + 1) * (2 ^ M) ^ (2 * M + M) := Nat.mul_le_mul h_class h_index
     _ = 2 ^ (M ^ 3 + 5 * M ^ 2 + M) := by ring
@@ -374,7 +374,7 @@ private lemma four_mul_totient_smul_eq_zero_of_sum_eq {E : Type} [Field E] [Numb
 `shaLocalSet l E e`, where `e ≠ 0`. Let `g` lie in an inertia group at a place prime to `l`, or in
 `shaLocalSet l ℚ 1` (a decomposition group above `l`, with trivial cyclotomic character). Then `x`
 vanishes at each `w` whose image in `Gal(Ω/ℚ)` is the conjugate `u g u⁻¹`. -/
-private lemma apply_eq_zero_of_toAlgAut_eq_conj {E : Type} [Field E] [NumberField E] [IsCMField E]
+private lemma apply_eq_zero_of_toAlgAut_eq_conj {E : Type} [Field E] [NumberField E]
     [Algebra E Ω] {l e : ℕ} [ThePrime l] (he : e ≠ 0) {V : Type} [Zero V] {x : Gal(Ω/E) → V}
     (h_above : ∀ g ∈ shaLocalSet l E e, x g = 0)
     (h_unram : ∀ g ∈ inertiaAbove (placesDividing E l)ᶜ, x g = 0) {g : Gal(Ω/ℚ)}
@@ -503,7 +503,7 @@ lemma New.exists_character_components {N : ℕ} [NeZero N] {E : Type} [Field E] 
   have h_sum (h : Gal(Ω/E)) : ∑ ψ : DirichletCharacter O N, z ψ (ι h) =
       ((φ N : ℕ) : QuotSpan (l ^ n : O)) * x (conjGal h) () -
         ((φ N : ℕ) : QuotSpan (l ^ n : O)) * x h () := by
-    simp [sum_characters_eq, cast_smul_eq_nsmul, z, T, σ, hS, cyclotomicPowDirichlet, ← sum_smul,
+    simp [cast_smul_eq_nsmul, z, T, σ, hS, cyclotomicPowDirichlet, ← sum_smul,
       ← mul_sum, sum_comm, fun g ↦ h_add 1 (ι g) g (conjGal g), smul_sub]
   have h_conj_conj (g : Gal(Ω/E)) : conjGal (conjGal g) = g := hι.injective (by simp)
   exact four_mul_totient_smul_eq_zero_of_sum_eq (h_minus he) h_sum h_even h_conj_conj
@@ -622,7 +622,7 @@ lemma New.OddPart.length_shaOdd_le_of_sq_lt {N : ℕ} [NeZero N] {E : Type} [Fie
     simp only [Fintype.card_prod, ZMod.card_units_eq_totient, Fintype.card_fin]
     grw [card_eq_nat_card, card_eq_totient_of_hasEnoughRootsOfUnity, h_tot_le, h_val,
       add_one_le_of_lt h_pow]
-    nlinarith
+    linarith
   · -- The odd components of `z` vanish, so `z` is killed by `4 * φ N`, which is prime to `l`.
     obtain ⟨hz_comp, h_kill_of_odd⟩ := h_split z hz
     have h_van' (u : (ZMod N)ˣ) (ψ : DirichletCharacter O N) (i : Fin (X.factorization l + 1)) :

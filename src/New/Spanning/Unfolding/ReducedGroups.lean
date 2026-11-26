@@ -275,25 +275,18 @@ groups over the residue fields at the chosen places, lies in `Ū` if and only if
 theorem mem_reducedImage_besselU {s : S.ResidueGL} :
     s ∈ S.reducedImage besselU ↔ ∀ (i : Fin 2) (w : S.chosenPlaces i),
       s i w ∈ unitriangular BesselIndex.level (ResField (w : FinPlace E)) := by
-  refine ⟨?_, fun hs ↦ ?_⟩
-  · rintro ⟨k, hk, rfl⟩ i w a b hab
-    exact S.reduction_apply_eq_one_apply (hk a b hab) i w
-  -- Lift the free entries to `Ô`, and complete the lift `u` by its inverse adjoint `u'`.
-  have h_lift (t : ∀ p : Σ i : Fin 2, S.chosenPlaces i, ResField (p.2 : FinPlace E)) :
-      ∃ y : Ô E, ∀ p : Σ i : Fin 2, S.chosenPlaces i, reduceAt (p.2 : FinPlace E) y = t p :=
-    -- Prescribe `t p` at both indices over `p`; the index `(p, false)` stands for `p` itself.
-    (S.exists_reduceAboveM_eq fun x ↦ t x.1).imp fun y hy p ↦ hy (p, false)
-  obtain ⟨u, hu, hu_red⟩ :=
-    exists_unitriangular_map_eq BesselIndex.level _ h_lift _ fun p ↦ hs p.1 p.2
+  refine ⟨fun ⟨k, hk, h⟩ i w a b hab ↦ h ▸ S.reduction_apply_eq_one_apply (hk a b hab) i w,
+    fun hs ↦ ?_⟩
+  -- Lift the free entries to `Ô`, complete `u` by its inverse adjoint `u'`, and glue to `k`.
+  obtain ⟨u, hu, hu_red⟩ := exists_unitriangular_map_eq BesselIndex.level
+    (fun p : Σ i : Fin 2, S.chosenPlaces i ↦ reduceAt (p.2 : FinPlace E))
+    (fun t ↦ (S.exists_reduceAboveM_eq fun x ↦ t x.1).imp fun y hy p ↦ hy (p, false))
+    _ fun p ↦ hs p.1 p.2
   obtain ⟨u', h_adj, hu'⟩ :=
     exists_invAdjoint_unitriangular (T := S.latticeMiddle (Ô E)) Floors.IsHermitianUnit.isUnit hu
-  -- Some `k` agrees with `1` where `u` and `u'` do, and reduces as `u` does at all chosen places.
   obtain ⟨k, hk_one, hk_red⟩ := S.exists_reduction_eq_of_invAdjoint Set.univ h_adj
   refine ⟨k, fun a b hab ↦ hk_one a b (hu a b hab) (hu' a b hab), funext₂ fun i w ↦ Units.ext ?_⟩
-  calc
-    _ = u.val.map (reduceAt (w : FinPlace E)) := by
-      rw [hk_red ⟨i, w⟩, ite_eq_left (Set.mem_univ _)]
-    _ = (s i w).val := congrArg Units.val (hu_red ⟨i, w⟩)
+  simpa [hk_red ⟨i, w⟩] using congrArg Units.val (hu_red ⟨i, w⟩)
 
 /-- Let the shape `𝔰` have `ϱ = 𝔰.ϱ` hyperbolic planes and a summand `X₀` of rank `k = 𝔰.k`. The
 function `BesselIndex.level` cuts the basis indices `𝔰.BesselIndex` into blocks of sizes
@@ -355,21 +348,15 @@ theorem relIndex_comap_principalLevel :
     (S.principalLevel.comap S.inclHFin).relIndex (S.latticeStabilizer.comap S.inclHFin) =
       Nat.card (S.reducedImage besselH) := by
   -- The subgroup is the kernel of the reduction, whose image is `H̄`.
-  let reduce : S.latticeStabilizer.comap S.inclHFin →* S.ResidueGL :=
-    S.reduction.comp (S.inclHFin.subgroupComap S.latticeStabilizer)
-  have h_ker :
-      (S.principalLevel.comap S.inclHFin).subgroupOf (S.latticeStabilizer.comap S.inclHFin) =
-        reduce.ker :=
-    Subgroup.ext fun k ↦
-      S.coe_mem_principalLevel_iff_reduction_eq_one (k := ⟨S.inclHFin k, k.2⟩)
-  have h_range : reduce.range = S.reducedImage besselH := by
-    refine le_antisymm ?_ ?_
-    · rintro s ⟨k, rfl⟩
-      exact S.reduction_inclHFin_mem_reducedImage_besselH k.2
-    · rintro s ⟨⟨x, hx⟩, hx_mem, rfl⟩
-      obtain ⟨k, rfl⟩ : x ∈ S.inclHFin.range := range_inclHFin.ge hx_mem
-      exact ⟨⟨k, hx⟩, rfl⟩
-  rw [Subgroup.relIndex, h_ker, Subgroup.index_ker, h_range]
+  let reduce := S.reduction.comp (S.inclHFin.subgroupComap S.latticeStabilizer)
+  refine (congrArg Subgroup.index (a₂ := reduce.ker) (Subgroup.ext fun k ↦
+    S.coe_mem_principalLevel_iff_reduction_eq_one (k := ⟨S.inclHFin k, k.2⟩))).trans ?_
+  suffices reduce.range = S.reducedImage besselH by rw [Subgroup.index_ker, this]
+  ext s
+  refine ⟨fun ⟨k, hk⟩ ↦ hk ▸ S.reduction_inclHFin_mem_reducedImage_besselH k.2, ?_⟩
+  rintro ⟨⟨x, hx⟩, hx_mem, rfl⟩
+  obtain ⟨k, rfl⟩ : x ∈ S.inclHFin.range := range_inclHFin.ge hx_mem
+  exact ⟨⟨k, hx⟩, rfl⟩
 
 /-- The reductions `Ū` and `H̄` of the integral points of `besselU` and `besselH` at the chosen
 places meet in the identity only. -/

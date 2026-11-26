@@ -262,7 +262,7 @@ such that every root of `P` over `k'` is conjugate over `k'` to some `x ^ |k| ^ 
 `(j, i) ↦ F ^ (a j + deg P * i)`, for `F` the Frobenius of `k'` over `k`, is a bijection from
 `Fin g × Fin s` onto `Gal(k'/k)`. -/
 private lemma bijective_frobeniusAlgEquivOfAlgebraic_pow_of_roots (hP : Irreducible P)
-    (hx : Polynomial.aeval x P = 0) [FiniteDimensional k' k'⟮x⟯] {g s : ℕ} {a : Fin g → ℕ}
+    (hx : Polynomial.aeval x P = 0) {g s : ℕ} {a : Fin g → ℕ}
     (roots : ∀ z : K, Polynomial.aeval z (P.map (algebraMap k k')) = 0 →
       ∃ j : Fin g, ∃ v < finrank k' k'⟮x⟯,
         a j < P.natDegree ∧ z ^ Nat.card k' ^ v = x ^ Nat.card k ^ a j)
@@ -301,7 +301,7 @@ power of the Frobenius of `k'(x)` (`χ_frob`), and let these powers run once thr
 (`frob_bij`). Then for a unit `t` of `k' ⊗ L`, `conj θ_x` at `χ 0` of the norm `∏ τ, τ t` is the
 product over `j` of `conj θ_(x ^ |k| ^ a j)` at `χ (a j) t`. -/
 private lemma conj_thetaChar_prod_eq_prod_conj_thetaChar (hP : Irreducible P)
-    (hP_coeff : P.coeff 0 ≠ 0) (hx : Polynomial.aeval x P = 0) [FiniteDimensional k' k'⟮x⟯]
+    (hP_coeff : P.coeff 0 ≠ 0) (hx : Polynomial.aeval x P = 0)
     [Finite k'⟮x⟯] {g s : ℕ} {a : Fin g → ℕ}
     (hs : finrank k k' * finrank k' k'⟮x⟯ = P.natDegree * s)
     (χ : ℕ → k' ⊗[k] L →ₐ[k'] k'⟮x⟯)
@@ -443,11 +443,9 @@ private lemma lift_brauerLift_pow_of_forall_eq_one [Algebra k' k']
     (η : K → ℂ) : Lift ℂ (brauerLift k' fun y : K ↦ η (y ^ a)) (brauerLift k' η) := by
   intro m
   have h_span : (brauerLift k' η).evalGL ∈ virtualChars ℂ (GL (Fin m) k') := by
-    -- part (b) of `isIrreducibleChar_and_mem_virtualChars_and_exists_mul`: every inner product with
-    -- a character is a complex number
-    obtain ⟨-, h_crit, -⟩ := isIrreducibleChar_and_mem_virtualChars_and_exists_mul ℂ
-      (isClassFunction_evalGL (F := brauerLift k' η) (n := Fin m))
-    exact h_crit fun χ _ ↦ ⟨_, rfl⟩
+    -- `IsClassFunction.mem_virtualChars`: every inner product with a character is a complex number
+    exact (isClassFunction_evalGL (F := brauerLift k' η) (n := Fin m)).mem_virtualChars
+      fun χ _ ↦ ⟨_, rfl⟩
   refine hasCommonLift_of_gal_trivial h_gal h_span fun g ↦ ?_
   simp [Hall.evalGL, charpoly_map, h_roots]
 
@@ -604,7 +602,7 @@ private lemma labelChar_map_evalGL_galActionGL {P : k[X]} {m : ℕ}
     (labelChar T (P.map (algebraMap k k'))).evalGL (galActionGL k k' (Fin m) σ g) =
       (labelChar T (P.map (algebraMap k k'))).evalGL g := by
   have hσP : (P.map (algebraMap k k')).map σ = P.map (algebraMap k k') :=
-    Polynomial.ext fun _ ↦ by simp
+    AddMonoidAlgebra.ext <| Finsupp.ext fun _ ↦ by simp
   change (labelChar T (P.map (algebraMap k k'))).evalGL (g.map σ) = _
   rw [evalGL_labelChar_map T σ hL', hσP]
 
@@ -663,7 +661,7 @@ lemma DescendsTo.card_mul_classInner {F G : Hall k} {Φ Ψ : GalSemidirect k k' 
 degree `m` over `k` with `P(1) ≠ 0` and `Ξ_P = (-1) ^ m` times the rank-`m` part of
 `greenCuspidal k θ`, and let the character `J` descend to `greenCuspidal k θ` times `μ` over `k` and
 to `(-1) ^ m` times `Ξ_P μ` formed over `k'`. Then `Ξ_P` lifts by characters to `Ξ_P` over `k'`. -/
-private lemma lift_labelChar_of_not_isRoot_one {P : k[X]} {m : ℕ} [NeZero m] (hL : IsLabel m P)
+private lemma lift_labelChar_of_not_isRoot_one {P : k[X]} {m : ℕ} (hL : IsLabel m P)
     (h_not_root_one : ¬P.IsRoot 1) {θ : MulChar K ℂ}
     (h_labelChar_eq : labelChar T P = (-1 : ℂ) ^ m • rankPart m (greenCuspidal k θ))
     {J : GalSemidirect k k' (Fin m) → ℂ} (hJ : IsChar J)

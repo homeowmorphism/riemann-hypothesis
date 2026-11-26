@@ -512,8 +512,8 @@ lemma extendedTensor_dotProduct
         leadingMinorAlong (rowEquivFin n τ) (a τ * (b τ)ᵀ) h.is_le' ^ κ₀ τ h := by
   have h_binet (τ : Φ) {h : ℕ} (U : Fin h → N τ) :
       ∑ I : IncreasingMap (rankAt N τ) h,
-          ((blockScalar ι a 1 τ).submatrix U ((rowEquivFin N τ).symm ∘ I.1)).det *
-            ((blockScalar ι b 1 τ).submatrix U ((rowEquivFin N τ).symm ∘ I.1)).det =
+          ((blockScalar ι a 1 τ).submatrix U ((rowEquivFin N τ).symm ∘ I.val)).det *
+            ((blockScalar ι b 1 τ).submatrix U ((rowEquivFin N τ).symm ∘ I.val)).det =
         ((blockScalar ι (fun σ : Φ ↦ a σ * (b σ)ᵀ) 1 τ).submatrix U U).det := by
     have h_prod : blockScalar ι (fun σ : Φ ↦ a σ * (b σ)ᵀ) 1 τ =
         blockScalar ι a 1 τ * (blockScalar ι b 1 τ)ᵀ := by

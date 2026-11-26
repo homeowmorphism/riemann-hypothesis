@@ -298,7 +298,6 @@ lemma IsMarked.mul_sum_heckeScalingExponent_le_loss (hΛ : D.IsMarked Λ) :
       1 / (D.m ^ 2 * D.f) * D.collisionExponent p : ℝ) ≤ D.loss p := by
   have hp_pos : (0 : ℝ) < p := mod_cast hp.1.pos
   have hm_pos : (0 : ℝ) < D.m := HasLogBound.pos D
-  have hf_pos : (0 : ℝ) < D.f := HasLogBound.pos D
   -- Each a-place induces one prime, so the `A_l` add up to at most `a f`.
   have h_sum : ∑ l ∈ Λ, heckeScalingExponent l ≤ D.a * D.f :=
     (sum_heckeScalingExponent Λ).trans_le (Nat.mul_le_mul_left _ (card_le_univ _))
@@ -370,6 +369,13 @@ lemma chiK_eq_one_or_le_of_notMem_smallNonsplitPrimes (h_notMem : p ∉ D.smallN
   rwa [mem_smallNonsplitPrimes_iff_isSmallNonsplit, not_and_or, not_lt, not_ne_iff, or_comm]
     at h_notMem
 
+omit [PadicPlace p] in
+/-- Outside the small non-split primes and the level prime, neither a gain nor a loss occurs. -/
+lemma gain_allowedLoss_eq_zero (h_notMem : p ∉ D.smallNonsplitPrimes) (hN : p ≠ D.N) :
+    D.gain p = 0 ∧ D.allowedLoss p = 0 :=
+  ⟨D.gain_eq_zero (chiK_eq_one_or_le_of_notMem_smallNonsplitPrimes h_notMem),
+    by simp [allowedLoss, h_notMem, hN]⟩
+
 open scoped Pointwise in
 /-- Let `Ψ` be a chain datum for the twist `ϑ`, with `p` prime to the norm of the level of `ϑ`. Let
 `Λ` be a full mark: a set of primes above the exceptional non-split prime `p < x₁`, disjoint from
@@ -424,7 +430,8 @@ theorem exists_colengthDvd_gaugeLe_compositeLift {P : Parameters} {D : Data P} {
     tauto
   obtain ⟨h_mem, hN⟩ | ⟨h_mem, h_exc⟩ | ⟨h_mem, h_exc⟩ | ⟨h_mem, hN⟩ := h_cases
   · -- `p ≠ N` is split or at least `x₁`, so it differs from `d` and has no gain.
-    rw [allowedLoss, ite_eq_right h_mem, ite_eq_right hN]
+    obtain ⟨h_gain, h_loss_zero⟩ := gain_allowedLoss_eq_zero h_mem hN
+    rw [h_loss_zero]
     have hd : p ≠ P.d := by
       rintro rfl
       exact h_mem (mem_smallNonsplitPrimes_iff_isSmallNonsplit.2
@@ -433,13 +440,12 @@ theorem exists_colengthDvd_gaugeLe_compositeLift {P : Parameters} {D : Data P} {
     obtain ⟨Ψ', hΨ', h_eq⟩ : ∃ Ψ' : D.Translations →₀ ℂ, IsWeakChainDatum ϑ Ψ' ∧
         ∀ φ : D.SourceForm, compositeLift ϑ Ψ φ = restrictedChain ϑ Ψ' φ :=
       hΨ.exists_isWeakChainDatum_compositeLift_eq
-    rw [h_eq, D.gain_eq_zero (chiK_eq_one_or_le_of_notMem_smallNonsplitPrimes h_mem), sub_zero,
-      rpow_zero]
+    rw [h_eq, h_gain, sub_zero, rpow_zero]
     exact hΨ'.gaugeLe_restrictedChain_one hQ hφ hN hd
   · -- `p < x₁` is not exceptional: the loss pays for the collisions on all integral source forms.
     rw [allowedLoss, ite_eq_left h_mem]
     have h_nonsplit : D.IsSmallNonsplit p := mem_smallNonsplitPrimes_iff_isSmallNonsplit.1 h_mem
-    have h_paid : D.m * D.collisionSum p ∅ ≤ D.loss p :=
+    have h_collision_budget : D.m * D.collisionSum p ∅ ≤ D.loss p :=
       mul_collisionSum_le_loss h_nonsplit h_exc
     refine ⟨0, D.integralSourceForms, mod_cast by positivity, .of_le le_rfl,
       fun ϑ Ψ hΨ hQ φ hφ _ ↦ ?_⟩
@@ -453,29 +459,32 @@ theorem exists_colengthDvd_gaugeLe_compositeLift {P : Parameters} {D : Data P} {
     rw [allowedLoss, ite_eq_left h_mem]
     obtain ⟨Λ, hΛ⟩ : ∃ Λ : Finset (FinPlace D.E), D.IsFullMark Λ :=
       D.exists_isFullMark (mem_smallNonsplitPrimes_iff_isSmallNonsplit.1 h_mem).1 h_exc
-    obtain ⟨-, l, hl, h_index⟩ : IsOntoUpToColength ↑p D.integralSourceForms (D.collisionExponent p)
+    -- Trade collision loss in valuation for the colength of this submodule.
+    obtain ⟨-, l, hl, h_colength⟩ :
+        IsOntoUpToColength ↑p D.integralSourceForms (D.collisionExponent p)
         ((Λ.attach.toList.map hΛ.scaledHeckeOperator).prod ^ D.m)
           (D.loss p * finrank ℂ D.SourceForm) :=
       hΛ.isOntoUpToColength_prod_scaledHeckeOperator_pow
-    have h_le : D.loss p * finrank ℂ D.SourceForm ≤ 2 * D.loss p * finrank ℂ D.SourceForm := by
+    have h_colength_budget :
+        D.loss p * finrank ℂ D.SourceForm ≤ 2 * D.loss p * finrank ℂ D.SourceForm := by
       gcongr
       linarith
-    exact ⟨l, _, hl.trans h_le, h_index, fun ϑ Ψ hΨ hQ φ hφ _ ↦
+    exact ⟨l, _, hl.trans h_colength_budget, h_colength, fun ϑ Ψ hΨ hQ φ hφ _ ↦
       hΨ.gaugeLe_compositeLift_of_isFullMark hQ hΛ hφ⟩
   · -- `p = N`: the module consists of the source forms in `upIntegralForms`, and `x₁ ≤ N` makes the
     -- gain zero.
     rw [allowedLoss, ite_eq_right h_mem, ite_eq_left hN]
     subst hN
-    obtain ⟨l, hl, h_index⟩ : ∃ l : ℕ, l ≤ D.m * D.f * D.b * finrank ℂ D.SourceForm ∧
+    obtain ⟨l, hl, h_colength⟩ : ∃ l : ℕ, l ≤ D.m * D.f * D.b * finrank ℂ D.SourceForm ∧
         ColengthDvd (integralFormsAt D.SourceForm 1) D.upIntegralForms (D.N ^ l) :=
       D.exists_colengthDvd_upIntegralForms_pow
-    have h_le :
+    have h_colength_budget :
         D.m * D.f * D.b * finrank ℂ D.SourceForm ≤ 2 * D.m * D.f * D.b * finrank ℂ
           D.SourceForm := by
       gcongr
       linarith
     refine ⟨l, D.upIntegralForms.comap (D.SourceForm.subtype.restrictScalars embValRing),
-      hl.trans h_le, h_index.comap _ le_rfl fun _ _ ↦ mem_comap.2,
+      hl.trans h_colength_budget, h_colength.comap _ le_rfl fun _ _ ↦ mem_comap.2,
       fun ϑ Ψ hΨ _ φ hφ h_ram ↦ ?_⟩
     rw [D.gain_eq_zero (.inr D.le_of_hasLogBound), sub_zero]
     exact D.gaugeLe_compositeLift_at_N hΨ h_ram hφ

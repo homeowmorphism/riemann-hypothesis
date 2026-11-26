@@ -56,7 +56,7 @@ lemma coeff_aeval_smul_X {σ : Type*} (Q : MvPolynomial σ ℂ) (t : ℂ) (m : �
     classical
     rw [h_mon]
     by_cases h : u = m <;> simp [h]
-  | add p q hp hq => simp [hp, hq, mul_add, -aeval_eq_bind₁]
+  | add p q hp hq => simp [hp, hq, mul_add]
 
 /-- A complex polynomial is homogeneous of degree `d` exactly when multiplying the variables by
 any `t ≠ 0` multiplies it by `t ^ d`. -/
@@ -115,10 +115,10 @@ of 𝒮(Hom(V, T)). -/
 @[simps! apply_apply_coe]
 def pairWeilFinite : Gf E n × Gf E n' →* Module.End ℂ (V.hom T).finitePart where
   toFun p :=
-    LinearMap.restrict (pairWeil V T a b ((1, p.1), 1, p.2)).1 fun f hf ↦ by
+    LinearMap.restrict (pairWeil V T a b ((1, p.1), 1, p.2)).toLinearMap fun f hf ↦ by
       -- Up to a scalar, `pairWeil` is `ω` at a point whose infinite part is trivial (`onHom_fin`).
       refine (finitePart _).smul_mem _ ?_
-      erw [onHom_fin]
+      rw [onHom_fin]
       exact omega_mem_finitePart _ hf
   map_one' := by
     ext
@@ -193,7 +193,7 @@ points, for the Haar measure with vol K = 1 (`New.classIntegral`). -/
 def Kernel.lift : S →ₗ[ℂ] AlgForm n κ e →ₗ[ℂ] AlgForm n' κ ea := by
   refine LinearMap.mk₂ ℂ
     (fun Φ φ ↦
-      ⟨fun h ↦ classIntegral stdRatPoints K fun g ↦ k.jetMap (k.ω (g, h) Φ) (φ.1 g), ?_,
+      ⟨fun h ↦ classIntegral stdRatPoints K fun g ↦ k.jetMap (k.ω (g, h) Φ) (φ.val g), ?_,
         fun γ h ↦ ?_⟩)
     (fun Φ Φ' φ ↦ ?_) (fun c Φ φ ↦ ?_) (fun Φ φ φ' ↦ ?_) fun c Φ φ ↦ ?_
   · -- Smoothness: the lift is fixed by the open subgroup of the `a` with `(1, a)` fixing `Φ`.
@@ -302,7 +302,7 @@ lemma realPairWeil_schurCoeffPoly (hκ : IsLiftWeight n n' κ eb e) {ea : Infini
     ← h_schur_mul, prod_mul_distrib, principalMinor_of_forall,
     DiscreteSeries.principalMinor_of_forall_not]
   -- Both sides are now the same multiple of `Aᵀ S_κ(yᵀ w xᵀ) ξ`.
-  simp [h_entry, vecMul_smul, field, ← schur_mul_left h_fits, mul_right_comm]
+  simp [h_entry, vecMul_smul, field, ← schur_mul_left h_fits]
 
 variable [WeilData E]
 
@@ -342,7 +342,7 @@ lemma schurJet_jetSeries_eq_smul (hκ : IsLiftWeight n n' κ eb e) (c : ℂ)
   -- An entry of the jet matrix is the theta functional at the Fock vector of an entry of
   -- `schur κ (c • z)`, and `c` comes out of that entry.
   ext i' i
-  simp [schurJet, -aeval_eq_bind₁, aeval_smul_X_schur hκ.1 c, aeval_X_left_apply]
+  simp [schurJet, aeval_smul_X_schur hκ.1 c, aeval_X_left_apply]
 
 /-- The theta function of a Schur coefficient is a matrix coefficient of the jet matrix. Assume
 `IsLiftWeight n n' κ eb e`, and let the characters `a`, `b` have weights `ea`, `eb`, with ψ, ψ' the
@@ -406,8 +406,7 @@ def thetaKernel (hκ : IsLiftWeight n n' κ eb e) (c : ℂ) {a b : AutChar E} {e
           (theta_pairWeil_schurCoeffPoly hκ c ha hb x (stdEmbFin γ) y (stdEmbFin γ') A v f).symm
         _ = c ^ boxes κ (card n') * V.θ F := by rw [h_inv]
         _ = _ := by
-          simpa only [Prod.mk_one_one, map_one, inv_one, Module.End.one_apply,
-            one_apply_eq_self]
+          simpa only [Prod.mk_one_one, map_one, inv_one, one_apply_eq_self]
             using theta_pairWeil_schurCoeffPoly hκ c ha hb 1 1 1 1 A v f
     change schurJet κ (V.jetSeries c f') *ᵥ conjWeylRep κ e x v =
       conjWeylRep κ ea y (schurJet κ (V.jetSeries c f.val) *ᵥ v)
@@ -417,8 +416,8 @@ def thetaKernel (hκ : IsLiftWeight n n' κ eb e) (c : ℂ) {a b : AutChar E} {e
     rw [← h_eq, Representation.self_inv_apply]
   isOpen_stabilizer f := by
     -- The stabiliser of `f` contains an open subgroup `L × L'`.
-    obtain ⟨L, L', h_fix⟩ := exists_level_pairWeil a b f.2
-    refine isOpen_mono ?_ (L.prod L').2
+    obtain ⟨L, L', h_fix⟩ := exists_level_pairWeil a b f.property
+    refine isOpen_mono ?_ (L.prod L').isOpen'
     simp_all [LE.le, mem_prod, Subtype.ext_iff]
 
 end New

@@ -196,7 +196,7 @@ lemma evalAtOne_conjSubst {k : ℕ} {W O : Type} [CommRing W] [CommRing O] (ι :
     calc _ = ∑ s : Fin k, ι (a⁻¹.val i s) * ι (a.val s j) := by
           simp [conjSubst, linSubst, sum_prod_type, Matrix.one_apply]
       _ = ι ((a⁻¹ * a).val i j) := by simp only [Units.val_mul, Matrix.mul_apply, map_sum, map_mul]
-      _ = _ := by simp [Matrix.one_apply, apply_ite ι, eq_comm]
+      _ = _ := by simp [Matrix.one_apply, eq_comm]
   simpa [evalAtOne] using congrArg (c * ·) (AlgHom.congr_fun hev ψ)
 
 /-- Let `ι : W → O` be a map of commutative rings, `u` a unit of `W`, and `a` the diagonal matrix

@@ -55,11 +55,12 @@ lemma ColengthDvd.trans (hMN : ColengthDvd M N z) (hNP : ColengthDvd N P a) :
   intro n Φ hΦ
   -- combine `Φ` by `m` into `N`, then combine the results by `m'` into `P`
   obtain ⟨m, hm_det, hm_mem⟩ := hMN n Φ hΦ
-  obtain ⟨m', hm'_det, hm'_mem⟩ := hNP n (fun i : Fin n ↦ ∑ k, m i k • Φ k) hm_mem
-  have h_assoc (i : Fin n) : ∑ k, (m' * m) i k • Φ k = ∑ j, m' i j • ∑ k, m j k • Φ k := by
-    simpa [Matrix.mul_apply, Finset.sum_smul, Finset.smul_sum, mul_smul] using Finset.sum_comm
-  refine ⟨m' * m, ?_, fun i ↦ by simpa only [h_assoc] using hm'_mem i⟩
-  simpa [mul_comm z] using mul_dvd_mul hm'_det hm_det
+  obtain ⟨m', hm'_det, hm'_mem⟩ := hNP n (m • Φ) hm_mem
+  refine ⟨m' * m, ?_, ?_⟩
+  · simpa [mul_comm z] using mul_dvd_mul hm'_det hm_det
+  · change ∀ i, ((m' * m) • Φ) i ∈ P
+    rw [mul_smul]
+    exact hm'_mem
 
 /-- Colength bounds pull back along a linear map `f : U → V`. Let every finite family in `M` be
 carried into `N` by a square matrix whose determinant divides `z` (this is `ColengthDvd M N z`). If

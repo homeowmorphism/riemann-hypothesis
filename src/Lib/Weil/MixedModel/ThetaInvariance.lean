@@ -109,7 +109,9 @@ lemma integrable_slice (f : 𝒮 V) : Integrable fun x : p → 𝔸 E ↦ D.slic
     _ < ⊤ := by
       refine IsFiniteMeasure.lintegral_lt_top_of_bounded_to_ennreal _ ⟨C * ‖f‖₊, fun x ↦ ?_⟩
       -- The points of `ratVectors` are the `toAdele ∘ ξ`.
-      erw [lintegral_count, ← (ofInjective _ (toAdele (E := E)).injective.comp_left).tsum_eq]
+      rw [lintegral_count, New.ratVectors,
+        ← (AddMonoidHom.ofInjective (f := (toAdele (E := E)).toAddMonoidHom.compLeft p)
+          (toAdele (E := E)).injective.comp_left).toEquiv.tsum_eq]
       exact h_bound x
 
 end MixedModelIntegrable
@@ -146,7 +148,7 @@ lemma exists_hyperbolic_levi_multiplier_nonneg :
     (hyperbolicSpace E p).toRatCoords.symm
       ⟨blockGL (star a⁻¹, a), by simp [mem_unitaryGroupOf_iff, fromBlocks_conjTranspose,
       fromBlocks_map, star_eq_conjTranspose, fromBlocks_multiply, ← conjTranspose_mul]⟩
-  have h_mat : g₁.adeleMatrix = (hyperbolicSpace E p).x⁻¹.1 * fromBlocks a⁻¹.1ᴴ 0 0 a.1 *
+  have h_mat : g₁.adeleMatrix = (hyperbolicSpace E p).x⁻¹.val * fromBlocks a⁻¹.valᴴ 0 0 a.val *
     (hyperbolicSpace E p).x := rfl
   refine ⟨g₁, ?_, h_mat⟩
   -- Both `weilMultiplier` and `υ` are products of factors at the infinite places and a finite
@@ -158,7 +160,7 @@ lemma exists_hyperbolic_levi_multiplier_nonneg :
     -- `x⁻¹ diag(a⁻¹ᴴ, a) x` is `(a⁻¹ᴴ + a) / 2`. Its adjoint times `a` is `(1 + aᴴ a) / 2`, whose
     -- determinant is nonnegative.
     have hx : (hyperbolicSpace E p).x.1.map (evalInf w) = (√2 : ℂ)⁻¹ • fromBlocks 1 (-1) 1 1 := rfl
-    have hx_inv : (hyperbolicSpace E p).x⁻¹.1.map (evalInf w) = (√2 : ℂ)⁻¹ • fromBlocks 1 1 (-1)
+    have hx_inv : (hyperbolicSpace E p).x⁻¹.val.map (evalInf w) = (√2 : ℂ)⁻¹ • fromBlocks 1 1 (-1)
       1 := rfl
     have h_lower : (g₁.adeleMatrix.map (evalInf w)).toBlocks₂₂ =
         (2 : ℂ)⁻¹ • ((a⁻¹.val.map (evalInf w))ᴴ + a.val.map (evalInf w)) := by
@@ -542,11 +544,8 @@ lemma theta_omega_ratEmbed_of_splitting (γ : U V.J) [DecidableEq p]
   -- The stabilizer of `θ` contains two opposite parabolic subgroups, which generate the group.
   have h_le (D' : V.Splitting (stdSpace E Empty) p) : D'.siegelParabolic ≤ V.thetaStabilizer :=
     fun δ ⟨a, ha⟩ ↦ theta_omega_ratEmbed_of_mul_k δ D' a ha
-  have h_top : V.thetaStabilizer = ⊤ := by
-    rw [eq_top_iff, ← D.siegelParabolic_sup_symm_eq_top]
-    exact sup_le (h_le D) (h_le D.symm)
-  have h_mem : γ ∈ V.thetaStabilizer := by simp [h_top]
-  exact h_mem f
+  exact (D.siegelParabolic_sup_symm_eq_top.ge.trans (sup_le (h_le D) (h_le D.symm))
+    (Subgroup.mem_top γ)) f
 
 variable (V) in
 /-- The splitting without middle part of `V ⊕ V⁻`, with `V⁻` the space of the negative form, whose

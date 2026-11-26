@@ -121,9 +121,9 @@ lemma heckeSplit_comm_of_trivialOn (hw : w.IsSplit) (j : ℕ) {g : Gf E n}
   -- An element trivial at `w, w̄` commutes with every element supported there.
   refine map_heckeSplit hw j (π g) fun k hk ↦ ?_
   have h_comm : Commute k g := commute_supportedOn_trivialOn hk hg
-  calc π g (π k v) = π (g * k) v := by rw [map_mul, Module.End.mul_apply]
+  calc π g (π k v) = π (g * k) v := by rw [map_mul, mul_apply_eq_comp]
     _ = π (k * g) v := by rw [h_comm.eq]
-    _ = π k (π g v) := by rw [map_mul, Module.End.mul_apply]
+    _ = π k (π g v) := by rw [map_mul, mul_apply_eq_comp]
 
 /-! ### The operators on spherical vectors -/
 
@@ -200,7 +200,7 @@ lemma heckeSplit_comm_of_atPlace_mem (hw : w.IsSplit) (j : ℕ) (hv : v ∈ sphe
   have h_fix_T : π k (heckeSplit π hw j v) = heckeSplit π hw j v := by
     simpa using mem_levelSpace.mp h_T_sph ⟨g.atPlace w, hg⟩
   have h_g (x : W) : π g x = π (g / k) (π k x) := by
-    rw [← Module.End.mul_apply (π (g / k)) (π k), ← map_mul, div_mul_cancel]
+    rw [← mul_apply_eq_comp (π (g / k)) (π k), ← map_mul, div_mul_cancel]
   calc heckeSplit π hw j (π g v) = heckeSplit π hw j (π (g / k) v) := by rw [h_g, h_fix]
     _ = π (g / k) (heckeSplit π hw j v) := (heckeSplit_comm_of_trivialOn hw j h_off).symm
     _ = π g (heckeSplit π hw j v) := by rw [h_g, h_fix_T]
@@ -272,7 +272,7 @@ lemma heckeSplit_comm (hw : w.IsSplit) (hu : u.IsSplit) (i j : ℕ) (hv : v ∈ 
   · -- different pairs of places: elements supported at `u, ū` are trivial at `w`, so commute with
     -- `T_{w,i}` (`heckeSplit_comm_of_trivialOn`)
     refine map_heckeSplit hu j (heckeSplit π hw i) fun g hg ↦ ?_
-    have h_triv : g ∈ trivialOn n {w} := by simp_all [trivialOn, supportedOn]
+    have h_triv : g ∈ trivialOn n {w} := by simp_all [trivialOn]
     exact (heckeSplit_comm_of_trivialOn hw i h_triv).symm
 
 /-! ### Joint eigenvectors in a unitary representation -/
@@ -451,7 +451,7 @@ lemma sum_coeff_invOfUnit_smul_eq {R V : Type*} [CommRing R] [Algebra R ℂ] [Ad
     simpa [Polynomial.eval_finsetSum, mul_comm] using congrArg f (h_rel U)
   -- Multiply by the inverse of `Q` as a power series and read the coefficient of `X ^ r`.
   have h_inv : map (algebraMap R ℂ) (invOfUnit Q 1) * map (algebraMap R ℂ) (Q : R⟦X⟧) = 1 := by
-    rw [← map_mul, invOfUnit_mul (Q : R⟦X⟧) 1 (by simpa using hQ), map_one]
+    rw [← map_mul, invOfUnit_mul (Q : R⟦X⟧) 1 (hQ), map_one]
   -- The coefficient of `X ^ r` in `Q⁻¹ * X ^ i`, summed against `f (b i)`, is `f (a r)`.
   have h_eq : ∑ i ∈ t,
       algebraMap R ℂ (PowerSeries.coeff r (invOfUnit Q 1 * PowerSeries.X ^ i)) * f (b i) =

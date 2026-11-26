@@ -98,7 +98,7 @@ lemma mulVec_mem_lattice : (V.xFin * x.val).val *ᵥ y ∈ V.lattice x ↔ ∀ i
 /-- For a finite point `x`, the frame `V.xFin * x` is orthonormal for the form of `V`. -/
 lemma gram_xFin_mul_eq_one (x : Gf E ι) :
     (V.xFin * x.val).valᴴ * V.J.map (algebraMap E (𝔸f E)) * (V.xFin * x.val).val = 1 :=
-  gram_mul_of_gram_eq V.gram_xFin (mem_unitaryGroupOf_iff.1 x.2)
+  gram_mul_of_gram_eq V.gram_xFin (mem_unitaryGroupOf_iff.1 x.property)
 
 /-- The Gram matrix of `V` is `g⁻¹ᴴ g⁻¹` for the orthonormal frame `g = V.xFin * x`. -/
 lemma gram_frame_inv (x : Gf E ι) :

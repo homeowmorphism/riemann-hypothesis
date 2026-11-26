@@ -208,7 +208,7 @@ abbrev nablaFamily : Submodule R (MatrixPoly (Sigma n) R) :=
 /-- For a family i of chosen standard fillings, the polynomial that is the product over places τ
 of the minor product of i_τ in the rows of block τ. -/
 def nablaBasis (i : WeylIndexFamily n κ) : MatrixPoly ((τ : Φ) × n τ) R :=
-  ∏ τ : Φ, tableauPoly (m := Σ τ : Φ, n τ) R (Sigma.mk τ) (i τ).1
+  ∏ τ : Φ, tableauPoly (m := Σ τ : Φ, n τ) R (Sigma.mk τ) (i τ).val
 
 /-- The polynomial product over places τ and h<N_τ of the leading principal h×h minor of the
 variables in block τ raised to κ_τ(h). -/
@@ -412,7 +412,7 @@ def linSubst : MvPolynomial σ R →ₐ[R] MvPolynomial m R := aeval fun s ↦ �
 /-- The chain rule for a linear substitution: the derivative of `p(zᵀx)` in `x_i` is
 `Σ_a z_{ia} (∂p/∂x_a)(zᵀx)`. -/
 lemma pderiv_linSubst {σ m R : Type} [CommRing R] [Fintype m] (z : Matrix m σ R) [Fintype σ]
-    [DecidableEq σ] (p : MvPolynomial σ R) (i : m) :
+    (p : MvPolynomial σ R) (i : m) :
     (linSubst z p).pderiv i = ∑ a : σ, z i a • linSubst z (p.pderiv a) := by
   classical
   -- By induction from the variables; the step for `p * X j` is the Leibniz rule.
@@ -427,7 +427,7 @@ lemma pderiv_linSubst {σ m R : Type} [CommRing R] [Fintype m] (z : Matrix m σ 
 /-- For an `m × σ` matrix `z` over the commutative ring `R`, the substitutions by `z` and by `zᵀ`
 (`New.linSubst`) are adjoint for the Fock form `⟨p, q⟩ = p(∂) q (0)`. -/
 lemma fockPairing_linSubst {σ m R : Type} [CommRing R] [Fintype m] (z : Matrix m σ R) [Fintype σ]
-    [DecidableEq σ] (f : MvPolynomial m R) (g : MvPolynomial σ R) :
+    (f : MvPolynomial m R) (g : MvPolynomial σ R) :
     fockPairing R f (linSubst z g) = fockPairing R (linSubst zᵀ f) g := by
   classical
   -- A factor `X i` of `f` moves across the Fock form as `pderiv i` (`fockPairing_mul_X`), and
@@ -448,17 +448,17 @@ abbrev Monomials : Type := ↥((univ : Finset σ).finsuppAntidiag a)
 
 omit [DecidableEq σ] in
 /-- `linSubst A` substitutes for each variable the linear form of the matching row of `Aᵀ`. -/
-lemma linSubst_eq_bind₁ : linSubst A = bind₁ Aᵀ.toMvPolynomial := by
+lemma linSubst_eq_bind₁ : linSubst A = aeval Aᵀ.toMvPolynomial := by
   ext s : 1
-  simp [linSubst, MvPolynomial.bind₁, Matrix.toMvPolynomial, smul_eq_C_mul, C_mul_X_eq_monomial]
+  simp [linSubst, Matrix.toMvPolynomial, smul_eq_C_mul, C_mul_X_eq_monomial]
 
 @[simp]
 lemma linSubst_one : linSubst 1 f = f := by
-  simp [linSubst_eq_bind₁, MvPolynomial.bind₁, aeval_X_left_apply]
+  simp [linSubst_eq_bind₁, aeval_X_left_apply]
 
 omit [DecidableEq σ] in
 lemma linSubst_mul : linSubst (A * B) f = linSubst A (linSubst B f) := by
-  simp [linSubst_eq_bind₁, MvPolynomial.bind₁, comp_aeval_apply, ← toMvPolynomial_mul]
+  simp [linSubst_eq_bind₁, comp_aeval_apply, ← toMvPolynomial_mul]
 
 omit [DecidableEq σ] in
 lemma map_linSubst :
@@ -471,7 +471,7 @@ lemma Monomials.degree_eq : α.val.degree = a := by
   simpa [degree_eq_sum] using (mem_finsuppAntidiag.mp α.property).left
 
 lemma Monomials.isHomogeneous_linSubst : (linSubst A (monomial α 1)).IsHomogeneous a := by
-  rw [linSubst_eq_bind₁, ← aeval_eq_bind₁]
+  rw [linSubst_eq_bind₁]
   simpa only [one_mul] using
     (isHomogeneous_monomial (1 : R) α.degree_eq).aeval _ Aᵀ.toMvPolynomial_isHomogeneous
 
@@ -487,19 +487,19 @@ lemma sum_monomials_eq_of_isHomogeneous (hf : f.IsHomogeneous a) :
 /-- The a-th symmetric power: the homomorphism sending a square matrix A to the matrix, in the
 monomial basis, of `New.linSubst` A on forms of degree a. -/
 def symPowMatrix (a : ℕ) : Matrix σ σ R →* Matrix (Monomials σ a) (Monomials σ a) R where
-  toFun A := of fun β α ↦ (linSubst A (monomial α.1 1)).coeff β.1
+  toFun A := of fun β α ↦ (linSubst A (monomial α.val 1)).coeff β.val
   map_one' := by simp [eq_comm, Matrix.one_apply, ← ext_iff]
   map_mul' A B := by
     ext β α
     -- Expand `linSubst B (monomial α 1)` in the monomials of degree `a`, then apply `linSubst A`.
-    change (linSubst (A * B) (monomial α.1 1)).coeff β.1 = _
+    change (linSubst (A * B) (monomial α.val 1)).coeff β.val = _
     rw [linSubst_mul, ← sum_monomials_eq_of_isHomogeneous (α.isHomogeneous_linSubst B)]
     simp [mul_comm, Matrix.mul_apply]
 
 /-- For a family `β` of degree-`a` exponent vectors indexed by `S`, the single exponent vector on
 the variables `(b, s)` whose value is `β_s(b)`. -/
 def exponentOf : (S → Monomials σ a) ↪ σ × S →₀ ℕ where
-  toFun β := equivFunOnFinite.symm fun x ↦ (β x.2).1 x.1
+  toFun β := equivFunOnFinite.symm fun x ↦ (β x.2).val x.1
   inj' :=
     id fun β β' h ↦ by
       ext s t

@@ -80,7 +80,7 @@ height `h` for each `h < M τ`. Take the product over τ of the minor products o
 rows (τ, ·). This product lies in `nabla R Sigma.fst (diagramWeight M κ)`. That is, with rows
 coloured by τ, it satisfies f(yβ) = ∏ β_{τ,ii}^{l(τ,i)} f(y) for upper triangular β_τ, where l(τ, i)
 is the sum of `κ τ h` over i < h < M τ. -/
-lemma prod_tableauPoly_mem_nabla [DecidableEq Φ]
+lemma prod_tableauPoly_mem_nabla
     {M : Φ → ℕ} {T : ∀ τ : Φ, Tableau (n' τ) (M τ) (κ τ)} :
     ∏ τ : Φ, tableauPoly R (Sigma.mk τ) (T τ) ∈ nabla R Sigma.fst (diagramWeight M κ) := by
   -- The product is the product `minorProduct` of the minors over all columns of all colours.
@@ -126,7 +126,7 @@ lemma exists_isTableauBasis {ι : Type} [Fintype ι] {M : ℕ} {k : ℕ → ℕ}
     rw [h_tableau]
     simpa [← Set.range_comp, h_prod] using
       hI.nabla_le_span R (minorProduct_mem_nabla cols_T)
-  · simpa [fill, J, Fintype.prod_sigma, ← diagramWeight_eq_columnWeight, diagramWeight_apply] using
+  · simpa [J, Fintype.prod_sigma, ← diagramWeight_eq_columnWeight, diagramWeight_apply] using
       hI.character ()
 
 /-- Over a finite alphabet `ι`, consider the set of fillings chosen by `Classical.epsilon` (heights
@@ -218,16 +218,16 @@ lemma isRegular_detPow {e : Φ → ℕ} : IsRegular (detPow R n e) := by
   -- the product of determinants the constant term `1`, so that its image in the power series
   -- ring is not a zero divisor.
   let reflect : MatrixPoly (Σ τ, n τ) R →ₐ[R] MatrixPoly (Σ τ, n τ) R :=
-    bind₁ (permArray (fun τ a ↦ rowEquivFin n τ a) - X)
+    aeval (permArray (fun τ a ↦ rowEquivFin n τ a) - X)
   have h_reflect : Involutive reflect := fun f ↦ by
-    simp [reflect, MvPolynomial.bind₁, comp_aeval_apply, permArray, aeval_X_left_apply]
+    simp [reflect, comp_aeval_apply, permArray, aeval_X_left_apply]
   have h_inj : Injective ((coeToMvPowerSeries.algHom R).comp reflect) :=
     (coe_injective _ R).comp h_reflect.injective
   rw [isRegular_iff_mem_nonZeroDivisors]
   refine mem_nonZeroDivisors_of_injective h_inj
     (MvPowerSeries.mem_nonZeroDivisors_of_constantCoeff ?_)
   -- The constant coefficient of the image is `1`.
-  simp [reflect, MvPolynomial.bind₁, map_pow, map_sub, detPow, minor, AlgHom.map_det, Matrix.map,
+  simp [reflect, map_pow, map_sub, detPow, minor, AlgHom.map_det, Matrix.map,
     permArray, ← Fin.ext_iff, RingHom.map_det, ← diagonal.eq_1]
 
 omit [Fintype Φ]
@@ -595,13 +595,6 @@ lemma schur_mul_right (h_fits : FitsRanks n n' κ) (z : ∀ τ : Φ, Matrix (n' 
         simp only [← sum_schur_smul_nablaBasis h_fits z i, map_sum, map_smul]
     _ = rowSubst (fun τ : Φ ↦ z τ * g τ) (nablaBasis R n' κ i) := rowSubst_rowSubst ..
 
-omit [Fintype Φ] [DecidableEq Φ] [∀ τ : Φ, DecidableEq (n τ)] [∀ τ : Φ, DecidableEq (n' τ)] in
-/-- The determinant exponent of the one-place families with the data at τ is that at τ. -/
-private lemma schurDetExp_unit_eq (τ : Φ) :
-    schurDetExp (fun _ : Unit ↦ n τ) (fun _ : Unit ↦ n' τ) (fun _ : Unit ↦ κ τ) () =
-      schurDetExp n n' κ τ :=
-  rfl
-
 /-- Assume `FitsRanks n n' κ`: at every place τ, |n_τ| ≤ |n'_τ| and κ_τ(h) = 0 for
 |n_τ| < h < |n'_τ|. For matrices z_τ of size n'_τ × n_τ, row i of the Schur matrix `schur κ z` holds
 the coordinates of b'_i(z y) in the family b_j(y)·∏_τ det(y_τ)^{d_τ}, where b and b' are
@@ -629,16 +622,11 @@ lemma schur_apply_eq_prod (h_fits : FitsRanks n n' κ) (z : ∀ τ : Φ, Matrix 
     ((piUnique _).symm.sum_comp _).trans (sum_schur_smul_nablaBasis (fun _ : Unit ↦ h_fits τ)
       (fun _ : Unit ↦ z τ) fun _ : Unit ↦ i τ)
   -- Move each expansion into the variables of colour `τ`, multiply, and expand the product of sums.
-  have h_prod :
-      ∏ τ : Φ, rename (Prod.map (fun p : (Σ _ : Unit, n τ) ↦ (⟨τ, p.snd⟩ : Σ σ : Φ, n σ)) id)
-          (∑ a : BasisTableau (n τ) (rankAt n τ) (κ τ), S τ (fun _ ↦ i τ) (fun _ ↦ a) •
-            (nablaBasis R (fun _ : Unit ↦ n τ) (fun _ ↦ κ τ) (fun _ ↦ a) *
-              detPow R _ (schurDetExp (fun _ ↦ n τ) (fun _ ↦ n' τ) fun _ ↦ κ τ))) =
-        ∏ τ : Φ, rename (Prod.map (fun p : (Σ _ : Unit, n τ) ↦ (⟨τ, p.snd⟩ : Σ σ : Φ, n σ)) id)
-          (rowSubst (fun _ : Unit ↦ z τ) (nablaBasis R (fun _ ↦ n' τ) (fun _ ↦ κ τ) fun _ ↦ i τ)) :=
-    prod_congr rfl fun τ _ ↦ by rw [one_place τ]
+  have h_prod := prod_congr rfl fun (τ : Φ) (_ : τ ∈ univ) ↦
+    congrArg (rename (Prod.map (fun p : (Σ _ : Unit, n τ) ↦ (⟨τ, p.snd⟩ : Σ σ : Φ, n σ)) id))
+      (one_place τ)
   simpa [nablaBasis, rowSubst, prod_mul_distrib, tableauPoly, minor, detPow, ← C_mul',
-    AlgHom.map_det, Matrix.map, prod_univ_sum, schurDetExp_unit_eq] using h_prod
+    AlgHom.map_det, Matrix.map, prod_univ_sum] using! h_prod
 
 /-- If the sizes fit κ, scaling z_τ by t_τ scales S_κ(z) by the product of the t_τ^{|κ_τ|}, where
 |κ_τ| = Σ_{h < |n'_τ|} h κ_τ(h) is the number of boxes at τ. -/
@@ -760,9 +748,8 @@ lemma GL.eval_rowSubst (z : ∀ τ : Φ, Matrix (n' τ) (n τ) R) (y : ((τ : Φ
     (f : MatrixPoly ((τ : Φ) × n' τ) R) :
     eval y (rowSubst z f) = eval (fun x : ((τ : Φ) × n' τ) × ℕ ↦
       ∑ a : n x.1.fst, z x.1.fst x.1.snd a * y (⟨x.1.fst, a⟩, x.2)) f := by
-  -- `rowSubst z` substitutes a polynomial for each variable (it is `bind₁`), and evaluation after
-  -- a substitution evaluates the substituted polynomials (`eval₂Hom_bind₁`).
-  rw [rowSubst, aeval_eq_bind₁, MvPolynomial.eval, eval₂Hom_bind₁]
+  -- Evaluation after a substitution evaluates the substituted polynomials.
+  simp only [rowSubst, ← aeval_eq_eval, comp_aeval_apply]
   simp
 
 /-- Assume `FitsRanks n n' κ`: for every τ, |n_τ| ≤ |n'_τ| and κ_τ(h) = 0 for |n_τ| < h < |n'_τ|.
@@ -799,7 +786,7 @@ omit [∀ τ : Φ, DecidableEq (n τ)] in
 /-- For every array y over R with rows (τ, a), the kernel `New.weylKernel` at y lies in the module
 ∇ = `New.nablaFamily` of Borel semi-invariants: it is a substitution of the product of leading
 minors `New.highestPoly`. -/
-lemma weylKernel_mem_nablaFamily [DecidableEq Φ] (y : ((τ : Φ) × n τ) × ℕ → R) :
+lemma weylKernel_mem_nablaFamily (y : ((τ : Φ) × n τ) × ℕ → R) :
     weylKernel n κ y ∈ nablaFamily R n κ := by
   rw [weylKernel, highestPoly]
   exact rowSubst_mem_nabla _ prod_tableauPoly_mem_nabla
@@ -919,14 +906,14 @@ lemma exists_equiv_schur_one_row_eq_symPowMatrix {a : ℕ} {m σ : Type} [Fintyp
   have h_monomial (i : WeylIndexFamily (fun _ : Unit ↦ m) fun () ↦ k) :
       ∃ d : Monomials σ a,
         nablaBasis ℂ (fun _ ↦ m) (fun () ↦ k) i =
-          bind₁ (fun b ↦ X (⟨(), q b⟩, 0)) (monomial d 1) := by
+          aeval (R := ℂ) (fun b ↦ X (⟨(), q b⟩, 0)) (monomial d 1) := by
     -- The exponent of `b` is the number of entries of the filling equal to `q b`.
     refine ⟨⟨∑ h, ∑ j, ∑ s, Finsupp.single (q.symm ((i ()).val h j s)) 1, ?_⟩, ?_⟩
     · -- its degree is the number of boxes, `a`
       simp [sum_comm (γ := σ), ← h_size, sum_range, mul_comm]
     -- Unfolded, the left side is the product of the minors of the columns, the right side the
     -- product of the variables `X (entry, 0)` over all entries.
-    simp [nablaBasis, MvPolynomial.bind₁, monomial_sum_one, ← X.eq_1, tableauPoly, minor]
+    simp [nablaBasis, monomial_sum_one, ← X.eq_1, tableauPoly, minor]
     -- Compare column by column, by the height of the column: minors of size `0` and `1` are the
     -- products of their variables, and there are no columns of height at least `2`.
     congr! with ⟨_ | _ | _⟩
@@ -943,10 +930,10 @@ lemma exists_equiv_schur_one_row_eq_symPowMatrix {a : ℕ} {m σ : Type} [Fintyp
   have h_surj : Function.Surjective φ := by
     rintro ⟨d, hd⟩
     -- A monomial of degree `a` in the first column is semi-invariant of the right weight.
-    have h_mem : bind₁ (fun b ↦ X (⟨(), q b⟩, 0)) (monomial d 1) ∈
+    have h_mem : aeval (R := ℂ) (fun b ↦ X (⟨(), q b⟩, 0)) (monomial d 1) ∈
         nablaFamily ℂ (fun _ ↦ m) fun () ↦ k := by
       -- Only columns of height `1` count, `k 1 = a` of them: the weight is `a` at `((), 0)`.
-      simp_all [mem_nabla, MvPolynomial.bind₁, monomial_eq, borelMul, mul_pow, prod_pow_eq_pow_sum,
+      simp_all [mem_nabla, monomial_eq, borelMul, mul_pow, prod_pow_eq_pow_sum,
         prod_mul_distrib, diagramWeight]
       rw [sum_eq_ite 1]
       · simp [h_card, h_k_eq 1 one_pos h_card, mul_comm]
@@ -958,7 +945,7 @@ lemma exists_equiv_schur_one_row_eq_symPowMatrix {a : ℕ} {m σ : Type} [Fintyp
     by_contra h_miss
     obtain ⟨c, h_sum⟩ : ∃ c : (WeylIndexFamily (fun _ : Unit ↦ m) fun () ↦ k) → ℂ,
         ∑ i, c i • nablaBasis ℂ (fun _ ↦ m) (fun () ↦ k) i =
-          bind₁ (fun b ↦ X (⟨(), q b⟩, 0)) (monomial d 1) :=
+          aeval (R := ℂ) (fun b ↦ X (⟨(), q b⟩, 0)) (monomial d 1) :=
       ⟨_, sum_coords_nablaBasis h_mem⟩
     -- Rename the variable `(q b, 0)` back to `b` and take the coefficient of `d`: it is `0` on the
     -- left, where no `φ i` is `d`, and `1` on the right.
@@ -966,11 +953,11 @@ lemma exists_equiv_schur_one_row_eq_symPowMatrix {a : ℕ} {m σ : Type} [Fintyp
         (rename (fun x : ((_ : Unit) × m) × ℕ ↦ q.symm x.1.snd)
           (∑ i, c i • nablaBasis ℂ (fun _ ↦ m) (fun () ↦ k) i)).coeff d =
         (rename (fun x : ((_ : Unit) × m) × ℕ ↦ q.symm x.1.snd)
-          (bind₁ (fun b ↦ X (⟨(), q b⟩, 0)) (monomial d 1))).coeff d := by
+          (aeval (R := ℂ) (fun b ↦ X (⟨(), q b⟩, 0)) (monomial d 1))).coeff d := by
       rw [h_sum]
     have h_ne : ∀ i, (φ i : σ →₀ ℕ) ≠ d := fun i h_eq ↦ h_miss ⟨i, Subtype.ext h_eq⟩
     -- With the coefficients computed, `h_coeff` reads `0 = 1`.
-    simp [hφ, MvPolynomial.bind₁, rename_aeval, aeval_X_left_apply, h_ne] at h_coeff
+    simp [hφ, rename_aeval, aeval_X_left_apply, h_ne] at h_coeff
   have h_bij : Function.Bijective φ := ⟨h_inj, h_surj⟩
   refine ⟨.ofBijective φ h_bij, ?_⟩
   intro c z i j
@@ -980,16 +967,16 @@ lemma exists_equiv_schur_one_row_eq_symPowMatrix {a : ℕ} {m σ : Type} [Fintyp
   rw [h_scalar]
   -- By `schur_eq_of_expansion`, the Schur matrix is the matrix that expands the substituted basis.
   apply congrFun₂ (schur_eq_of_expansion fun i ↦ ?_)
-  let f : MvPolynomial σ ℂ := linSubst (c • zᵀ.submatrix q q) (monomial (φ i).1 1)
+  let f : MvPolynomial σ ℂ := linSubst (c • zᵀ.submatrix q q) (monomial (φ i).val 1)
   have h_expand : ∑ β : Monomials σ a, f.coeff β • monomial β 1 = f :=
     sum_monomials_eq_of_isHomogeneous ((φ i).isHomogeneous_linSubst _)
   -- Substitute the first column of variables into this expansion of `f`.
-  have h_subst : bind₁ (fun b ↦ X ((⟨(), q b⟩ : Σ _ : Unit, m), 0))
+  have h_subst : aeval (R := ℂ) (fun b ↦ X (R := ℂ) ((⟨(), q b⟩ : Σ _ : Unit, m), 0))
         (∑ β : Monomials σ a, f.coeff β • monomial β 1) =
-      bind₁ (fun b ↦ X ((⟨(), q b⟩ : Σ _ : Unit, m), 0)) f := by rw [h_expand]
+      aeval (R := ℂ) (fun b ↦ X (R := ℂ) ((⟨(), q b⟩ : Σ _ : Unit, m), 0)) f := by rw [h_expand]
   -- Reindex the sum over monomials by the bijection `φ`.
   rw [← h_bij.sum_comp (fun β : Monomials σ a ↦ f.coeff β • monomial (β : σ →₀ ℕ) 1)] at h_subst
-  simpa [f, hφ, MvPolynomial.bind₁, comp_aeval_apply, monomial_eq, reindex_equiv q, symPowMatrix,
+  simpa [f, hφ, comp_aeval_apply, monomial_eq, reindex_equiv q, symPowMatrix,
     linSubst, rowSubst] using h_subst
 
 end New

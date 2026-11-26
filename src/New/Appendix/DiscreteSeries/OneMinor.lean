@@ -58,7 +58,7 @@ lemma norm_det_sq_le_exp (Y : Matrix n n ℂ) :
         simp [hY.det_eq_prod_eigenvalues, abs_of_nonneg (nonneg _)]
     _ ≤ ∏ i, Real.exp (hY.eigenvalues i - 1) :=
         prod_le_prod₀ (fun i _ ↦ nonneg i) fun i _ ↦ by
-          linarith [Real.add_one_le_exp (hY.eigenvalues i - 1)]
+          linarith only [Real.add_one_le_exp (hY.eigenvalues i - 1)]
     _ = Real.exp (Yᴴ * Y - 1).trace.re := by rw [trace_eq, Real.exp_sum]
 
 /-- The principal minor of `X` on the indices satisfying `p` is `det (1 + P (X - 1))`, where `P` is
@@ -252,12 +252,6 @@ lemma flenstedJensen_reducedExp {ε : n → ℤˣ} {Z : Matrix n n ℂ} {h : ℕ
     (accretive (near_exp.trans (by norm_num))) (accretive near_both), hb'_char, hb_char, one_mul,
     one_mul]
 
-/-- The absolute value of an entry of a matrix is at most the Frobenius norm of the matrix. -/
-lemma norm_apply_le (X : Matrix n n ℂ) (i j : n) : ‖X i j‖ ≤ ‖X‖ := by
-  rw [← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _), frobenius_norm_sq_eq_sum]
-  exact (single_le_sum (fun b _ ↦ sq_nonneg ‖X i b‖) (mem_univ j)).trans
-    (single_le_sum (fun a _ ↦ sum_nonneg fun b _ ↦ sq_nonneg ‖X a b‖) (mem_univ i))
-
 /-- The entry `(i, j)` of the commutator of `X` with the diagonal projection to the indices
 satisfying `p` has the norm of `X i j` if exactly one of `p i`, `p j` holds, else it is `0`. -/
 lemma norm_lie_coordProj_apply (X : Matrix n n ℂ) (i j : n) :
@@ -343,7 +337,7 @@ lemma norm_trace_conj_coordProj_mul_sub_le (ho : o.Injective) (hZ_le : ‖Z‖ �
         simp only [trace_Q, trace_P, ← sum_sub_distrib, Matrix.sub_apply, sub_mul]
     _ ≤ ∑ a, ‖(Q - coordProj p) a a‖ * δ :=
         norm_sum_le_of_le _ fun a _ ↦
-          norm_mul_le_of_le le_rfl ((norm_apply_le Z a a).trans hZ_le)
+          norm_mul_le_of_le le_rfl ((norm_apply_le_frobenius_norm Z a a).trans hZ_le)
     _ ≤ δ * ‖⁅coordProj p, k⁆‖ ^ 2 := by
         grw [← sum_mul, sum_norm_conj_coordProj_sub_le hk, mul_comm]
         exact (norm_nonneg _).trans hZ_le
@@ -560,7 +554,7 @@ private lemma mul_sq_add_add_le_mul_sq_add_sq {x κ : ℝ} (hδ : 0 ≤ δ) (hκ
   calc δ * κ ^ 2 + 18 * δ * κ * ζ + 10 ^ 4 * δ * ζ ^ 2
       ≤ δ * κ ^ 2 + 18 * δ * κ * (x + κ) + 10 ^ 4 * δ * (x + κ) ^ 2 := by gcongr
     _ ≤ 10 ^ 5 * δ * (x ^ 2 + κ ^ 2) := by
-        nlinarith [mul_nonneg hδ (sq_nonneg (x - κ)), mul_nonneg hδ (sq_nonneg x),
+        linarith [mul_nonneg hδ (sq_nonneg (x - κ)), mul_nonneg hδ (sq_nonneg x),
           mul_nonneg hδ (sq_nonneg κ)]
 
 -- Keeps definitional checks from unfolding the finite sums.

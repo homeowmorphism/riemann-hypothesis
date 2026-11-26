@@ -346,7 +346,7 @@ lemma etaOneClass_residueTest_bot_eq_zero {ℓ : ℕ} {A : Type} [CommRing A] [I
       fun a ha ↦ IsUnit.mk0 (algebraMap A k.obj a) ha)⟩
   -- Vanishing passes from `k` to `Q`, as pull-back between fields is injective.
   have h_eta_under : etaOneClass (ℓ := ℓ) (residueTest (TestOver.ofSelf A) Q).right = 0 :=
-    (isDetectedAtPoints_projLine.isCohomEquiv_of_isField _ k toK
+    (isDetectedAtPoints_projLine.isCohomEquiv_map_of_isField _ k toK
       (Field.toIsField (ResidueField _)) k_field 2).injective
       ((map_etaOneClass toK).trans (h_eta_k.trans (map_zero _).symm))
   -- Vanishing then passes to the generic point, as the vanishing locus is open.

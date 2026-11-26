@@ -44,7 +44,9 @@ II.
 ## An ℓ-adic criterion for algebraicity of complex numbers
 
 A transcendental number can be sent to any transcendental element of `PadicAlgCl ℓ` by
-`New.exists_ringEquiv_extend`, and these elements have unbounded norm.
+`New.exists_ringEquiv_extend`, and these elements have unbounded norm. The isomorphisms here are
+of abstract fields; no continuity is required. This is the algebraicity input used for the
+common multiplier in `New.HeightLe.nonneg_of_one`.
 -/
 
 /-- Let `ℓ` be a prime. If the `ℓ`-adic norms of the images of `x : ℂ` under all field isomorphisms
@@ -58,14 +60,16 @@ lemma New.isAlgebraic_of_norm_complexToCp_le {ℓ : ℕ} [Fact ℓ.Prime] {x : �
   obtain ⟨y, hy, hcy⟩ : ∃ y : PadicAlgCl ℓ, ¬IsAlgebraic ℚ y ∧ c < ‖y‖ :=
     ((Algebraic.countable ℚ (PadicAlgCl ℓ)).dense_compl ℚ_[ℓ]).exists_mem_open
       (isOpen_Ioi.preimage continuous_norm) (NormedField.exists_lt_norm _ c)
-  -- Evaluation at `x` and at `y` embed the countable ring `ℚ[X]` in two algebraically closed fields
-  -- of the same uncountable cardinality; an isomorphism `ι` matching them sends `x` to `y`.
+  -- Transcendence is precisely injectivity of the two evaluations on `ℚ[X]`.
+  -- Relative Steinitz (`Lib.General.Geometry.GaloisCovers`) extends their identification to
+  -- a field isomorphism, since the two ambient fields have the same uncountable cardinality.
   have : Countable (Polynomial ℚ) := (Polynomial.basisMonomials ℚ).repr.injective.countable
   rw [isAlgebraic_iff_not_injective, not_not] at hx hy
   obtain ⟨ι, hι⟩ : ∃ ι : ℂ ≃+* PadicAlgCl ℓ, ∀ P : Polynomial ℚ,
       ι (Polynomial.aeval x P) = Polynomial.aeval y P :=
     exists_ringEquiv_extend mk_complex_eq_mk_padicAlgCl _ _ hx hy
-  exact hcy.not_ge (by simpa [show ι x = y by simpa using hι .X] using h_bound ι)
+  have h_image : ι x = y := by simpa using hι .X
+  exact hcy.not_ge (by simpa [h_image] using h_bound ι)
 
 namespace New
 
@@ -79,12 +83,6 @@ section TeichmullerLimits
 
 open NumberField Complex IsLocalRing PadicInt QuadField AddChar ComplexConjugate
 variable {p : ℕ} [hp : Fact p.Prime]
-
-/-- The residue field of the valuation ring of `ℂ_[p]` has characteristic `p`, since `‖p‖ < 1`. -/
-instance : CharP (ResidueField (valRingCp p)) p := by
-  refine (CharP.charP_iff_prime_eq_zero hp.out).2 (residue_eq_iff_valuation_sub_lt_one.2 ?_)
-  change ‖(p : valRingCp p).val - 0‖₊ < 1
-  simpa [← NNReal.coe_lt_coe] using PadicComplex.norm_p_lt_one p
 
 /-- If `‖u - 1‖ < 1` in `ℂ_p` and `p ∣ q`, then `u ^ q ^ n` tends to `1` as `n → ∞`. -/
 lemma tendsto_pow_pow_of_norm_sub_one_lt {u : ℂ_[p]} (hu : ‖u - 1‖ < 1) {q : ℕ} (hq : p ∣ q) :

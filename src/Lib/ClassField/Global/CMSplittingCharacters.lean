@@ -741,10 +741,6 @@ lemma star_mem_placesDividing {T : ℕ} : star v ∈ placesDividing E T ↔ v �
 /-- The element `g` if `b` is true, and `(conjGal g)⁻¹ = (c g c)⁻¹` if `b` is false. -/
 noncomputable def idOrConjInv (b : Bool) (g : Gal(Ω/E)) : Gal(Ω/E) := cond b g (conjGal g)⁻¹
 
-private lemma idOrConjInv_true : idOrConjInv true g = g := rfl
-
-private lemma idOrConjInv_false : idOrConjInv false g = (conjGal g)⁻¹ := rfl
-
 @[simp]
 lemma conjGal_conjGal : conjGal (conjGal g) = g := by
   ext
@@ -845,9 +841,9 @@ lemma IsFromU1.apply_idOrConjInv (h : IsFromU1 S I χ) (g : Gal(Ω/E)) :
     obtain ⟨η, -, -, hη⟩ := h.exists_ideleChar
     obtain ⟨x, hx⟩ := artinMap_surjective Gal(Ω/E) g
     have hx_conj : artinMap Gal(Ω/E) (star x)⁻¹ = idOrConjInv false g := by
-      simp [idOrConjInv_false, artinMap_star g hx]
+      simp [idOrConjInv, artinMap_star g hx]
     simp [hη x g hx, hη _ _ hx_conj, inv_mul_eq_div]
-  · rw [idOrConjInv_true]
+  · rfl
 
 /-- Let `S` and `I` be sets of finite places of the CM field `E`, and let `χ` be a character of
 `Gal(Ω/E)` with `IsFromU1 S I χ`. This means `χ(Art x) = η(x / x̄)` for an idele class character `η`

@@ -24,7 +24,7 @@ degree two through the class group. This shows that the discriminant of a CM lat
   identities for the discriminants `s(u)` of a lattice scaled to `℘''(u) = 2` at the points `u` of
   order two.
 * `New.CMLattice.norm_scaledDisc_le_one`, `New.CMLattice.prod_scaledDisc_t`: for a family of data,
-  one in each ideal class, the numbers `s(u)` are integral, and those at the points `t` have the
+  one in each ideal class, the numbers `s(t)` at the points `t` are integral and have the
   product `±1`.
 * `New.CMLattice.norm_disc_eq_one`: the discriminant `a₁⁴ - 64` of a CM lattice is a unit at every
   prime.
@@ -70,7 +70,7 @@ variable {d : ℕ}
 /-- The lattice Λ of a CM datum regarded as an 𝒪_K-submodule of ℂ. -/
 def CMLattice.latticeModule [PrimeSevenModEight d]
     (C : CMLattice d) : Submodule (𝓞 (QuadField d)) ℂ where
-  toAddSubmonoid := C.Λ.1
+  toAddSubmonoid := C.Λ.toAddSubmonoid
   smul_mem' y _ hx := C.mul_mem_of_quadInt ⟨y, rfl⟩ hx
 
 /-- The monoid homomorphism (u, 𝔞) ↦ u𝔞 from pairs of a nonzero complex number and a nonzero
@@ -96,7 +96,7 @@ lemma QuadField.mem_scaledIdeal {x : ℂˣ × (FractionalIdeal (𝓞 (QuadField 
 /-- For a ℤ-basis b₀, b₁ of a fractional ideal of K = ℚ(√−d) and a nonzero complex number c, the
 numbers cb₀, cb₁ are linearly independent over ℝ. -/
 lemma QuadField.linearIndependent_mul_basis [PrimeSevenModEight d]
-    {𝔠 : (FractionalIdeal (𝓞 (QuadField d))⁰ (QuadField d))ˣ} (b : Basis (Fin 2) ℤ 𝔠.1) (c : ℂˣ) :
+    {𝔠 : (FractionalIdeal (𝓞 (QuadField d))⁰ (QuadField d))ˣ} (b : Basis (Fin 2) ℤ 𝔠.val) (c : ℂˣ) :
     LinearIndependent ℝ ![(c * b 0 : ℂ), c * b 1] := by
   -- If `b 0 / b 1` were real, so would be `ω = ω b 1 / b 1`.
   suffices h_not_real : ∀ a : ℝ, (a : ℂ) * b 1 ≠ b 0 by
@@ -108,7 +108,7 @@ lemma QuadField.linearIndependent_mul_basis [PrimeSevenModEight d]
   have h_omega : quadGen d * b 1 = m * b 0 + n * b 1 := by
     have h_two : ((2 : QuadField d) : ℂ) = 2 := map_ofNat (QuadField d).val 2
     simpa [Algebra.smul_def, quadGen, h_two] using
-      congrArg (fun y : 𝔠.1 ↦ ((y : QuadField d) : ℂ)) h_repr
+      congrArg (fun y : 𝔠.val ↦ ((y : QuadField d) : ℂ)) h_repr
   have h_real : quadGen d = m * a + n := mul_right_cancel₀ (b := (b 1 : ℂ))
     (by simp [b.ne_zero]) (by linear_combination h_omega - m * ha)
   simpa [quadGen, NeZero.ne] using congrArg im h_real
@@ -171,11 +171,11 @@ lemma QuadField.exists_cmLattice_latticeModule_eq_scaledIdeal [PrimeSevenModEigh
   -- `𝔠` is a lattice `L 1` in `ℂ`. Neither `ω / 2` nor `ω̄ / 2` preserves it, so some `t = l / 2`,
   -- `l ∈ L 1`, has `ω t, ω̄ t ∉ L 1`. Then `℘''(t) ≠ 0`, and scaling the lattice makes
   -- `℘''(t) = 2`.
-  have b : Basis (Fin 2) ℤ 𝔠.1 :=
+  have b : Basis (Fin 2) ℤ 𝔠.val :=
     finBasisOfFinrankEq ℤ 𝔠 (by rw [fractionalIdeal_rank, rank, finrank_eq_two])
   let L (c : ℂˣ) : PeriodPair := ⟨c * b 0, c * b 1, linearIndependent_mul_basis b c⟩
   have mem_iff (c : ℂˣ) (z : ℂ) : z ∈ (L c).lattice ↔ z ∈ scaledIdeal d (c, 𝔠) := by
-    trans ∃ y : 𝔠.1, (c : ℂ) * y = z
+    trans ∃ y : 𝔠.val, (c : ℂ) * y = z
     · refine mem_lattice.trans (.trans ?_ b.equivFun.symm.surjective.exists.symm)
       simp [L, field, Fin.exists_fin_succ_pi]
     · simp [mem_scaledIdeal]
@@ -262,10 +262,10 @@ lemma CMLattice.exists_latticeModule_eq_scaledIdeal_mul
 isomorphism 𝔞 ≅ Λ. -/
 def QuadField.latticeEquiv (h : latticeModule C = scaledIdeal d x) : x.2 ≃+ C.Λ :=
   AddEquiv.ofBijective
-    (AddHom.mk (fun y ↦ ⟨x.1 * y, h.ge (mem_scaledIdeal.2 ⟨y, y.2, rfl⟩)⟩)
+    (AddHom.mk (fun y ↦ ⟨x.1 * y, h.ge (mem_scaledIdeal.2 ⟨y, y.property, rfl⟩)⟩)
       (fun y z ↦ Subtype.ext (by simp [mul_add])))
     ⟨fun y z hyz ↦ Subtype.ext (by simpa using congrArg Subtype.val hyz),
-      fun z ↦ by simpa [mem_scaledIdeal, Subtype.ext_iff] using h.le z.2⟩
+      fun z ↦ by simpa [mem_scaledIdeal, Subtype.ext_iff] using h.le z.property⟩
 
 /-- Let d be a prime ≡ 7 mod 8. If the lattice of C equals u𝔞, with x = (u, 𝔞), u ∈ ℂ^× and 𝔞 a
 nonzero fractional ideal of K = ℚ(√−d), then its area is |u|²·N(𝔞)·√d/2. -/
@@ -283,11 +283,11 @@ lemma QuadField.area_eq_of_eq_scaledIdeal {C : CMLattice d}
   -- `f` is division by `u = x.1`; it carries the lattice basis to a basis of the ideal `x.2`,
   -- whose determinant against `B` is the norm of the ideal up to sign.
   let f : C.Λ ≃+ x.2 := (latticeEquiv hC).symm
-  have h_norm : |BK.det (Subtype.val ∘ C.latticeBasis.map f.toIntLinearEquiv)| = absNorm x.2.1 :=
-    abs_det_basis_change B x.2.1 _
+  have h_norm : |BK.det (Subtype.val ∘ C.latticeBasis.map f.toIntLinearEquiv)| = absNorm x.2.val :=
+    abs_det_basis_change B x.2.val _
   have h_equiv (y : x.2.val) : (latticeEquiv hC y : ℂ) = x.1 * y := rfl
-  have h_coord (z : C.Λ) : z.1 = x.1 * (BK.repr (f z) 0 + BK.repr (f z) 1 * quadGen d) := by
-    have h_sum : z.1 = x.1 * ((∑ i, BK.repr (f z) i • BK i : QuadField d) : ℂ) := by
+  have h_coord (z : C.Λ) : z.val = x.1 * (BK.repr (f z) 0 + BK.repr (f z) 1 * quadGen d) := by
+    have h_sum : z.val = x.1 * ((∑ i, BK.repr (f z) i • BK i : QuadField d) : ℂ) := by
       rw [BK.sum_repr, ← h_equiv, AddEquiv.apply_symm_apply]
     have h_two : ((2 : QuadField d) : ℂ) = 2 := map_ofNat (QuadField d).val 2
     simpa [Fin.sum_univ_two, BK, hB, Rat.smul_def, h_two, quadGen] using h_sum
@@ -724,15 +724,14 @@ variable {D : ClassGroup (𝓞 (QuadField d)) → CMLattice d}
 
 /-- Let `d` be a prime `≡ 7 mod 8`, `ι : ℂ →+* ℂ_[p]` an embedding for a prime `p`, and `D 𝒞` a CM
 lattice in each ideal class `𝒞`, with its point `t` of order two. Then
-`scaledDisc u = 288 ℘(u)² / ℘''(u) - 64` for the lattice of `D 𝒞` satisfies `‖ι (scaledDisc u)‖ ≤ 1`
-at the three points `u = ω t, ω̄ t, t` of order two, where `ω = (1 + √-d) / 2`. At a point of order
-two, `scaledDisc` is the discriminant of the lattice after rescaling so that `℘''(u) = 2`. -/
+`scaledDisc u = 288 ℘(u)² / ℘''(u) - 64` for the lattice of `D 𝒞` has `‖ι (scaledDisc t)‖ ≤ 1`. The
+proof first bounds it at the other points `ω t, ω̄ t` of order two, where `ω = (1 + √-d) / 2`. At a
+point of order two, `scaledDisc` is the discriminant of the lattice after rescaling so that
+`℘''(u) = 2`. -/
 lemma norm_scaledDisc_le_one {p : ℕ} [Fact p.Prime] {d : ℕ} [PrimeSevenModEight d]
     {D : ClassGroup (𝓞 (QuadField d)) → CMLattice d}
     (hD : ∀ 𝒞 : ClassGroup (𝓞 (QuadField d)), (D 𝒞).IsInClass 𝒞)
     (ι : ℂ →+* ℂ_[p]) (𝒞 : ClassGroup (𝓞 (QuadField d))) :
-    (∀ b : ℂ, b = quadGen d ∨ b = conj (quadGen d) →
-      ‖ι ((D 𝒞).scaledDisc (b * (D 𝒞).t))‖ ≤ 1) ∧
     ‖ι ((D 𝒞).scaledDisc (D 𝒞).t)‖ ≤ 1 := by
   have h48 : ‖ι (-48)‖ ≤ 1 := by
     simpa [map_ofNat] using IsUltrametricDist.norm_natCast_le_one ℂ_[p] 48
@@ -752,7 +751,6 @@ lemma norm_scaledDisc_le_one {p : ℕ} [Fact p.Prime] {d : ℕ} [PrimeSevenModEi
     have h_step (𝒞') : s b (𝔤 * 𝒞') * s₀ (𝔤 * 𝒞') = -s b 𝒞' := by
       simp only [s, s₀, ← map_mul, (h𝔤 (hD 𝒞') (hD _)).2, map_neg]
     exact norm_le_one_of_cycle 𝔤 h_sum h_dual h_step 𝒞
-  refine ⟨h_int, ?_⟩
   have hω : quadGen d = quadGen d ∨ quadGen d = conj (quadGen d) := .inl rfl
   -- `s(t) = -48 - s(ω t) - s((1 - ω) t)`
   rw [eq_sub_of_add_eq' ((D 𝒞).scaledDisc_sum_prod hω).1, ← sub_sub, map_sub, map_sub]
@@ -798,7 +796,7 @@ lemma norm_disc_eq_one {p : ℕ} [Fact p.Prime] {d : ℕ} (C : CMLattice d) [Pri
   -- The discriminants of a family of CM lattices, one in each ideal class, are integral and have
   -- the product `±1`.
   obtain ⟨D, hD, 𝒞₀, rfl⟩ := C.exists_forall_isInClass
-  have h_le (𝒞) : ‖ι ((D 𝒞).scaledDisc (D 𝒞).t)‖₊ ≤ 1 := (norm_scaledDisc_le_one hD ι 𝒞).2
+  have h_le (𝒞) : ‖ι ((D 𝒞).scaledDisc (D 𝒞).t)‖₊ ≤ 1 := norm_scaledDisc_le_one hD ι 𝒞
   have h_prod : ∏ 𝒞, ‖ι ((D 𝒞).scaledDisc (D 𝒞).t)‖₊ = 1 := by
     simp [← nnNorm_prod, ← map_prod, prod_scaledDisc_t hD]
   have h_unit : ‖ι ((D 𝒞₀).scaledDisc (D 𝒞₀).t)‖₊ = 1 :=

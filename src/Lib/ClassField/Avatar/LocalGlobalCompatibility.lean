@@ -65,7 +65,7 @@ lemma New.GaloisRep.avatar_baseChange {ℓ : ℕ} [ThePrime ℓ] [PadicIso ℓ] 
   obtain ⟨x, -, hx⟩ := y.isPlaceOver.exists_localArtin_eq y.isFrob_inv 1
   -- `y.frob` is the Artin symbol of `x` and its restriction is that of the norm of `x`.
   have h_norm := (y.isPlaceOver.localArtin_localNorm (restrictScalarsHom E)
-    (hj := IsScalarTower.algebraMap_apply E L Ω)).1 hx
+    (hj := IsScalarTower.algebraMap_apply E L Ω)).localArtin_localNorm hx
   ext
   calc ((θ.baseChange (E := L)).avatar y.frob).val
       = ιℓ (θ.val.1 (Units.map (adeleNorm E L) (locIdele y.place x))) :=
@@ -203,7 +203,7 @@ lemma New.GaloisRep.avatarCompatAt_of_hasPrimitiveRoot5040 {ℓ : ℕ} [ThePrime
   let L : IntermediateField E Ω := QZChar.stepField χ
   let j : Gal(Ω/L) →* Gal(Ω/E) := restrictScalarsHom E
   have h_fix : decompGroup Gal(Ω/E) A ≤ QZChar.ker (QZChar.symmetrise χ) :=
-    (h_dec hA w.1.absNorm_mem).1
+    (h_dec hA w.asIdeal.absNorm_mem).1
   obtain ⟨u, hu, rfl⟩ : ∃ u : FinPlace L, IsPlaceOver A u ∧ u.below E = w := hA.exists_above
   have hq : u.q = (u.below E).q := (hA.q_eq_and_comap_ne_self_of_decompGroup_le h_fix u rfl).1
   have hu_split : u.IsSplit := (h_spl u (by simpa [← hq] using u.1.absNorm_mem)).isSplit_of_below
@@ -221,9 +221,9 @@ lemma New.GaloisRep.avatarCompatAt_of_hasPrimitiveRoot5040 {ℓ : ℕ} [ThePrime
   refine ⟨desc_fin h_fin, desc_jump (by simp) h_jump, fun s m hm hs ↦ ?_⟩
   -- `s` fixes `L`, so it is the image of an `s'` in `Gal(Ω/L)`; take the norm of the element `y`
   -- that belongs to `s'`.
-  let s' : Gal(Ω/L) := .ofRingEquiv (f := s) fun x ↦ x.2 ⟨s, h_fix (inv_mem_iff.1 hs.1)⟩
+  let s' : Gal(Ω/L) := .ofRingEquiv (f := s) fun x ↦ x.property ⟨s, h_fix (inv_mem_iff.1 hs.1)⟩
   obtain ⟨y, hy_val, hy_art, hy_poly⟩ := h_poly s' m hm (by rwa [hq])
   refine ⟨localNorm E u y, by simp [v_localNorm (f := 1), hq, hy_val],
-    (hu.localArtin_localNorm j).1 hy_art, ?_⟩
+    (hu.localArtin_localNorm j).localArtin_localNorm hy_art, ?_⟩
   rw [← adeleNorm_locIdele]
   exact desc_poly s' (Set.mem_univ s') hy_poly

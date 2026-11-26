@@ -68,11 +68,8 @@ lemma mem_matrixKernel {A : Matrix r k O} {B : Type*} [AddCommGroup B] [Module O
   simp [matrixKernel]
 
 lemma smul_mem_rowLattice (A : Matrix r k O) (a : O) (v : k → O) : a • v ∈ rowLattice A a := by
-  rw [pi_eq_sum_univ' v, Finset.smul_sum]
-  refine sum_mem fun j _ ↦ ?_
-  rw [smul_comm]
-  exact smul_mem _ _
-    (subset_span ⟨.inr j, by ext i; simp [Matrix.one_apply, Pi.single_apply, eq_comm]⟩)
+  refine span_mono ?_ ((range_vecMulLinear (a • (1 : Matrix k k O))).le ⟨v, by simp⟩)
+  exact Set.range_subset_iff.2 fun j ↦ ⟨.inr j, rfl⟩
 
 /-- The kernel of `A` on `(O / a) ^ k` (`QuotSpan a` is `O / a`) has the length of the module of
 linear maps to `O / a` from the quotient of `O ^ k` by `rowLattice A a`, the span of the rows of
@@ -186,24 +183,24 @@ lemma length_quotient_span_row (N : Matrix k k O) :
   let : DecidableEq k := Classical.decEq k
   -- For `N = Q * diagonal d * P` the rows span the kernel of the surjection onto the product of
   -- the `O / d i` that sends `v` to the classes of the coordinates of `v P⁻¹`.
-  obtain ⟨Q, -, P, -, d, rfl⟩ : ∃ᵉ (Q ∈ intGL k (⊤ : Subring O)) (P ∈ intGL k (⊤ : Subring O))
-      (d : k → O), N = Q.val * diagonal d * P.val := isValuationPair_top.smith_normal_form N
+  obtain ⟨Q, -, P, -, d, rfl⟩ : ∃ Q ∈ intGL k (⊤ : Subring O), ∃ P ∈ intGL k (⊤ : Subring O),
+      ∃ d : k → O, N = Q.val * diagonal d * P.val := isValuationPair_top.smith_normal_form N
   let π : (k → O) →ₗ[O] ∀ i, QuotSpan (d i) :=
-    LinearMap.piMap (fun i ↦ (Ideal.span {d i}).mkQ) ∘ₗ P⁻¹.1.vecMulLinear
+    LinearMap.piMap (fun i ↦ (Ideal.span {d i}).mkQ) ∘ₗ P⁻¹.val.vecMulLinear
   have h_surj : Function.Surjective π :=
-    (Function.Surjective.piMap fun _ ↦ mkQ_surjective _).comp fun v ↦ ⟨v ᵥ* P.1, by simp⟩
-  have h_ker : π.ker = span O (Set.range (Q.1 * diagonal d * P.1).row) := by
+    (Function.Surjective.piMap fun _ ↦ mkQ_surjective _).comp fun v ↦ ⟨v ᵥ* P.val, by simp⟩
+  have h_ker : π.ker = span O (Set.range (Q.val * diagonal d * P.val).row) := by
     ext v
     rw [mem_span_row_mul_diagonal_mul_iff, LinearMap.mem_ker, funext_iff]
     exact forall_congr' fun i ↦ Ideal.Quotient.eq_zero_iff_dvd (d i) _
-  have h_unit (U : GL k O) : addVal O U.1.det = 0 :=
+  have h_unit (U : GL k O) : addVal O U.val.det = 0 :=
     addVal_eq_zero_iff.2 ((isUnit_iff_isUnit_det _).1 U.isUnit)
-  calc length O ((k → O) ⧸ span O (Set.range (Q.1 * diagonal d * P.1).row))
+  calc length O ((k → O) ⧸ span O (Set.range (Q.val * diagonal d * P.val).row))
     _ = length O (∀ i, QuotSpan (d i)) := by
         rw [← h_ker, (π.quotKerEquivOfSurjective h_surj).length_eq]
     _ = addVal O (∏ i, d i) := by
         simp only [length_pi_of_fintype, length_quot_span_eq_addVal, addVal_prod]
-    _ = addVal O (Q.1 * diagonal d * P.1).det := by simp [h_unit]
+    _ = addVal O (Q.val * diagonal d * P.val).det := by simp [h_unit]
 
 /-- Over a discrete valuation ring and for `a ≠ 0` the lattice `rowLattice A a` of the rows of
 `A` and `a • 1` is free of full rank, so it is spanned by the rows of a square matrix. -/

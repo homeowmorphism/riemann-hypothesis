@@ -155,13 +155,13 @@ lemma isScalarFrame_invHeckeIsogeny :
   set r : ℕ := Module.finrank (ResField w.val) C
   -- `uniformizerNorm w` is the norm to `QuadField d₀` of the uniformiser at `w` and norms keep the
   -- idelic absolute value, so `(uniformizerNorm w ^ r)⁻¹` has absolute value `q ^ r` and
-  -- `centralScalar_mem_GU` applies.
+  -- `isScalarFrame_centralScalar` applies.
   have h_abs : ((w.val.q ^ r : ℕ) : ℚ) =
       finIdeleAbs (((uniformizerNorm w ^ r)⁻¹).map (adeleNorm ℚ (QuadField d₀))) := by
     simp [finIdeleAbs_adeleNorm, norm_locField_eq_q_zpow]
   obtain ⟨h_pos, h_centre_frame⟩ :
       IsScalarFrame (centralScalar (uniformizerNorm w ^ r)⁻¹ : GL n (𝔸f E)) (w.val.q ^ r : ℕ) :=
-    (centralScalar_mem_GU (uniformizerNorm w ^ r)⁻¹).2 ((w.val.q ^ r : ℕ) : ℚ) h_abs
+    isScalarFrame_centralScalar (uniformizerNorm w ^ r)⁻¹ h_abs
   -- The local factor is unitary, so the product is still a frame for `q ^ r • 1`.
   have h_local :
       IsFrameFor ((1 : E) • 1 : Matrix n n E) (conjAtSplit w (transposeGL (basicCosetRep C))) :=
@@ -222,7 +222,7 @@ lemma mem_torsionBySet_of_pow_smul_eq_zero_of_torsionClass_inv_mulVec_eq_zero
     have hv_eq : v i w = ((basicCosetRep C)⁻¹.val *ᵥ
         fun j ↦ evalAt _ (((invHeckeIsogeny w C)⁻¹.val *ᵥ v) j)) i := by
       simp [-coe_units_inv, RingHom.map_mulVec, invHeckeIsogeny_inv_at_eq_basicCosetRep hw]
-    obtain ⟨⟨-, h_inv_entries, -⟩, -⟩ := basicCosetRep_mem_and_residueKer_eq C
+    obtain ⟨-, h_inv_entries, -⟩ := basicCosetRep_mem_basicDoubleCoset C
     rw [hv_eq]
     exact mul_le_mul' ((intValuation_le_pow_iff_mem w.val a 1).mpr (by simpa using ha))
       (v_matrix_mul_le h_inv_entries (fun j _ ↦ h_zero j w.val) i i)
@@ -432,7 +432,7 @@ lemma torsionPoint_comp_eq_zero_iff_mem {d₀ : ℕ} [HasQuadSubfield d₀ E] {V
   -- `M` is the integral matrix `(invHeckeIsogeny w C)⁻¹`. At `w` it is `basicCosetRep C`, whose
   -- reduction has kernel `C`.
   obtain ⟨-, h_inv_int⟩ := invHeckeIsogeny_mem_GUPlus w C
-  obtain ⟨-, h_residueKer⟩ := basicCosetRep_mem_and_residueKer_eq C
+  have h_residueKer := residueKer_basicCosetRep C
   let M : Matrix D.Index D.Index (Ô E) := fun i j ↦ ⟨(invHeckeIsogeny w C)⁻¹.val i j, h_inv_int i j⟩
   have hM_val : M.map (fun a ↦ a.val) = (invHeckeIsogeny w C)⁻¹.val := rfl
   have hM_at : M.map (fun a ↦ a.val w.val) = (invHeckeIsogeny w C)⁻¹.val.map (evalAt w.val) := rfl
@@ -539,7 +539,7 @@ noncomputable def frobeniusTwist (π : V →+* k) (l : ℕ) [Fact l.Prime] [Char
     Over.map (specMap ((iterateFrobenius k l f).comp π)) ⟶ Over.map (specMap π) where
   app T := homMk (absFrobenius f T) (by
     have h_frob : absFrobenius f T ≫ T.hom = T.hom ≫ specMap (iterateFrobenius k l f) :=
-      (absFrobenius_comm ..).trans
+      (absFrobenius_comm f T (.mk (𝟙 _)) T.hom).trans
         (T.hom ≫= by simpa using! comp_absFrobenius f (.mk (𝟙 _)) (𝟙 _))
     simpa [specMap] using! h_frob =≫ specMap π)
   naturality := by simp [absFrobenius_comm, OverMorphism.ext_iff]
@@ -596,25 +596,17 @@ lemma IsTwistedReduction.pull_picClass_eq_nsmul (hg : IsTwistedReduction hx₀ h
 schemes. -/
 lemma IsTwistedReduction.surjective [IsAlgClosed k] (hg : IsTwistedReduction hx₀ hx ψ g)
     (hπ : Function.Surjective π) [Surjective ψ.left] : Surjective g.left := by
-  have h_closed : IsClosedImmersion hx.schemeMap.left :=
+  have : IsClosedImmersion hx.schemeMap.left :=
     IsClosedImmersion.isStableUnderBaseChange.of_isPullback hx.isGroupBaseChange.isPullback.flip
       (.spec_of_surjective _ ((bijective_iterateFrobenius k l f).surjective.comp hπ))
   refine ⟨fun c' ↦ ?_⟩
-  -- A preimage under `ψ` of the image of `c'` lies in the special fibre, so it comes from a
-  -- point `c` of `x₀.groupScheme`; Frobenius does not move points.
+  -- Lift a preimage of `c'` under `ψ` to `x₀.groupScheme`; Frobenius fixes underlying points.
   obtain ⟨a, ha⟩ := ψ.left.surjective (hx.schemeMap.left c')
-  -- `a` lies over the image of `c'` in `Spec k`, moved by the Frobenius of `k`
-  have h_over : y.groupScheme.hom.base a =
-      (specMap π).base ((specMap (iterateFrobenius k l f)).base (x.groupScheme.hom.base c')) := by
-    simpa [specMap, ← ψ.w, ha, -Over.w] using congrArg (fun φ ↦ φ.base c') hx.schemeMap.w
-  obtain ⟨c, hc, -⟩ :=
-    Scheme.exists_preimage_of_isPullback hx₀.isGroupBaseChange.isPullback a _ h_over
+  obtain ⟨c, hc, -⟩ := Scheme.exists_preimage_of_isPullback hx₀.isGroupBaseChange.isPullback a _
+    (by simpa [specMap, ← ψ.w, ha, -Over.w] using congrArg (fun φ ↦ φ.base c') hx.schemeMap.w)
   refine ⟨c, hx.schemeMap.left.isClosedEmbedding.injective ?_⟩
-  have h_point_left : (hx.isGroupBaseChange.pointEquiv (𝟙 x₀.groupScheme ≫ g)).left c =
-      ((frobeniusTwist π l f).app x₀.groupScheme ≫
-        hx₀.isGroupBaseChange.pointEquiv (𝟙 x₀.groupScheme) ≫ ψ).left c := by
-    rw [hg.pointEquiv_comp]
-  simpa [ha, hc, frobeniusTwist, absFrobenius_apply, pointEquiv_apply] using h_point_left
+  simpa [ha, hc, frobeniusTwist, absFrobenius_apply, pointEquiv_apply] using
+    congrArg (fun φ ↦ φ.left c) (hg.pointEquiv_comp (𝟙 x₀.groupScheme))
 
 /-- If `x₀` is rigid, `g` has multiplier `μ` and `μ` kills the kernel of `ψ`, then `μ` kills the
 points of the kernel of `g` with values in local Noetherian rings. -/

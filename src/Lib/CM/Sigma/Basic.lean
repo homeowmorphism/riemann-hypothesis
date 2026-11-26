@@ -30,8 +30,6 @@ of σ and the classical facts on ℘.
   `New.quadInt d`, and neither `ω t` nor `ω̄ t` lies in it, where `ω = New.quadGen d`.
 * `New.exists_lattice_eq_mul_tau`: every lattice is a(ℤτ + ℤ) with τ in the upper half plane.
 * `New.g₂_pow_three_sub_g₃_sq_eq_discriminant`: g₂³ − 27 g₃² of that lattice in terms of Δ(τ).
-* `New.exists_lattice_of_g₂_g₃`: conversely, every pair (a, b) with a³ − 27 b² ≠ 0 is (g₂, g₃) of a
-  lattice (uniformization, via `PeriodPair.exists_g₂_g₃_eq`).
 
 Notions from other files:
 * `New.RealComplexForm.thetaSpace` Λ B χ: the entire f with f(z + l) = χ(l)·exp(B(l, z) + B(l,
@@ -791,13 +789,6 @@ lemma g₂_pow_three_sub_g₃_sq_eq_discriminant {L : PeriodPair} {a : ℂ} {τ 
 
 lemma weierstrass_disc_ne_zero (L : PeriodPair) : g₂ L ^ 3 - 27 * g₃ L ^ 2 ≠ 0 :=
   L.weierstrassCurve_Δ ▸ L.weierstrassCurve_Δ_ne_zero
-
-/-- For complex numbers a, b with a³ − 27b² ≠ 0 there is a period lattice L with Weierstrass
-invariants g₂(L) = a and g₃(L) = b.
-This is the existence part of the uniformisation theorem for elliptic curves over ℂ. -/
-lemma exists_lattice_of_g₂_g₃ {a b : ℂ} (h_ne : a ^ 3 - 27 * b ^ 2 ≠ 0) :
-    ∃ L : PeriodPair, g₂ L = a ∧ g₃ L = b :=
-  PeriodPair.exists_g₂_g₃_eq h_ne
 
 end New
 

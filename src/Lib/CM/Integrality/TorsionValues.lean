@@ -291,7 +291,7 @@ lemma torsionValue_two_mul (G : ℂ → ℂ) (u : ℂ) :
 
 /-- For a prime `d ≡ 7 (mod 8)` the doubling formula for `θ` holds for torsion values:
 `θ[2 u] = θ[u] ^ 4 - σ[u] ^ 4`. -/
-lemma torsionValue_theta_two_mul [PrimeSevenModEight d] (u : ℂ) :
+lemma torsionValue_theta_two_mul (u : ℂ) :
     C.torsionValue 1 C.θ (2 * u) = C.torsionValue 1 C.θ u ^ 4 - C.torsionValue 1 C.σ u ^ 4 := by
   rw [torsionValue_two_mul]
   simp only [torsionValue_eq, theta_two_mul]
@@ -299,7 +299,7 @@ lemma torsionValue_theta_two_mul [PrimeSevenModEight d] (u : ℂ) :
 
 /-- For a prime `d ≡ 7 (mod 8)` the doubling formula for `σ²` holds for torsion values:
 `σ[2 u]² = θ[u]² σ[u]² (4 θ[u] ^ 4 + a₁² θ[u]² σ[u]² + 4 σ[u] ^ 4)`. -/
-lemma torsionValue_sigma_two_mul_sq [PrimeSevenModEight d] (u : ℂ) :
+lemma torsionValue_sigma_two_mul_sq (u : ℂ) :
     C.torsionValue 1 C.σ (2 * u) ^ 2 =
       C.torsionValue 1 C.θ u ^ 2 * C.torsionValue 1 C.σ u ^ 2 *
         (4 * C.torsionValue 1 C.θ u ^ 4 +
@@ -311,7 +311,7 @@ lemma torsionValue_sigma_two_mul_sq [PrimeSevenModEight d] (u : ℂ) :
 
 /-- For a prime `d ≡ 7 (mod 8)`, doubling acts on `w(u) = (θ[u]², σ[u]²)` through `doublingForms`,
 the quartic forms `(w₀² - w₁²)²` and `w₀ w₁ (4 w₀² + a₁² w₀ w₁ + 4 w₁²)`. -/
-lemma squarePair_two_mul [PrimeSevenModEight d] (u : ℂ) :
+lemma squarePair_two_mul (u : ℂ) :
     C.squarePair (2 * u) = doublingForms (ιₚ C.a₁) (C.squarePair u) := by
   ext
   · simp only [squarePair, doublingForms, C.torsionValue_theta_two_mul u, map_sub, map_pow,
@@ -322,7 +322,7 @@ lemma squarePair_two_mul [PrimeSevenModEight d] (u : ℂ) :
 /-- For a prime `d ≡ 7 (mod 8)` the pair `w(2 ^ j u)` is the `j`-th iterate of the map
 `doublingForms (ιₚ C.a₁)`, whose two quartic forms are given in `squarePair_two_mul`, at
 `w(u) = (θ[u]², σ[u]²)`. -/
-lemma squarePair_two_pow_mul [PrimeSevenModEight d] (u : ℂ) (j : ℕ) :
+lemma squarePair_two_pow_mul (u : ℂ) (j : ℕ) :
     C.squarePair (2 ^ j * u) = (doublingForms (ιₚ C.a₁))^[j] (C.squarePair u) := by
   induction j with
   | zero => simp
@@ -396,7 +396,7 @@ lemma hasIntegralValues_theta [PrimeSevenModEight d] : C.HasIntegralValues (p :=
 
 /-- For a prime `d ≡ 7 (mod 8)` the torsion values of `y θ³` (`translatedYThetaCube`) satisfy the
 monic quadratic equation that the cubic gives after multiplication by `θ ^ 6`. -/
-lemma torsionValue_translatedYThetaCube_sq_add [PrimeSevenModEight d] (u : ℂ) :
+lemma torsionValue_translatedYThetaCube_sq_add (u : ℂ) :
     C.torsionValue 3 C.translatedYThetaCube u ^ 2 +
       C.a₁ * C.torsionValue 1 C.θ u * C.torsionValue 1 C.σ u ^ 2 *
         C.torsionValue 3 C.translatedYThetaCube u =

@@ -451,15 +451,15 @@ lemma card_GL_eq_prod {n R : Type*} [Fintype n] [DecidableEq n] [Field R] :
 open Classical in
 /-- Let `g` be an endomorphism of a finite space `V` and `U ≠ V` a `g`-stable subspace. The sum of
 μ at the classes of `g` on `V/W`, over the `g`-stable subspaces `W ⊇ U`, is `0`. -/
-private lemma sum_moebius_endOnQuot_eq_zero_of_ne_top [Finite V] {g : Module.End k V}
+private lemma sum_moebius_endOnQuot_eq_zero_of_ne_top {g : Module.End k V}
     (U : StableSubspace g) (hU : (U : Submodule k V) ≠ ⊤) :
-    ∑ W : StableSubspace g with (U : Submodule k V) ≤ W.1,
+    ∑ W : StableSubspace g with (U : Submodule k V) ≤ W.val,
       moebius (simClassOf W.endOnQuot) = 0 := by
   -- The stable subspaces above `U` are those of `V/U`, so this sum is
   -- `(constOne * moebius)(V/U) = 0`.
   have h_mkQ_comm (x : V) :
       (U : Submodule k V).mkQ (g x) = U.endOnQuot ((U : Submodule k V).mkQ x) := rfl
-  have h_quo : ∑ W : StableSubspace g with (U : Submodule k V).mkQ.ker ≤ W.1,
+  have h_quo : ∑ W : StableSubspace g with (U : Submodule k V).mkQ.ker ≤ W.val,
       moebius (simClassOf W.endOnQuot) =
         (constOne * moebius : Hall k) (simClassOf U.endOnQuot) := by
     refine (sum_comap (U : Submodule k V).mkQ (g' := U.endOnQuot) h_mkQ_comm _).trans ?_

@@ -207,8 +207,8 @@ then the trace of `z` from `E` to `K` is an integer of `K`. -/
 lemma exists_coe_eq_trace_of_isIntegral {z : P.E s}
     (hz : IsIntegral ℤ (z * (P.relDifferentGen s).val)) :
     ∃ c : 𝓞 P.K, (c : P.K) = Algebra.trace P.K (P.E s) z := by
-  obtain ⟨-, h_span, -⟩ := relDifferent_spec (isPrimitiveRoot_zetaInt (P := P) (s := s))
-  have h_le : differentIdeal (𝓞 P.K) (𝓞 (P.E s)) ≤ Ideal.span {P.relDifferentGen s} := h_span.ge
+  have h_le : differentIdeal (𝓞 P.K) (𝓞 (P.E s)) ≤ Ideal.span {P.relDifferentGen s} :=
+    differentIdeal_eq_span_relDifferentGen.le
   have h_bot : Ideal.span {P.relDifferentGen s} ≠ ⊥ :=
     Ideal.span_singleton_eq_bot.not.2 (mod_cast P.relDifferentGen_ne_zero s)
   have h_mem : z ∈ ((Ideal.span {P.relDifferentGen s} : Ideal (𝓞 (P.E s))) :

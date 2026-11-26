@@ -1,6 +1,7 @@
 module
 
 public import Lib.Base
+public import TauCeti.AlgebraicGeometry.Scheme.AffinePoints
 
 /-!
 # Line bundles on schemes via ring-valued points: descent and the Picard group
@@ -287,10 +288,6 @@ lemma hom_ext_of_isOpenCover {V : κ → Y.Opens} (hV : IsOpenCover V) {f g : Y 
   let 𝒰 : Y.OpenCover := (Y.openCoverOfIsOpenCover V hV).affineRefinement.openCover
   exact 𝒰.hom_ext f g fun k ↦ h k.1 _ (𝒰.f k) landsIn_comp_incl
 
-lemma hom_ext_of_points {f g : Y ⟶ X}
-    (h : ∀ (A : CommRingCat) (t : Spec A ⟶ Y), t ≫ f = t ≫ g) : f = g :=
-  hom_ext_of_isOpenCover isOpenCover_top fun _ A t _ ↦ h A t
-
 /-- Two morphisms from `Y` are equal if they agree on every ring-valued point that lands in a
 trivialising open of a line bundle `M` on `Y`. -/
 lemma hom_ext_of_cover (M : LineBundle Y κ) {f g : Y ⟶ X}
@@ -320,7 +317,7 @@ lemma exists_hom_of_cover {V : κ → Y.Opens} (hV : IsOpenCover V)
   have agree {i j : κ} {A B : CommRingCat} {t : Spec A ⟶ Y} {s : Spec B ⟶ Y}
       (hi : LandsIn t (V i)) (hj : LandsIn s (V j)) :
       fst t s ≫ F i A t hi = snd t s ≫ F j B s hj := by
-    refine hom_ext_of_points fun C r ↦ ?_
+    refine Scheme.hom_ext_of_forall_spec fun C r ↦ ?_
     have hj_fst : LandsIn ((r ≫ fst t s) ≫ t) (V j) := by
       simpa [condition] using hj.comp (r ≫ snd t s)
     rw [← assoc, ← assoc, h_hom i j _ hi hj_fst, h_hom j j _ hj (hj.comp _)]
@@ -764,8 +761,8 @@ lemma IsSection.pull (hs : L.IsSection s) (p : Y ⟶ X) :
 
 /-- Pulling back a frame of a line bundle gives a frame of the pulled-back bundle. -/
 lemma IsFrame.pull (hu : L.IsFrame u) (p : Y ⟶ X) :
-    (L.pull p).IsFrame fun i : ι ↦ (u i).pull p := by
-  aesop (add simp [IsFrame, IsSection, IsRegularOn])
+    (L.pull p).IsFrame fun i : ι ↦ (u i).pull p :=
+  ⟨hu.1.pull p, fun i A t ht ↦ hu.2 i A (t ≫ p) (landsIn_preimage.1 ht)⟩
 
 /-- The pointwise inverse of a frame `u` of `L` is a frame of the dual bundle `L.inv`. -/
 lemma IsFrame.inv (hu : L.IsFrame u) :
@@ -774,10 +771,8 @@ lemma IsFrame.inv (hu : L.IsFrame u) :
   refine ⟨⟨fun i A B φ t ht ↦ ?_, fun i j A t hi hj ↦ ?_⟩,
     fun i A t hi ↦ (u_unit i A t hi).ringInverse⟩
   · -- a ring map sends the inverse of a unit to the inverse of its image
-    have h_map_unit : IsUnit (φ (u i A t)) := (u_unit i A t ht).map φ.hom
     simp only [u_regular i φ t ht]
-    apply h_map_unit.mul_left_cancel
-    rw [mul_inverse_cancel _ h_map_unit, ← map_mul, mul_inverse_cancel _ (u_unit i A t ht), map_one]
+    exact ((u_unit i A t ht).map_ringInverse φ.hom).symm
   · -- both sides are inverse to `u i`
     have hj_inv : u j A t * inverse (u j A t) = 1 := mul_inverse_cancel _ (u_unit j A t hj)
     apply (u_unit i A t hi).mul_left_cancel

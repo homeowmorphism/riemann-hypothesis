@@ -232,7 +232,7 @@ abbrev HasFiniteCosets : Prop := (support fun q : G ⧸ K ↦ f q.out).Finite
 
 /-- The function f on G is left and right K-invariant and supported on finitely many cosets gK. -/
 abbrev IsHeckeFunction : Prop :=
-  HasFiniteCosets K f ∧ ∀ᵉ (g : G) (k ∈ K), f (g * k) = f g ∧ f (k * g) = f g
+  HasFiniteCosets K f ∧ ∀ g : G, ∀ k ∈ K, f (g * k) = f g ∧ f (k * g) = f g
 
 variable {K K' f}
 
@@ -250,7 +250,7 @@ lemma map_heckeFun (L : W →ₗ[A] W') (h : HasFiniteCosets K f)
     L (heckeFun π K f v) = heckeFun π' K f (L v) := by simp [heckeFun_eq_sum_toFinset h, hL]
 
 lemma levelSpace_anti (hK : K ≤ K') : levelSpace π K' ≤ levelSpace π K :=
-  fun v hv k ↦ by simpa using hv ⟨k, hK k.2⟩
+  fun v hv k ↦ by simpa using hv ⟨k, hK k.property⟩
 
 /-- For a compact open subgroup K of a topological group G and g in G, the indicator function of KgK
 is K-invariant on both sides and supported on finitely many left cosets of K. -/
@@ -284,7 +284,7 @@ lemma heckeFun_eq_sum (hf : ∀ (g : G) (k : K), f (g * k) = f g)
   -- The chosen representative of `g K` is some `g * k`, and `k` does not change `f g • π g v`.
   have term (g : G) : f (g : G ⧸ K).out • π (g : G ⧸ K).out v = f g • π g v := by
     obtain ⟨k, hk⟩ := mk_out_eq_mul K g
-    rw [hk, hf, map_mul, Module.End.mul_apply, mem_levelSpace.1 hv k, MonoidHom.one_apply, one_smul]
+    rw [hk, hf, map_mul, mul_apply_eq_comp, mem_levelSpace.1 hv k, MonoidHom.one_apply, one_smul]
   have h_support : support (fun q : G ⧸ K ↦ f q.out • π q.out) ⊆
       s.image fun i ↦ (r i : G ⧸ K) :=
     fun q hq ↦ support_subset q (left_ne_zero_of_smul hq)
@@ -399,8 +399,8 @@ vectors fixed by `K`. -/
 lemma IsHeckeFunction.heckeFun_mem (hv : v ∈ levelSpace (A := A) π K) (hb : IsHeckeFunction K f) :
     heckeFun π K f v ∈ levelSpace π K := by
   obtain ⟨h_finite, h_inv⟩ := hb
-  exact heckeFun_mem_levelSpace h_finite (fun g k ↦ (h_inv g k k.2).1)
-    (fun g k ↦ by simp [(h_inv g k k.2).2]) hv
+  exact heckeFun_mem_levelSpace h_finite (fun g k ↦ (h_inv g k k.property).1)
+    (fun g k ↦ by simp [(h_inv g k k.property).2]) hv
 
 end HeckeBasic
 

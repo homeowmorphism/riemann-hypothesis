@@ -469,7 +469,7 @@ diagonal, and let `b = diag (1, …, ϖ⁻¹, …, 1)` with `ϖ⁻¹` at `m`, fo
 `b⁻¹ p b` lies in the parahoric subgroup `blockParahoric (update (min m) m N)`, whose row `m` lies
 in `𝔭` off the diagonal. -/
 lemma New.conj_diagGL_mulSingle_mem_blockParahoric {F : Type*} [Field F] [Valued F ℤᵐ⁰]
-    [CompactSpace 𝒪[F]] {N : ℕ} {m : Fin N} {ϖ : Fˣ} (hϖ : v ϖ.val = exp (-1))
+    {N : ℕ} {m : Fin N} {ϖ : Fˣ} (hϖ : v ϖ.val = exp (-1))
     {p : GL (Fin N) F} (hp : p ∈ blockParahoric (min (m : ℕ)))
     (hp_col : ∀ r ≠ m, v (p r m) < 1) :
     (diagGL (mulSingle m ϖ⁻¹))⁻¹ * p * diagGL (mulSingle m ϖ⁻¹) ∈

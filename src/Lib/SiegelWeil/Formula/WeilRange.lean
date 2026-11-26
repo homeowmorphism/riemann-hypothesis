@@ -168,7 +168,7 @@ lemma exists_siegel_set :
   let A : Matrix n I E := Y.val.submatrix id ((↑) : I → n)
   have hA_inv : HasLeftInv A :=
     ⟨_, (congrArg (submatrix · _ _) Y.inv_val).trans (submatrix_one _ (by simp))⟩
-  have hA_isotropic : Aᴴ * S.J * A = 0 := funext₂ fun i j ↦ hY.isotropic i i.2 j j.2
+  have hA_isotropic : Aᴴ * S.J * A = 0 := funext₂ fun i j ↦ hY.isotropic i i.property j j.property
   obtain ⟨γ, hγ⟩ := exists_isometry_orthogonal P hA_inv hA_isotropic
   let γk : Matrix n p E := γ.val.val * P.k
   have fix : W.val * (D * (⅟W.val * γk)) = γk := by

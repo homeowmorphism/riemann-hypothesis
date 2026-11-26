@@ -2,6 +2,7 @@ module
 
 public import Lib.Base
 public import TauCeti.Analysis.Matrix.IndefiniteUnitaryGroup
+public import TauCeti.Topology.Algebra.Group.Units
 
 /-!
 # Integral, congruence and unitary matrix groups over a ring, with their topology
@@ -109,10 +110,6 @@ section
 
 variable [Countable m] [Countable n] [Monoid R] [TopologicalSpace R] [ContinuousMul R]
   [PolishSpace R]
-
-instance : PolishSpace Rˣ := by
-  have : PolishSpace Rᵐᵒᵖ := opEquiv.symm.polishSpace_induced
-  exact isClosedEmbedding_embedProduct.polishSpace
 
 deriving instance PolishSpace for Matrix m n R
 

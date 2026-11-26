@@ -2,6 +2,7 @@ module
 
 public import Lib.General.NumberTheory.ImaginaryQuadraticField
 public import TauCeti.Analysis.Contour.Argument.Principle
+import TauCeti.Analysis.LaplaceTransform.Elementary
 
 /-!
 # Quadratic twists, polar functions and logarithmic derivatives of Dirichlet L-functions
@@ -109,19 +110,7 @@ lemma integrableOn_laplace_of_abs_le {C : ℝ} (hE : Measurable E)
 /-- For `re s > 0`, the Laplace transform of `t ^ k` at `s` is `k! / s ^ (k + 1)`. -/
 lemma laplace_pow {s : ℂ} (hs : 0 < s.re) (k : ℕ) :
     ∫ t : ℝ in Ioi 0, t ^ k * Complex.exp (-s * t) = k ! / s ^ (k + 1) := by
-  -- Differentiate `∫₀^∞ exp (z t) dt = -1 / z` (for `re z < 0`) `k` times under the integral sign,
-  -- reading the integral as a moment generating function, and put `z = -s`.
-  let μ : Measure ℝ := volume.restrict (Ioi (0 : ℝ))
-  have hs_neg : (-s).re < 0 := neg_neg_of_pos hs
-  have h_int : (-s).re ∈ interior (integrableExpSet id μ) :=
-    interior_maximal (fun a ha ↦ integrableOn_exp_mul_Ioi ha 0) isOpen_Iio hs_neg
-  have h_eq : EqOn (complexMGF id μ) (fun z ↦ -z⁻¹) {z | z.re < 0} :=
-    fun z hz ↦ (integral_exp_mul_complex_Ioi hz 0).trans (by simp [neg_div])
-  rw [show ∫ t : ℝ in Ioi 0, t ^ k * Complex.exp (-s * t) = iteratedDeriv k (complexMGF id μ) (-s)
-      from (iteratedDeriv_complexMGF h_int k).symm,
-    h_eq.iteratedDeriv_of_isOpen (isOpen_re_lt 0) k hs_neg]
-  simp [iteratedDeriv_eq_iterate, zpow_sub₀ (neg_ne_zero.2 (ne_zero_of_re_pos hs)), neg_pow s,
-    field, pow_succ]
+  simpa only [smul_eq_mul, mul_comm] using (TauCeti.hasLaplace_pow k hs).integral_eq
 
 /-! ### The logarithmic derivative of a Dirichlet L-function -/
 
@@ -168,8 +157,7 @@ lemma LSeriesHasSum_mul_vonMangoldt (hs : 1 < s.re) :
   obtain rfl | hχ := eq_or_ne χ 1
   · rw [ite_eq_left rfl, ite_eq_left rfl, deriv_LFunctionTrivChar₁_apply_of_ne_one N hs_ne,
       LFunctionTrivChar₁, Function.update_of_ne hs_ne, LFunctionTrivChar]
-    field_simp [sub_ne_zero.2 hs_ne]
-    ring
+    field [sub_ne_zero.2 hs_ne]
   · simp [hχ, neg_div]
 
 /-- A function continuous at `s` has residue zero there. -/

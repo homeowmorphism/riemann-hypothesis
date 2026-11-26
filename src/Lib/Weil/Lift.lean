@@ -105,7 +105,7 @@ theorem New.sum_sigma_filter_eq_sum_mul_sum_Ioo (N : ℕ) (k : ℤˣ → ℕ →
 
 /-- For injective `l`, number the columns `c` of sign `η` by decreasing `η * l c`: the number `o c`
 of columns of the same sign that come before `c` is a bijection onto an initial segment of `ℕ`. -/
-theorem New.exists_equiv_fin_eq_card_filter_lt {r : Type} [Fintype r] [DecidableEq r] {s : r → ℤˣ}
+theorem New.exists_equiv_fin_eq_card_filter_lt {r : Type} [Fintype r] {s : r → ℤˣ}
     {l : r → ℤ} (hl : Injective l) {o : r → ℕ}
     (ho : ∀ c : r, o c = #{d : r | s d = s c ∧ s c * l c < s c * l d}) (η : ℤˣ) :
     ∃ f : {c : r // s c = η} ≃ Fin (card {c : r // s c = η}),
@@ -118,7 +118,7 @@ theorem New.exists_equiv_fin_eq_card_filter_lt {r : Type} [Fintype r] [Decidable
 
 /-- For injective `l` and a sign `η`, the position of a row in the decreasing order of `η • l` is a
 bijection onto `Fin (card n)`, and the position for `-η` is the reversed one. -/
-theorem New.exists_equiv_decreasingPosition_smul {n : Type} [Fintype n] [DecidableEq n] {l : n → ℤ}
+theorem New.exists_equiv_decreasingPosition_smul {n : Type} [Fintype n] {l : n → ℤ}
     (hl : Injective l) (η : ℤˣ) :
     ∃ u : n ≃ Fin (Fintype.card n), ∀ a : n,
       decreasingPosition (η.val • l) a = u a ∧ decreasingPosition ((-η).val • l) a = (u a).rev := by
@@ -513,7 +513,9 @@ theorem lift_piTensor_integratedRep {T : InfinitePlace E → FockDualPair s t ι
         simp only [Space.lift, integral_const_mul]
     _ = ∫ a : G E s, (∫ x : GInf E s, F x a) ∂S.quotMeasure := integral_integral_swap h_int
     _ = S.lift Θ φ (realConv e y) g := by
-        simp only [F, Space.lift, realConv, ← integral_const_mul, mul_left_comm]
+        simp only [F, Space.lift, realConv, ← integral_const_mul]
+        exact integral_congr_ae (.of_forall fun _ ↦ integral_congr_ae (.of_forall fun _ ↦
+          mul_left_comm ..))
     _ = S.lift Θ φ y g := by rw [hy.realConv_eq cusp.integrable]
 
 variable [Nonempty n']
@@ -569,7 +571,7 @@ theorem integral_mul_lift_eq_lift_piTensor {T : InfinitePlace E → FockDualPair
     rw [← hL, lift_piTensor_integratedRep hp hΦ hΩ_left Θ hΘ hy]
   simpa only [h_translate, h_target] using h_mean
 
-omit [WeilData E] in
+omit [WeilData E] [Nonempty n'] in
 /-- Let `s`, `t` be the signs of two real unitary groups over the infinite places of `E`. At each
 place `w`, let `π w`, `π' w` be commuting oscillator representations of `U(diag s)`, `U(diag t)` on
 the rows and columns of the dual pair data `T w`, and let `Φ w` be a joint harmonic for `T w` of
@@ -643,7 +645,7 @@ theorem isHalfEdge_of_oscillatorPair {T : InfinitePlace E → FockDualPair s t �
       polyVector η (monomial (a.curry w) 1)
     have local_bump (a : InfinitePlace E × ι →₀ ℕ) (w : InfinitePlace E) :
         ∃ α : DiscreteSeries.Bumps t,
-        p w (v a w) = integratedRep (π' w) (fun g ↦ α.1.1 g⁻¹) (p w (polyVector η (Φ w))) :=
+        p w (v a w) = integratedRep (π' w) (fun g ↦ α.val.val g⁻¹) (p w (polyVector η (Φ w))) :=
       (hp w).exists_bump_integratedRep_eq (hΦ w) _
     choose α hα using local_bump
     rintro _ ⟨P, rfl⟩

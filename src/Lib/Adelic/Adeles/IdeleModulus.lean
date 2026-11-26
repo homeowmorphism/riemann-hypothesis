@@ -510,7 +510,7 @@ lemma adeleNorm_locIdele (w : FinPlace L) (y : (LocField w)ˣ) :
   · -- Let `e` be the image in `𝔸f L` of the idempotent at `v`. It vanishes at `w`, and
     -- `locIdele w y` is `1` away from `w`, so `e * locIdele w y = e`.
     let e : 𝔸f L := finAdeleIncl K L (idem {v})
-    have e_mul : e * (locIdele w y).1 = e := by
+    have e_mul : e * (locIdele w y).val = e := by
       simp_all [e, DFunLike.ext_iff, ← and_forall_ne w, adeleMap_apply, eq_comm]
     -- Take norms and look at `v`, where the norm of `e`, a power of the idempotent, is `1`.
     simpa [e, adeleNorm_finAdeleIncl, hv] using congrArg (adeleNorm K L · v) e_mul

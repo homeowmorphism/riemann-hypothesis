@@ -936,8 +936,8 @@ lemma relLength_iInf_comap_deepConstants_le {k : KummerChart Γ} {O : k.Coeffs}
       relLength ⊤ ((S.deepConstants i 0 (fewLowJumpsDepth a η W (b i) (ε i))).comap
           (S.constantAt i)) ≤
         ↑((2 * a + 1) * n i + (3 * (W + 1) * r (i.stepBack 1) + 6 * a * n (i.stepBack 1))) := by
-    rw [relLength_comap, Submodule.map_top]
-    exact relLength_constantAt_deepConstants_le hk hp hb_le hb_gt hb_gap h_window hn hr i
+    simpa only [relLength_comap, Submodule.map_top] using
+      relLength_constantAt_deepConstants_le hk hp hb_le hb_gt hb_gap h_window hn hr i
   -- `i ↦ i.stepBack 1` permutes the letters
   have h_perm (f : Letter → ℕ) : ∑ i : Letter, f (i.stepBack 1) = ∑ i : Letter, f i := by
     simp [Equiv.sum_comp]

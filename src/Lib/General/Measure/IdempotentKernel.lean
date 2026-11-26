@@ -149,7 +149,7 @@ lemma integrable_mul_smul_comp_mul [Group Z] [MeasurableMul₂ Z] [NormedSpace �
 group, the iterated integral of `k x • α g • F (j x * g)` does not depend on the order of
 integration. -/
 lemma integral_smul_integral_swap [Group Z] [MeasurableMul₂ Z] [NormedSpace ℂ X]
-    [CompleteSpace X] (j : W → Z) {k : W → ℂ} {α : Z → ℂ} (hk : Integrable k ν)
+    (j : W → Z) {k : W → ℂ} {α : Z → ℂ} (hk : Integrable k ν)
     (hα : Integrable α μ) (hF : IsBoundedMeasurable F) (hj : Measurable j := by fun_prop) :
     ∫ x : W, k x • ∫ g : Z, α g • F (j x * g) ∂μ ∂ν =
       ∫ g : Z, α g • ∫ x : W, k x • F (j x * g) ∂ν ∂μ := by

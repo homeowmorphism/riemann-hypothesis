@@ -94,8 +94,8 @@ lemma fst_mem_besselReal (r : Y.besselGroup) : (r : G E ε).1 ∈ Y.besselReal :
 times the finite points of the Bessel group to the Bessel group, as an isomorphism of
 topological groups. -/
 def besselProdEquiv : Y.besselReal × Y.besselFin ≃ₜ* Y.besselGroup where
-  toFun z := ⟨(z.1.1, z.2.1), Y.mk_mem_besselGroup z⟩
-  invFun r := (⟨r.1.1, Y.fst_mem_besselReal r⟩, ⟨r.1.2, Y.snd_mem_besselFin r.2⟩)
+  toFun z := ⟨(z.1.val, z.2.val), Y.mk_mem_besselGroup z⟩
+  invFun r := (⟨r.val.1, Y.fst_mem_besselReal r⟩, ⟨r.val.2, Y.snd_mem_besselFin r.property⟩)
   map_mul' _ _ := rfl
   continuous_toFun := by fun_prop
   continuous_invFun := by fun_prop

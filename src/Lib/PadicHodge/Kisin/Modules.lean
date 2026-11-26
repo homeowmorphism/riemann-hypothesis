@@ -644,8 +644,9 @@ lemma sum_letterProj (x : L.Ambient) : ∑ i : Letter, L.letterProj i x = x := b
   -- After exchanging the two sums only the term `n = 0` survives, and it equals `q • x`.
   rw [sum_comm, sum_eq_single 0 (fun n hn hn₀ ↦ ?_) (by simp)]
   · simp
-  · -- Elaborator: `erw`, as the scalar `0` of `S` acts here through A_inf only up to unfolding.
-    erw [← sum_smul, h_orth n hn hn₀, zero_smul]
+  · -- The scalar `0` of `S` acts here through A_inf only up to unfolding.
+    rw [← sum_smul, h_orth n hn hn₀]
+    exact zero_smul ..
 
 /-! ### Functionals of given type and Hodge–Tate jumps -/
 

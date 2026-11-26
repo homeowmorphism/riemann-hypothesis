@@ -52,7 +52,7 @@ lemma exists_exp_neg_sq_mul_rpow_mul_one_add_log_sq_le {c : ℝ} (hc : 0 < c) :
   have h_exp : (1 + y) ^ M ≤ rexp (M * y) := by
     grw [exp_natCast_mul, add_comm, add_one_le_exp]
   have h_exponent : -y ^ 2 + M * y ≤ M + M ^ 2 := by
-    nlinarith [sq_nonneg (y - M), sq_nonneg y, (Nat.cast_nonneg M : (0 : ℝ) ≤ M)]
+    nlinarith only [sq_nonneg (y - M), sq_nonneg y, (Nat.cast_nonneg M : (0 : ℝ) ≤ M)]
   calc rexp (-y ^ 2) * (y ^ 2) ^ c * (1 + log y ^ 2)
       ≤ rexp (-y ^ 2) * (C * rexp (M * y)) := by grw [mul_assoc, h_poly y hy, h_exp]
     _ = C * rexp (-y ^ 2 + M * y) := by rw [exp_add, mul_left_comm]
@@ -114,7 +114,7 @@ lemma integrable_gammaWeight_mul_rpow (hk : ∀ w : InfinitePlace E, k ≤ m w) 
   have h_sq (w : InfinitePlace E) : 0 < ‖a.val w‖ ^ 2 := by
     simp [piUnits_val_apply_ne_zero a w]
   have h_abs : ideleAbs (realIdele a) = ∏ w : InfinitePlace E, ‖a.val w‖ ^ 2 := by
-    simp [ideleAbs, finAdele_one_apply]
+    simp [ideleAbs]
   change ∏ w : InfinitePlace E, rexp (-‖a.val w‖ ^ 2) * (‖a.val w‖ ^ 2) ^ (m w + x) =
     gammaWeight E m a * ideleAbs (realIdele a) ^ x
   simp only [gammaWeight, h_abs, ← finsetProd_rpow _ _ (fun w _ ↦ (h_sq w).le),

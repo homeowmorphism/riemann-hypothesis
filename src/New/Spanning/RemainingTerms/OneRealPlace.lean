@@ -135,7 +135,7 @@ lemma measurable_volumeRatio : Measurable (volumeRatio γ) := by fun_prop [volum
 /-- For `γ ∈ G₁`, the form `J₁` is negative semidefinite on the span of the frame `γ f`, where
 `f = (e₁, …, e_ϱ, z)` is given by the columns of `frameCols`: for any matrix `a` of coefficients,
 minus the Gram matrix for `J₁` of the columns of `γ f a` is positive semidefinite. -/
-lemma RealPlace.posSemidef_neg_gram_mul_frameCols (γ : 𝔰.G₁) {m : Type} [Fintype m]
+lemma RealPlace.posSemidef_neg_gram_mul_frameCols (γ : 𝔰.G₁) {m : Type}
     (a : Matrix (Fin 𝔰.n) m ℂ) :
     (-((γ.val.val * (𝔰.frameCols * a))ᴴ * 𝔰.J₁ *
       (γ.val.val * (𝔰.frameCols * a)))).PosSemidef := by
@@ -468,6 +468,12 @@ structure RealPlace.IsTriangularBasis (y : 𝔰.G₁) (Z : 𝔰.FrameMatrix)
 
 end Subframe
 
+private lemma gram_eq_neg_mul_of_J₁_mul {m : Type} [Fintype m]
+    {y : 𝔰.G₁} {ω : Matrix 𝔰.BesselIndex m ℂ}
+    (hω : 𝔰.J₁ * (y⁻¹.val.val * ω) = -(y⁻¹.val.val * ω)) :
+    ωᴴ * 𝔰.J₁ * ω = -((y⁻¹.val.val * ω)ᴴ * (y⁻¹.val.val * ω)) := by
+  rw [← U.gram_invariant y⁻¹, Matrix.mul_assoc, hω, Matrix.mul_neg]
+
 /-- Let `i ≤ ϱ` and let `Z` be a square matrix indexed by the frame whose block
 `B = subframeBlock hi_le Z` at the indices of the subframe `e₁, …, e_i, z` has nonzero determinant.
 The matrix `dualProducts hi_le Z` consists of the columns of `Z` at these indices, times `B⁻¹`. Then
@@ -490,8 +496,7 @@ lemma RealPlace.exists_isTriangularBasis {i : ℕ} {Z : 𝔰.FrameMatrix} (hi_le
   have h_products : 𝔰.frameColsᴴ * 𝔰.J₁ * ω₀ = dualProducts hi_le Z := by
     simp [ω₀, Matrix.mul_assoc, mul_mul_eq_of_mul_eq mul_self, ← conjTranspose_mul,
       frameLeftInverse_mul_frameCols, ← Matrix.mul_assoc 𝔰.frameColsᴴ]
-  have h_gram : ω₀ᴴ * 𝔰.J₁ * ω₀ = -(Wᴴ * W) := by
-    rw [← U.gram_invariant y⁻¹, Matrix.mul_assoc, hW, Matrix.mul_neg]
+  have h_gram : ω₀ᴴ * 𝔰.J₁ * ω₀ = -(Wᴴ * W) := gram_eq_neg_mul_of_J₁_mul hW
   have h_left :
       (inclMatrix ℂ (subframeIndex hi_le))ᴴ * (𝔰.frameColsᴴ * 𝔰.J₁ * y.val.val) * W = 1 := by
     simp [← inclMatrix_mul_dualProducts hi_le hδ, ← h_products, W, Matrix.mul_assoc]
@@ -551,8 +556,7 @@ lemma norm_dotProduct_J₁_mul_col_le_norm (h : IsTriangularBasis hi y Z ω L)
       (𝔰.J₁ * (((y⁻¹ : 𝔰.G₁) : Matrix 𝔰.BesselIndex 𝔰.BesselIndex ℂ) * ω)).col l‖ ≤ ‖x‖ := by
   set W : Matrix 𝔰.BesselIndex (Fin (i + 1)) ℂ := y⁻¹.val.val * ω
   have h_orthonormal : Wᴴ * W = 1 := by
-    rw [← neg_inj, ← h.gram_eq_neg_one, ← U.gram_invariant y⁻¹, Matrix.mul_assoc, h.J₁_mul,
-      Matrix.mul_neg]
+    exact neg_inj.mp ((gram_eq_neg_mul_of_J₁_mul h.J₁_mul).symm.trans h.gram_eq_neg_one)
   let w : EuclideanSpace ℂ 𝔰.BesselIndex := .toLp 2 (W.col l)
   have hw : ‖w‖ = 1 := by
     have h_inner : inner ℂ w w = 1 := by

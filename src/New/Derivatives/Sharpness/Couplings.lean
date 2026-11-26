@@ -549,9 +549,8 @@ lemma leastValLE_partnerDegree_of_isCouplingFamily [PadicPlace p] {J Φ : Type}
   set sumJ : ℝ := ∑ τ ∈ Φ₀, (j τ : ℝ) with h_sumJ
   have h_degree : (pairExponent ν' ν'').degree = (ν' + ν'').degree := by
     rw [← mapDomain_fst_pairExponent, Finsupp.degree_mapDomain]
-  have h_fact : ‖∏ x : Φ × Unit, ((ν'' x)! : ℂ_[p])‖ = p ^ (-valFact) := by
-    simp [h_valFact, norm_natCast_eq_inv_pow_padicValNat, factorial_ne_zero,
-      Real.rpow_neg hp_pos.le, ← cast_sum, prod_pow_eq_pow_sum]
+  have h_fact : ‖∏ x : Φ × Unit, ((ν'' x)! : ℂ_[p])‖ = p ^ (-valFact) :=
+    norm_prod_natCast_eq_rpow_neg_sum (fun x ↦ (ν'' x).factorial_ne_zero)
   have h_rpow : p ^ (-valFact + -ρ * (ν' + ν'').degree) * ‖coeff (pairExponent ν' ν'') G‖ =
       p ^ ((1 - 1 / (p - 1)) * sumJ) := by
     rw [coeff_prod_copySubst_rescale, norm_mul, norm_pow, h_degree, h_fact, hϖ, h_norm] at h_scaled

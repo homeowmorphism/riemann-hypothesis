@@ -134,7 +134,7 @@ lemma sum_coeff_labelIdem_radicalHom {c : k[X]} (hc : IsLabel (Fintype.card n) c
   have h_mean : finMean (χ ∘ U *
       (Representation.trivial ℂ (Multiplicative (Matrix n n k)) ℂ).character) = 0 := by
     have h_triv : (Representation.trivial ℂ (Multiplicative (Matrix n n k)) ℂ).character = 1 := by
-      ext Z; simp [Representation.character, Representation.trivial]
+      ext Z; simp [Representation.character]
     rw [h_triv, mul_one]
     obtain ⟨hc_monic, -⟩ := hc
     exact finMean_labelChar_radicalHom hc_monic hc_irr hT_empty hT_univ
@@ -200,7 +200,6 @@ lemma convIndicator_mapDomain_liftResidue_of_notMem [hw : IsConjApart w]
     (a : ℂ[∀ i : ι, GL n (ResField (w i))]) {g : Gf E n} (hg : g ∉ stdLevel E n) :
     (convIndicator hK_open hK_compact
       (mapDomain (fun s : ∀ i : ι, GL n (ResField (w i)) ↦ (liftResidue s).1) a)).1 g = 0 := by
-  classical
   induction a using induction_linear with
   | zero => simp
   | add a b ha hb => simp [mapDomain_add, ha, hb]

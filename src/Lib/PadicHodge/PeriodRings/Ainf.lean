@@ -122,14 +122,6 @@ instance {G : Type*} [AddCommMonoid G] [Module ℚ≥0 G] : PerfectRing (Multipl
 
 /-! ### The elements ε, τ, μ, ξ -/
 
-/-- The untilt of the reduction modulo `p` of a sequence `y` of successive `p`-th roots in `O_C` is
-the zeroth term of `y`. -/
-private lemma untilt_mapMonoidHom_idealQuotientMk (y : Perfection OC p) :
-    PreTilt.untilt (O := OC) (p := p)
-        (mapMonoidHom p (Ideal.Quotient.mk (Ideal.span {(p : OC)})).toMonoidHom y) =
-      coeffMonoidHom OC p 0 y :=
-  teichmuller₀_mapMonoidHom_idealQuotientMk
-
 /-- Every homomorphism a from the additive group ℚ to the multiplicative monoid of C_p with a(1) = 1
 lifts to the tilt: some homomorphism χ: ℚ → O^♭ has χ(s)^♯ = a(s) for all s. -/
 lemma exists_tilt_lift_of_character (a : Multiplicative ℚ →* ℂ_[p])
@@ -150,8 +142,8 @@ lemma exists_tilt_lift_of_character (a : Multiplicative ℚ →* ℂ_[p])
   change ((PreTilt.untilt (O := OC) (p := p)
     (mapMonoidHom p (Ideal.Quotient.mk (Ideal.span {(p : OC)})).toMonoidHom (roots s)) : OC) :
       ℂ_[p]) = a s
-  rw [untilt_mapMonoidHom_idealQuotientMk]
-  simp [roots]
+  exact (congrArg _ (teichmuller₀_mapMonoidHom_idealQuotientMk (x := roots s))).trans
+    (by simp [roots])
 
 /-- The map s ↦ ε^s: a chosen homomorphism from ℚ to the multiplicative monoid of O^♭ with
 (ε^s)^♯ a primitive root of unity of order the denominator of s. -/
@@ -633,7 +625,7 @@ lemma exists_algebraMap_eq_of_frobenius_eq {k : Type*} [CommRing k] [IsDomain k]
   -- coordinate comes from `ZMod p`.
   have h_coeff_mem (n : ℕ) : ∃ z : ZMod p, castHom dvd_rfl k z = a.coeff n := by
     have h_root : a.coeff n ^ p = a.coeff n := by rw [← coeff_frobenius_charP, h_frobenius]
-    exact (GaloisField.splits_zmod_X_pow_sub_X p).mem_range_of_isRoot
+    exact (Polynomial.splits_X_pow_char_sub_X (ZMod p) p).mem_range_of_isRoot
       (Polynomial.X_pow_sub_X_ne_zero (Fact.out : p.Prime).one_lt)
       (by simpa [sub_eq_zero] using h_root)
   choose z hz using h_coeff_mem
@@ -816,7 +808,7 @@ lemma OFlat.isHausdorff_span_singleton_of_not_isUnit (h : ¬IsUnit t) :
   choose N hN using exists_pow_coeff_eq_zero h
   refine ⟨fun x hx ↦ Perfection.ext fun k ↦ ?_⟩
   have h_coeff_dvd : PreTilt.coeff k (t ^ N k) ∣ PreTilt.coeff k (x - 0) :=
-    map_dvd (PreTilt.coeff k) (smodEq_span_pow_iff_dvd.mp (hx (N k)))
+    map_dvd (PreTilt.coeff k) ((TauCeti.sModEq_span_singleton_pow_iff ..).mp (hx (N k)))
   rw [map_pow, hN k, zero_dvd_iff, sub_zero] at h_coeff_dvd
   exact h_coeff_dvd.trans (map_zero (PreTilt.coeff k)).symm
 
@@ -839,10 +831,6 @@ lemma OFlat.shiftDiff_surjective_of_not_isUnit (h : ¬IsUnit t) :
   -- for each `n`, the coordinates `u k n` form an element of the tilt
   let y : ℕ → OFlat := fun n ↦ ⟨fun k ↦ u k n, fun k ↦ congrFun (h_frob k) n⟩
   exact ⟨y, funext fun n ↦ Perfection.ext fun k ↦ congrFun (hu k) n⟩
-
-lemma OFlat.isHausdorff_and_shiftDiff_surjective (h : ¬IsUnit t) :
-    IsHausdorff (span {t}) OFlat ∧ Surjective (shiftDiff OFlat t) :=
-  ⟨OFlat.isHausdorff_span_singleton_of_not_isUnit h, OFlat.shiftDiff_surjective_of_not_isUnit h⟩
 
 /-- Let `a ∈ A_inf` be killed by `θ ∘ φ ^ j` for every `j`, write `x₀` for the constant coefficient
 in `O^♭` of `x ∈ A_inf`, and let `μ₀ = a₀ * c` with `c ∈ O^♭`. Then `c ^ p ^ n` divides `μ₀` for
@@ -893,7 +881,7 @@ lemma mu_dvd_of_theta_frobEnd {a : Ainf} (h_theta : ∀ j : ℕ, theta (frobEnd^
     (pow_dvd_pow c (n.lt_pow_self (Fact.out : p.Prime).one_lt).le).trans
       (pow_pow_dvd_constantCoeff_mu_of_eq_mul n x hx_theta c h_eq)
   have h_smod (n : ℕ) : constantCoeff mu ≡ 0 [SMOD (span {c} ^ n • ⊤ : Ideal OFlat)] :=
-    smodEq_span_pow_iff_dvd.mpr (by simpa using h_dvd n)
+    (TauCeti.sModEq_span_singleton_pow_iff ..).mpr (by simpa using h_dvd n)
   exact constantCoeff_mu_ne_zero
     ((OFlat.isHausdorff_span_singleton_of_not_isUnit hc).haus' _ h_smod)
 
@@ -908,12 +896,10 @@ lemma tau_dvd_of_theta_frobEnd (h_theta : ∀ j : ℕ, theta (frobEnd^[j + 1] a)
 /-! ### Primes and adic completeness of `A_inf` -/
 
 /-- `p` is a prime element of `A_inf`, because `A_inf / p = O^♭` is a domain. -/
-lemma Ainf.prime_p : Prime (p : Ainf) := by
+lemma Ainf.prime_p : Prime (p : Ainf) :=
   -- `p ∣ x` means that the constant coefficient of `x` in the domain `O^♭` is zero
-  refine ⟨p_ne_zero p OFlat, fun h_unit ↦ ?_,
-    fun x y h_dvd ↦ by simpa [p_dvd_iff, -constantCoeff_apply] using h_dvd⟩
-  -- `p` does not divide `1`, whose constant coefficient is not zero
-  simpa [p_dvd_iff] using isUnit_iff_dvd_one.mp h_unit
+  (span_singleton_prime (p_ne_zero p OFlat)).mp
+    (ker_constantCoeff (k := OFlat) ▸ ker_isPrime constantCoeff)
 
 /-- If `p` does not divide `δ`, every non-unit of `A_inf` lies in the radical of `(p, δ)`. -/
 lemma Ainf.mem_radical_of_not_isUnit (h : ¬IsUnit a) (hδ : ¬↑p ∣ δ) :
@@ -989,11 +975,9 @@ lemma Ainf.shiftDiff_surjective (h : ¬IsUnit a) : Surjective (shiftDiff Ainf a)
 
 /-- `ξ` is a prime element of `A_inf`: it generates the kernel of `θ`, whose target `O_C` is a
 domain. -/
-lemma Ainf.prime_xi : Prime xi := by
-  refine ⟨fun h_zero ↦ not_p_dvd_xi (by simp [h_zero]),
-    fun h_unit ↦ (h_unit.map theta).ne_zero theta_xi, fun x y h_dvd ↦ ?_⟩
-  · rw [← theta_eq_zero_iff_xi_dvd, map_mul, mul_eq_zero] at h_dvd
-    rwa [← theta_eq_zero_iff_xi_dvd, ← theta_eq_zero_iff_xi_dvd]
+lemma Ainf.prime_xi : Prime xi :=
+  (span_singleton_prime (show xi ≠ 0 from fun h ↦ not_p_dvd_xi (by simp [h]))).mp
+    (ker_theta_eq_span_xi ▸ ker_isPrime theta)
 
 /-- Each `g ∈ G_p` commutes with `φ` and `θ`, so `τ` divides every conjugate `g' • τ` by
 `tau_dvd_of_theta_frobEnd`; hence `g • τ` is associated to `τ`. -/

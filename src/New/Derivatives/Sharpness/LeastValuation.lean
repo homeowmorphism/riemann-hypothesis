@@ -544,6 +544,7 @@ lemma leastValLE_of_unit_coefficients (C : CMLattice d) {μ : J → X → ℂ_[p
           norm_natCast_eq_inv_pow_padicValNat, factorial_ne_zero, prod_pow_eq_pow_sum, ← cast_sum,
           div_eq_mul_inv]
 
+omit [PrimeSevenModEight d] in
 /-- If each coordinate `z_x`, up to a unit `s`, is a combination `∑ a x j • μ_j z` with coefficients
 in the ring `valRingCp p` of integers of `ℂ_p`, then `val₆(ν) ≤ 0` in every degree `ν`: some
 coefficient of degree `ν` in some product `∏ (H_c Θ)(z_c)` over six copies `z_c` of the variables,

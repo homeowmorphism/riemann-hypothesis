@@ -1,7 +1,6 @@
 module
 
 public import Lib.Adelic.Reduction.FiniteVolume
-public import Lib.Shimura.AbelianScheme.Basic
 public import Lib.Shimura.Transfer.MarkedPairs
 
 /-!

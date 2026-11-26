@@ -534,7 +534,7 @@ lemma conjHolomorphicWeight_of_eq_neg_one {c : D.RowIndex} (hc : D.signsW j c = 
     conjHolomorphicWeight j τ c =
       D.liftWeight j τ - firstFactorCharExp j + card (FirstFactorIndex j) + kernelWeight j τ c := by
   rw [conjHolomorphicWeight_eq_add_kernelWeight, Pi.add_apply, staircaseWeight_of_eq_neg_one hc]
-  simp [sub_eq_add_neg, add_comm]
+  simp [sub_eq_add_neg]
 
 /-- At a basis vector `c` of `W_j` of sign `−1` in `D.signsW j`, consider the sum of
 `(untwistedDescentPair j).colsMinus τ x`, the number of columns of height `x` of `μ⁻`. The sum runs
@@ -736,7 +736,7 @@ lemma New.toPoly_coeff_nablaBasis {Φ : Type} [Fintype Φ] [DecidableEq Φ] {n :
   have pairing : fockPairing ℂ (toPoly n κ ξ) (nablaBasis ℂ n κ i) =
       hookNumber κ (rankAt n) * ξ i := fockPairing_toPoly_nablaBasis ξ i
   rw [hξ, fockPairing_monomial, ← map_nablaBasis (algebraMap ℤ ℂ), coeff_map] at pairing
-  simpa [field, Finsupp.prod, prod_eq_zero_iff, factorial_ne_zero, mul_comm] using pairing
+  simpa [field, prod_eq_zero_iff, factorial_ne_zero, mul_comm] using pairing
 
 /-- Let `R` be a field of characteristic zero and `g τ` square matrices over `R`, one for each
 `τ`. Suppose the substitution `y ↦ gᵀ y` of the rows of variables (`rowSubst`) fixes the monomial

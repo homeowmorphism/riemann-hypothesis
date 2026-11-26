@@ -137,22 +137,17 @@ variable {S X : Scheme} {A : Over S} {ι O : Type} {B C C' D : CommRingCat} {V :
 
 /-! ### Existence of charts; the signature condition -/
 
-/-- The two conditions of `New.IsSqZeroExt` as one conjunction. -/
-lemma IsSqZeroExt.surjective_and_mul_eq_zero (hψ : IsSqZeroExt ψ) :
-    (⇑ψ).Surjective ∧ ∀ a b : C, ψ a = 0 → ψ b = 0 → a * b = 0 :=
-  ⟨hψ.coe_surjective, fun _ _ ↦ hψ.mul_eq_zero⟩
-
 /-- The kernel of a square-zero extension ψ is a nilpotent ideal: its square is zero. -/
 lemma IsSqZeroExt.isNilpotent_ker (hψ : IsSqZeroExt ψ) : IsNilpotent (RingHom.ker ψ.hom) := by
   refine ⟨2, ?_⟩
-  simp_all [hψ.surjective_and_mul_eq_zero, ← le_bot_iff, Ideal.mul_le, sq]
+  simp_all [hψ.mul_eq_zero, ← le_bot_iff, Ideal.mul_le, sq]
 
 /-- For a square-zero extension ψ : C → C', the map Spec C' → Spec C is surjective. -/
 lemma IsSqZeroExt.surjective_specMap (hψ : IsSqZeroExt ψ) : Surjective (Spec.map ψ) := by
   -- A surjection with nil kernel induces a homeomorphism of spectra.
   have h_pow_mem (x : C') : ∃ n > 0, x ^ n ∈ ψ.hom.range := ⟨1, by simp [hψ.coe_surjective x]⟩
   have h_ker_le (a : C) (ha : a ∈ RingHom.ker ψ.hom) : a ∈ nilradical C :=
-    ⟨2, by simp_all [hψ.surjective_and_mul_eq_zero, sq]⟩
+    ⟨2, by simp_all [hψ.mul_eq_zero, sq]⟩
   have h_homeo : IsHomeomorph (PrimeSpectrum.comap ψ.hom) :=
     PrimeSpectrum.isHomeomorph_comap ψ.hom h_pow_mem h_ker_le
   exact ⟨h_homeo.surjective⟩
@@ -164,7 +159,7 @@ lemma IsSqZeroExt.landsIn_of_comp (hψ : IsSqZeroExt ψ) {y : Spec C ⟶ X} {V :
   -- Every point of Spec C is the image of a point of Spec C', where the composite lands in V.
   hψ.surjective_specMap.surj.forall.mpr h_in
 
-open MvPolynomial Algebra FormallySmooth FormallyUnramified RingHom in
+open MvPolynomial Algebra RingHom in
 /-- If f : X → S is smooth of relative dimension d, every point x of X has an open neighbourhood
 V on which some d functions are étale coordinates for f. -/
 lemma exists_isEtaleChart (x : X) {d : ℕ} (hf : SmoothOfRelativeDimension d f) :
@@ -192,19 +187,19 @@ lemma exists_isEtaleChart (x : X) {d : ℕ} (hf : SmoothOfRelativeDimension d f)
     (h_point_iff ξ (σ ≫ ψ) (ψ ∘ l)).1 ⟨by simp [hyt], hl.symm⟩
   algebraize [g, eval₂Hom σ.hom l, eval₂Hom (σ ≫ ψ).hom (ψ ∘ l)]
   have h_nil : IsNilpotent (ker ψ.hom) := hψ.isNilpotent_ker
-  -- Existence: `g` is formally smooth, so `ξ` lifts to an algebra map `ρ` into `C`.
-  obtain ⟨ρ, rfl⟩ :
-      ∃ ρ : Γ(X, V) →ₐ[MvPolynomial (Fin d) Γ(S, U)] C, ofHom ρ.toRingHom ≫ ψ = ξ := by
-    let ξ_alg : Γ(X, V) →ₐ[MvPolynomial (Fin d) Γ(S, U)] C' := ⟨ξ.hom, RingHom.congr_fun hξ⟩
-    let ψ_alg : C →ₐ[MvPolynomial (Fin d) Γ(S, U)] C' := ⟨ψ.hom, map_eval₂Hom _ _ _⟩
-    refine ⟨liftOfSurjective ξ_alg ψ_alg hψ.coe_surjective h_nil, ?_⟩
+  let ξ_alg : Γ(X, V) →ₐ[MvPolynomial (Fin d) Γ(S, U)] C' := ⟨ξ.hom, RingHom.congr_fun hξ⟩
+  let ψ_alg : C →ₐ[MvPolynomial (Fin d) Γ(S, U)] C' := ⟨ψ.hom, map_eval₂Hom _ _ _⟩
+  have : FormallyEtale (MvPolynomial (Fin d) Γ(S, U)) Γ(X, V) := h_etale.formallyEtale
+  obtain ⟨ρ, hρ, h_unique⟩ := New.Variety.existsUnique_algHom_lift ξ_alg ψ_alg hψ.coe_surjective h_nil
+  have h_lift : ofHom ρ.toRingHom ≫ ψ = ξ := by
     ext a
-    exact AlgHom.congr_fun (comp_liftOfSurjective ξ_alg ψ_alg hψ.coe_surjective h_nil) a
+    exact AlgHom.congr_fun hρ a
+  obtain rfl := h_lift.symm
   obtain ⟨hρ_over, hρ_coord⟩ :=
     (h_point_iff (ofHom ρ.toRingHom) σ l).2 (RingHom.ext ρ.commutes)
   refine ⟨homMk _ hρ_over, ⟨by simp, hρ_coord⟩,
     fun ⟨y', _, hy'_over⟩ ⟨hy'_red, hy'_coord⟩ ↦ ?_⟩
-  -- Uniqueness: another lift is an algebra map `ρ'` congruent to `ρ`, and `g` is unramified.
+  -- Any scheme-theoretic lift on the chart gives an algebraic lift through `ψ`.
   obtain ⟨ρ', rfl⟩ := landsIn_opensRange.mp
     (hψ.landsIn_of_comp (landsIn_opensRange.mpr ⟨ofHom ρ.toRingHom ≫ ψ, hy'_red.symm⟩) :
       LandsIn y' hV.fromSpec.opensRange)
@@ -212,7 +207,7 @@ lemma exists_isEtaleChart (x : X) {d : ℕ} (hf : SmoothOfRelativeDimension d f)
   have h_red : ρ' ≫ ψ = ofHom ρ.toRingHom ≫ ψ := by
     simpa [-map_comp, ← map_comp_assoc, cancel_mono, map_inj] using hy'_red
   obtain rfl : ⟨ρ'.hom, RingHom.congr_fun h_alg⟩ = ρ :=
-    FormallyUnramified.ext' ψ.hom h_nil _ _ (ConcreteCategory.congr_hom h_red)
+    h_unique _ (AlgHom.ext fun a ↦ ConcreteCategory.congr_hom h_red a)
   rfl
 
 @[simp]
@@ -556,8 +551,9 @@ lemma New.Variety.eq_zero_of_nsmul_eq_zero_of_comp_eq_zero {R K : Type} {g : ℕ
   have h_le_ker : I ≤ RingHom.ker (preimage s).hom := by
     simpa [hI, eq_zero_iff_factors_zero_section] using h_vanish
   -- Nakayama's lemma: a finitely generated ideal inside the Jacobson radical with `I ≤ I • I`.
-  have h_bot : I = ⊥ := I.eq_bot_of_le_smul_of_le_jacobson_bot I h_fg h_le_sq
-    (h_le_ker.trans ((le_maximalIdeal (RingHom.ker_ne_top _)).trans (maximalIdeal_le_jacobson _)))
+  have h_bot : I = ⊥ := I.eq_bot_of_le_smul_of_le_jacobson I h_fg h_le_sq
+    (h_le_ker.trans ((le_maximalIdeal (RingHom.ker_ne_top _)).trans
+      (IsLocalRing.ringJacobson_eq_maximalIdeal _).ge))
   simpa [eq_zero_iff_factors_zero_section, h_bot] using hI (.id R)
 
 end TorsionUnramified

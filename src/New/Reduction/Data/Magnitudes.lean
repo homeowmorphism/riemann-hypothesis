@@ -62,7 +62,6 @@ lemma le_constantBound :
     P.q₀ ≤ P.constantBound ∧
     P.d ≤ P.constantBound ∧
     φ P.q₀ ≤ P.constantBound := by
-  have hq₀ : (0 : ℝ) ≤ P.q₀ := P.q₀.cast_nonneg
   have hd : (64 : ℝ) < P.d := mod_cast P.sixty_four_lt_d
   have hφ : (φ P.q₀ : ℝ) ≤ P.q₀ := mod_cast totient_le P.q₀
   -- `P.constantBound` is `q₀ + 2 d + 6` plus nonnegative terms

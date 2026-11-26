@@ -110,7 +110,6 @@ lemma measurePreserving_append_last {Z : Type} [MeasurableSpace Z] (ζ : Measure
     MeasurePreserving
       (fun ((t, (s, w), z) : A × (A × (κ → A)) × Z) ↦ ((s, w ⊕ᵥ fun _ : Unit ↦ u * t), z))
       ((P.modulus u • volume).prod (volume.prod ζ)) (volume.prod ζ) := by
-  classical
   let ν : Measure A := P.modulus u • volume
   have h_scale : MeasurePreserving (fun t : A ↦ u * t) ν volume := by
     refine ⟨by fun_prop, ?_⟩
@@ -269,24 +268,14 @@ lemma IntegralPlace.normFiberMeasure_eq_map_flatChart (h_rank : 2 ≤ card κ)
 `δ = P.skewUnit`: almost every `x` satisfies this equation. -/
 lemma IntegralPlace.ae_normFiberMeasure_dotProduct_eq (h_rank : 2 ≤ card κ) (b : skewAdjoint A) :
     ∀ᵐ x : κ → A ∂P.normFiberMeasure κ b, star x ⬝ᵥ x = (↑P.skewUnit⁻¹ : A) * b := by
-  obtain ⟨B, hB⟩ : ∃ B : Matrix κ (Fin 2 ⊕ Fin (card κ - 2)) A, Bᴴ * B = planeSumGram 1 :=
-    P.exists_hyperbolic_basis h_rank
-  have h_closed : IsClosed {x : κ → A | star x ⬝ᵥ x = (↑P.skewUnit⁻¹ : A) * b} :=
-    isClosed_eq (by fun_prop) continuous_const
-  -- The chart takes values on the quadric where the parameter `p.1.1` is a unit, so almost surely.
-  have h_unit_pair : ∀ᵐ sw : A × (Fin (card κ - 2) → A), IsUnit sw.1 :=
-    quasiMeasurePreserving_fst.ae P.ae_isUnit
-  have h_unit : ∀ᵐ p : (A × (Fin (card κ - 2) → A)) × skewAdjoint A ∂volume.prod P.skewMeasure,
-      IsUnit p.1.1 :=
-    quasiMeasurePreserving_fst.ae h_unit_pair
+  obtain ⟨B, hB⟩ := P.exists_hyperbolic_basis h_rank
   rw [P.normFiberMeasure_eq_map_flatChart h_rank hB,
-    ae_map_iff (by fun_prop) h_closed.measurableSet]
-  filter_upwards [h_unit] with p hp
-  calc
-    star (B *ᵥ flatChart 1 b p) ⬝ᵥ B *ᵥ flatChart 1 b p
-      = star (flatChart 1 b p) ⬝ᵥ planeSumGram 1 *ᵥ flatChart 1 b p := by
-        rw [← hB, ← mulVec_mulVec, ← star_mulVec_dotProduct]
-    _ = (↑P.skewUnit⁻¹ : A) * b := form_flatChart conjTranspose_one hp
+    ae_map_iff (by fun_prop) (isClosed_eq (by fun_prop) continuous_const).measurableSet]
+  -- The chart takes values on the quadric where the parameter `p.1.1` is a unit, so almost surely.
+  filter_upwards [quasiMeasurePreserving_fst.ae (quasiMeasurePreserving_fst.ae P.ae_isUnit)]
+    with p hp
+  rw [star_mulVec_dotProduct, mulVec_mulVec, hB]
+  exact form_flatChart conjTranspose_one hp
 
 /-- Let `π π̄ = N`, let `X₀ = 𝔰.κ → A` have an orthonormal basis of at least two vectors and let `z`
 be orthogonal to it, of norm `-N`; `latticeMiddleGram 𝔰 N` is the form of `X₀ ⊕ A z`. For almost

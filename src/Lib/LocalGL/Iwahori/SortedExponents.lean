@@ -111,7 +111,7 @@ lemma transvectionGL_apply_diagGL_compactMean [CompactSpace 𝒪[F]]
     ext
     simp [transvection, Matrix.one_apply]
     grind [ne_zero]
-  rw [← Module.End.mul_apply, ← map_mul ρ.ρ, h_comm]
+  rw [← mul_apply_eq_comp, ← map_mul ρ.ρ, h_comm]
   simp [hc]
 
 /-- After the exchange of two neighbours `i`, `j`, an exponent still satisfies its defining
@@ -271,7 +271,7 @@ private lemma IsExponent.swap_compactMean_apply_diagGL_of_apply_eq_zero
         mul_comm, normAbsChar] using h_quad
     -- `U_t` is `U_{t / w}` after `U_w`
     calc l_mean (U t z) = l_mean (U (t / w) (U w z)) := by
-          simp only [l_mean, U, LinearMap.comp_apply, Module.End.mul_apply, div_mul_cancel,
+          simp only [l_mean, U, LinearMap.comp_apply, mul_apply_eq_comp, div_mul_cancel,
             compactMean_diagGL_compactMean_diagGL htw hw (compactMean_mem_levelSpace z)]
       _ = torusChar (θ ∘ Equiv.swap i j) (t / w) * l_mean (U w z) := ih htw hl_Uw h_gap'
       _ = torusChar (θ ∘ Equiv.swap i j) t * l_mean z := by simp [h_eig_w, field]
@@ -485,7 +485,7 @@ lemma IsIwahoriEigen.exists_isExponent {B : ρ →ₗ⋆[ℂ] ρ →ₗ[ℂ] ℂ
   -- Evaluation at `y` is a nonzero `ξ`-eigenfunctional on `S`, so `S` contains a `ξ`-eigenform
   -- (`exists_eigenvector_of_functional`).
   obtain ⟨hy₀, hy_fix, hy_eig⟩ := h_eig
-  have hB_pos : ∀ z : ρ, z ≠ 0 → 0 < B z z := hB.1
+  have hB_pos : ∀ z : ρ, z ≠ 0 → 0 < B z z := hB.pos
   let W : Submodule ℂ ρ := levelSpace ρ.ρ proIwahori
   let S : Submodule ℂ (Dual ℂ W) := ((cyclicSpan ρ.ρ x).submoduleOf W).map (B.domRestrict₁₂ W W)
   have h_stable (t : dominantTorus) : ∀ φ ∈ S, (iwahoriHeckeHom ρ t).dualMap φ ∈ S := by
@@ -508,7 +508,7 @@ lemma IsIwahoriEigen.exists_isExponent {B : ρ →ₗ⋆[ℂ] ρ →ₗ[ℂ] ℂ
         (iwahoriHeckeHom ρ t).dualMap ((iwahoriHeckeHom ρ s).dualMap φ) := by
     ext z
     simp only [LinearMap.dualMap_apply]
-    simp only [← End.mul_apply, ← map_mul, mul_comm]
+    simp only [← mul_apply_eq_comp, ← map_mul, mul_comm]
   obtain ⟨_, ⟨w, hw, rfl⟩, hw₀, hw_eig⟩ :=
     exists_eigenvector_of_functional _ h_stable h_comm ev ev_ne ev_eig
   have hw_ne : (w : ρ) ≠ 0 := fun h ↦ by simp_all
@@ -557,7 +557,7 @@ lemma exists_sorted_isIwahoriEigen_of_diagGL_smul (hϖ : v ϖ.val = exp (-1))
       iwahoriHeckeHom ρ t y ∈ E := by
     simp only [E, Submodule.mem_iInf, End.mem_eigenspace_iff] at hy ⊢
     intro i ε hε
-    rw [← End.mul_apply, ← map_mul, mul_comm, map_mul, End.mul_apply, hy i ε hε, map_smul]
+    rw [← mul_apply_eq_comp, ← map_mul, mul_comm, map_mul, mul_apply_eq_comp, hy i ε hε, map_smul]
   have hx_mem : (⟨x, hx⟩ : levelSpace ρ.ρ proIwahori) ∈ C ⊓ E := ⟨self_mem_cyclicSpan, hxE⟩
   obtain ⟨χ, y, ⟨hy, hyE⟩, y_ne, hy_eigen⟩ := exists_eigencharacter (S := C ⊓ E) (iwahoriHeckeHom ρ)
     (fun t y ⟨hy_C, hy_E⟩ ↦ ⟨stable t hy_C, stable_E t y hy_E⟩)
@@ -619,7 +619,7 @@ lemma exists_sorted_isIwahoriEigen_of_diagGL_smul (hϖ : v ϖ.val = exp (-1))
   have h_comm (s t : dominantTorus) (z : levelSpace ρ.ρ proIwahori) (_ : z ∈ C) :
       iwahoriHeckeHom ρ s (iwahoriHeckeHom ρ t z) =
         iwahoriHeckeHom ρ t (iwahoriHeckeHom ρ s z) := by
-    simp only [← End.mul_apply, ← map_mul, mul_comm]
+    simp only [← mul_apply_eq_comp, ← map_mul, mul_comm]
   obtain ⟨y', hy', y'_ne, hy'_eigen⟩ :=
     exists_eigenvector_of_functional (iwahoriHeckeHom ρ) stable h_comm l' l'_ne l'_eig
   exact ⟨θ, ⟨_, hl, hwx⟩, hθτ, σ, anti, y', hy', by simpa, y'.prop,
@@ -726,7 +726,7 @@ private lemma New.exists_reindexGL_apply_eq_smul_of_finsum_ne_zero {F : Type*} [
 less than `1` whenever `c (e⁻¹ j) < c (e⁻¹ i)`. Then `g`, read as a matrix indexed by `n` and
 reduced modulo the maximal ideal, is block upper triangular for `c`. -/
 private lemma New.blockTriangular_intGL_map_reindexGL_symm_of_valuation_lt_one {F : Type*}
-    [Field F] [Valued F ℤᵐ⁰] [CompactSpace 𝒪[F]] {N : ℕ} {n : Type*} [Fintype n] [DecidableEq n]
+    [Field F] [Valued F ℤᵐ⁰] {N : ℕ} {n : Type*} [Fintype n] [DecidableEq n]
     (e : n ≃ Fin N) {k : ℕ} (c : n → Fin k) (g : GL (Fin N) F) (hg : g ∈ intGL (Fin N) 𝒪[F])
     (h_low : ∀ i j : Fin N, c (e.symm j) < c (e.symm i) → v (g i j) < 1) :
     BlockTriangular (intGL.map (residue 𝒪[F])
@@ -741,7 +741,7 @@ lies in `parabolic b` act on `y` by the product of the `χ a` of the determinant
 blocks. Then each integral `g` whose reduction is upper triangular for the order `e` acts on `y` by
 the product of the `χ (b i)` of the diagonal entries of its reduction. -/
 private lemma New.reindexGL_apply_eq_prod_smul_of_blockTriangular {F : Type*} [Field F]
-    [Valued F ℤᵐ⁰] [CompactSpace 𝒪[F]] {N : ℕ} {ρ : Rep ℂ (GL (Fin N) F)} {y : ρ}
+    [Valued F ℤᵐ⁰] {N : ℕ} {ρ : Rep ℂ (GL (Fin N) F)} {y : ρ}
     {n : Type*} [Fintype n] [DecidableEq n] (e : n ≃ Fin N) {r : ℕ}
     {χ : Fin r → MulChar (IsLocalRing.ResidueField 𝒪[F]) ℂ} {b : n → Fin r} (hb : Monovary e b)
     (h_block : ∀ (g : intGL n 𝒪[F]) (hg : intGL.map (residue 𝒪[F]) g ∈ parabolic b),
@@ -768,7 +768,7 @@ private lemma New.reindexGL_apply_eq_prod_smul_of_blockTriangular {F : Type*} [F
 product of the `f i` of the residues of its diagonal entries, where `R : F → 𝓀[F]` extends the
 residue map. Then `y` is fixed by `New.proIwahori`. -/
 private lemma New.mem_levelSpace_proIwahori_of_forall_apply_eq_prod_smul {F : Type*} [Field F]
-    [Valued F ℤᵐ⁰] [CompactSpace 𝒪[F]] {N : ℕ} {ρ : Rep ℂ (GL (Fin N) F)} {y : ρ}
+    [Valued F ℤᵐ⁰] {N : ℕ} {ρ : Rep ℂ (GL (Fin N) F)} {y : ρ}
     {R : F → 𝓀[F]} (hR : ∀ a : 𝒪[F], R a = residue 𝒪[F] a)
     (f : Fin N → MulChar (IsLocalRing.ResidueField 𝒪[F]) ℂ)
     (h_upper : ∀ g : GL (Fin N) F, g ∈ intGL (Fin N) 𝒪[F] → (∀ i j : Fin N, j < i → v (g i j) < 1) →
@@ -790,7 +790,7 @@ integral `g : intGL n 𝒪[F]` whose reduction lies in `parabolic b` act on `y` 
 ring that is upper triangular modulo the maximal ideal acts on `y` by the product of the
 `χ (b (e⁻¹ i))` of the residues `R (g i i)` of its diagonal entries. -/
 private lemma New.apply_eq_prod_smul_of_valuation_lt_one {F : Type*} [Field F] [Valued F ℤᵐ⁰]
-    [CompactSpace 𝒪[F]] {N : ℕ} {ρ : Rep ℂ (GL (Fin N) F)} {y : ρ}
+    {N : ℕ} {ρ : Rep ℂ (GL (Fin N) F)} {y : ρ}
     {n : Type*} [Fintype n] [DecidableEq n] (e : n ≃ Fin N) {r : ℕ}
     {χ : Fin r → MulChar (IsLocalRing.ResidueField 𝒪[F]) ℂ} {b : n → Fin r} (hb : Monovary e b)
     {R : F → 𝓀[F]} (hR : ∀ a : 𝒪[F], R a = residue 𝒪[F] a)
@@ -815,7 +815,7 @@ private lemma New.apply_eq_prod_smul_of_valuation_lt_one {F : Type*} [Field F] [
 /-- If `χ` is injective and the characters `χ a` and `χ a'` of the residue field agree at the
 residue of every unit of the valuation ring, then `a = a'`. -/
 private lemma New.eq_of_forall_mulChar_residue_eq {F : Type*} [Field F] [Valued F ℤᵐ⁰]
-    [CompactSpace 𝒪[F]] {r : ℕ} {χ : Fin r → MulChar (IsLocalRing.ResidueField 𝒪[F]) ℂ}
+    {r : ℕ} {χ : Fin r → MulChar (IsLocalRing.ResidueField 𝒪[F]) ℂ}
     (hχ : Injective χ) {a a' : Fin r}
     (h_eq : ∀ u : 𝒪[F]ˣ, χ a (residue 𝒪[F] u) = χ a' (residue 𝒪[F] u)) : a = a' := by
   refine hχ (ext fun w ↦ ?_)

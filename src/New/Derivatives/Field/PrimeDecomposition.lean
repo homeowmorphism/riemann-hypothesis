@@ -239,19 +239,6 @@ lemma adjoin_betaKInE_zetaInt_eq_top : adjoin ℤ {P.betaKInE s, P.zetaInt s} = 
   simpa [adjoin_eq_top_of_isPrimitiveRoot isPrimitiveRoot_zetaInt, Set.pair_comm] using
     (adjoin_eq_adjoin_union ℤ {betaK P.d} {P.zetaInt s} h_quad).symm
 
-/-! ### Summary for a primitive root of unity -/
-
-/-- Let `z` be a primitive `q₁`-th root of unity in `𝓞 E`, and `y` the derivative at `z` of the
-cyclotomic polynomial of level `q₁`. Then `y` divides `q₁`, `y` generates the different of `E/K`,
-and `z` generates `𝓞 E` over `𝓞 K`. -/
-lemma relDifferent_spec (hz : IsPrimitiveRoot z (P.q₁ s)) :
-    (cyclotomic (P.q₁ s) (𝓞 (P.E s))).derivative.eval z ∣ P.q₁ s ∧
-    span {(cyclotomic (P.q₁ s) (𝓞 (P.E s))).derivative.eval z} =
-      differentIdeal (𝓞 P.K) (𝓞 (P.E s)) ∧
-    (𝓞 P.K)[z] = ⊤ :=
-  ⟨eval_derivative_cyclotomic_dvd_q₁ hz, (differentIdeal_eq_span_derivative_cyclotomic hz).symm,
-    adjoin_eq_top_of_isPrimitiveRoot hz⟩
-
 /-! ### The generator P'(ζ) and the different of `E` -/
 
 /-- The value at `ζ` of the derivative of the `q₁`-th cyclotomic polynomial, as an element of `𝓞 E`.

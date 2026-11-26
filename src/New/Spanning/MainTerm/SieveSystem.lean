@@ -99,7 +99,7 @@ lemma norm_prod_mul_le_prod_mul {f : τ → ℂ} {g : τ → ℝ} {a : ℂ} {b :
 
 /-- Schur's product theorem for finitely many kernels: the entrywise product of positive
 semidefinite kernels `A v` over `v ∈ s` and `B` is positive semidefinite. -/
-lemma posSemidef_prod_mul {σ κ : Type} [Fintype κ] {A : σ → κ → κ → ℂ} {B : κ → κ → ℂ}
+lemma posSemidef_prod_mul {σ κ : Type} {A : σ → κ → κ → ℂ} {B : κ → κ → ℂ}
     (hA : ∀ v : σ, (Matrix.of (A v)).PosSemidef) (hB : (Matrix.of B).PosSemidef) (s : Finset σ) :
     (Matrix.of fun i j : κ ↦ (∏ v ∈ s, A v i j) * B i j).PosSemidef := by
   classical
@@ -159,7 +159,6 @@ lemma SieveSystem.pi (K : SieveSystem u ι n J ψ B₀ Λ β) [SFinite (volume :
       ((∏ v : τ, B₀' v) * B₀)
       (fun (i : ℕ) (p : ℕ → (τ → ℂˣ) × U) ↦ (∏ v : τ, Λ' i (headAt v p)) * Λ i (Prod.snd ∘ p))
       fun x : (τ → ℂ) × C ↦ (∏ v : τ, γ v (x.1 v)) * β x.2 := by
-  classical
   -- Everything is checked factor by factor: Fubini for `integrable_and_integral_update`, Schur's
   -- product theorem for `posSemidef`, and products of the local bounds for
   -- `integrable_and_integral_update`, `norm_bot_le` and `norm_le_of_isUnit_sub`.

@@ -233,7 +233,7 @@ subspace of finite dimension in which only `0` is fixed. Then an invariant bound
 vanishes at every vector of `W` with continuous orbit: the mean of the orbit is a fixed vector of
 `W`. -/
 lemma New.Exchange.apply_eq_zero_of_forall_fixed_eq_zero {G V : Type*} [Group G]
-    [TopologicalSpace G] [IsTopologicalGroup G] [CompactSpace G] [T2Space G] [NormedAddCommGroup V]
+    [TopologicalSpace G] [IsTopologicalGroup G] [CompactSpace G] [NormedAddCommGroup V]
     [NormedSpace ℂ V] [CompleteSpace V] (ρ : G →* V →L[ℂ] V) {W : Submodule ℂ V}
     [FiniteDimensional ℂ W] (h_stable : ∀ g : G, ∀ w ∈ W, ρ g w ∈ W)
     (h_fixed : ∀ w ∈ W, (∀ g : G, ρ g w = w) → w = 0) {l : V →L[ℂ] ℂ}
@@ -347,7 +347,7 @@ open NumberField (InfinitePlace)
 /-- Right translation by an element of a compact subgroup preserves the left Haar measure of a
 locally compact group: the modular function is `1` on compact subgroups. -/
 lemma New.Exchange.haar_map_mul_right_of_isCompact {H : Type*} [Group H] [TopologicalSpace H]
-    [IsTopologicalGroup H] [LocallyCompactSpace H] [SecondCountableTopology H] [T2Space H]
+    [IsTopologicalGroup H] [LocallyCompactSpace H] [SecondCountableTopology H]
     [MeasurableSpace H] [BorelSpace H] {C : Subgroup H} (hC : IsCompact (C : Set H)) (k : C) :
     (haar : Measure H).map (· * (k : H)) = haar := by
   -- both sides are Haar measures, and they agree on the compact neighbourhood `A * C`, which is
@@ -435,7 +435,7 @@ lemma New.Exchange.homSlice_pairWeil_stabilizer_mul {r : m → ℤˣ} {s : n →
     (k : stabilizer (G E s) x') (g : G E r) (h : G E s) (f : 𝒮 (X.hom Y)) :
     D.homSlice Y x' (pairWeil X Y δ δ (g, k * h) f) =
       pairWeil Z Y ν δ (1, k) (D.homSlice Y x' (pairWeil X Y δ δ (g, h) f)) := by
-  have hk : k.1⁻¹.adeleMatrix * x' = x' := k⁻¹.2
+  have hk : k.val⁻¹.adeleMatrix * x' = x' := k⁻¹.property
   simpa [← hδ, -coe_units_inv, hk, Prod.mk_one_one, rep_apply_apply] using
     D.homSlice_levi Y ν δ 1 1 k x' (pairWeil X Y δ δ (g, h) f)
 

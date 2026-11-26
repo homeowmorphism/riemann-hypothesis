@@ -75,7 +75,8 @@ lemma sum_cost_le_of_noMultipleNear {n : ℕ} {b : ℤ} (hb_gap : NoMultipleNear
   -- The set is a union of four intervals of `2 n + 1` integers.
   have h_card : #(twoWindows n b ∪ twoWindows n (-b)) ≤ 8 * n + 4 := by
     grw [card_union_le, card_union_le, card_union_le]
-    grind [card_Icc]
+    simp only [card_Icc]
+    omega
   -- By the gap condition each step is `0` or prime to `p`, so it costs `k.differentBound`.
   have h_step : ∀ y ∈ twoWindows n b ∪ twoWindows n (-b), k.cost 0 y ≤ k.differentBound := by
     intro y hy
@@ -88,7 +89,8 @@ lemma sum_cost_le_of_noMultipleNear {n : ℕ} {b : ℤ} (hb_gap : NoMultipleNear
 lemma mem_twoWindows_union_iff {n : ℕ} {b y : ℤ} :
     y ∈ twoWindows n b ∪ twoWindows n (-b) ↔
       -n ≤ y ∧ y ≤ n ∨ b - n ≤ y ∧ y ≤ b + n ∨ -b - n ≤ y ∧ y ≤ -b + n := by
-  grind
+  simp only [twoWindows, mem_union, mem_Icc]
+  omega
 
 /-- Deepening at the level `0`. Let the side `S` have a point over `p ^ κ • c` at the letter `i`
 with exponents `lo` and depth `o`. If all steps `y` from `o` to the depth `o'` are at the level `0`
@@ -140,19 +142,33 @@ lemma pointsOver_nonempty_of_gap {a κ η stepCost : ℕ} {i : k.Letter}
       y < plainDepth a η 1 0 l u → l = 0 ∧ y ∈ steps := by
     intro l u hu y hy_ge hy_lt
     obtain ⟨rfl, hy⟩ : l = 0 ∧ -u - a ≤ y ∧ y < a + η - u := by
-      grind [raisedOrdersAtZero, plainDepth, standardDepth]
+      dsimp only [raisedOrdersAtZero, plainDepth, standardDepth] at hy_ge hy_lt
+      split_ifs at hy_ge hy_lt <;> omega
     exact ⟨rfl, h_steps u hu (mem_Ico.2 hy)⟩
   obtain ⟨x, hx⟩ : Set.Nonempty (S.pointsOver c i (κ + stepCost)
       (improvedOrders (raisedOrdersAtZero (-a)) (plainDepth a η 1 0)) (plainDepth a η 1 0)) :=
     pointsOver_nonempty_of_steps_level_zero (pointsOver_nonempty_of_killsCokernel h_kill c)
       h_cover h_cost
-  have h_nonneg : ∀ u ∈ S.jumpSet i, -(a : ℤ) ≤ u → -0 ≤ u := fun u hu ↦ by grind [h_gap u hu]
+  have h_nonneg : ∀ u ∈ S.jumpSet i, -(a : ℤ) ≤ u → -0 ≤ u := fun u hu h ↦ by
+    have h' := h_gap u hu
+    rw [mem_Ico] at h'
+    omega
   have h_no_pole :
       x ∈ S.pointsOver c i (κ + stepCost) (raisedOrdersAtZero (-0)) (plainDepth a η 1 0) :=
     mem_pointsOver_raisedOrdersAtZero_of_gap hx le_rfl h_nonneg
-      (fun l u _ ↦ by grind [raisedOrdersAtZero, plainDepth, standardDepth])
-      fun l u _ ↦ by grind [raisedOrdersAtZero, plainDepth, standardDepth]
+      (fun l u _ ↦ by
+        dsimp only [improvedOrders, raisedOrdersAtZero, plainDepth, standardDepth]
+        split_ifs <;> omega)
+      fun l u _ ↦ by
+        dsimp only [improvedOrders, raisedOrdersAtZero, plainDepth, standardDepth]
+        split_ifs <;> omega
   exact ⟨x, by simpa only [neg_zero] using h_no_pole⟩
+
+private lemma mem_pointsOver_of_no_pole {i : k.Letter} {c : S.paramLattice} {e : ℕ}
+    {d : ℕ → ℤ → ℤ} {x : S.extensionLattice.Ambient} (t : ℕ)
+    (hx : x ∈ S.pointsOver c i e (raisedOrdersAtZero 0) d) :
+    x ∈ S.pointsOver c i e (raisedOrdersAtZero (-t)) d :=
+  mem_pointsOver_of_exponent_le hx fun l u _ ↦ raisedOrdersAtZero_mono (by omega) l u
 
 /-- The scaled cup coboundary under a gap below `0`. Let `P` be a pairing of the lattices of the
 sides `S` and `S'`, and `P.tateDualSide` the side on the Tate dual of their tensor product that
@@ -182,20 +198,12 @@ lemma SidePairing.isScaledCupCoboundary_of_gap (P : S.SidePairing S') {a κ η H
   -- Both sides have deep points without pole at every letter. At each letter the side whose far
   -- window is negative has jumps at most `η`; it provides a stop, a point at which it rests while
   -- the other side moves by Frobenius.
-  have h_left (i : Letter) :
-      ∃ x, x ∈ S.pointsOver c i (κ + stepCost) (raisedOrdersAtZero 0) (plainDepth a η 1 0) :=
+  choose x hx_no_pole using fun i ↦
     pointsOver_nonempty_of_gap (h_kill i) (h_gap i) (h_steps i) (h_cost i) c
-  have h_right (i : Letter) :
-      ∃ x', x' ∈ S'.pointsOver c' i (κ + stepCost) (raisedOrdersAtZero 0) (plainDepth a η 1 0) :=
+  choose x' hx'_no_pole using fun i ↦
     pointsOver_nonempty_of_gap (h_kill' i) (h_gap' i) (h_steps' i) (h_cost i) c'
-  choose x hx_no_pole using h_left
-  choose x' hx'_no_pole using h_right
-  have hx (i : Letter) : x i ∈ S.pointsOver c i (κ + stepCost) (raisedOrdersAtZero (-η))
-    (plainDepth a η 1 0) :=
-    mem_pointsOver_of_exponent_le (hx_no_pole i) fun l u _ ↦ raisedOrdersAtZero_mono (by omega) l u
-  have hx' (i : Letter) :
-      x' i ∈ S'.pointsOver c' i (κ + stepCost) (raisedOrdersAtZero (-η)) (plainDepth a η 1 0) :=
-    mem_pointsOver_of_exponent_le (hx'_no_pole i) fun l u _ ↦ raisedOrdersAtZero_mono (by omega) l u
+  have hx (i : Letter) := mem_pointsOver_of_no_pole η (hx_no_pole i)
+  have hx' (i : Letter) := mem_pointsOver_of_no_pole η (hx'_no_pole i)
   refine P.isScaledCupCoboundary_of_stops_at_all_letters x x' h_kill_tateDual
     (fun i ↦ mem_standardPoints_of_plainDepth (hx i))
     (fun i ↦ mem_standardPoints_of_plainDepth (hx' i)) (fun i ↦ ?_) (by omega)
@@ -248,14 +256,16 @@ lemma pointsOver_nonempty_of_fitsWindows {a κ η W t n β : ℕ} {σ : ℤˣ} {
       y < plainDepth a t 1 0 l u → l = 0 ∧ y ∈ twoWindows n β ∪ twoWindows n (-β) := by
     intro l u hu y hy_ge hy_lt
     obtain ⟨rfl, hy⟩ : l = 0 ∧ -u - a ≤ y ∧ y < a + t - u := by
-      grind [raisedOrdersAtZero, plainDepth, standardDepth]
+      dsimp only [raisedOrdersAtZero, plainDepth, standardDepth] at hy_ge hy_lt
+      split_ifs at hy_ge hy_lt <;> omega
     have hu_window : -η ≤ u ∧ u ≤ η ∨ β ≤ u ∧ u ≤ β + W ∨ β ≤ -u ∧ -u ≤ β + W :=
       low_or_far_of_fitsWindows h_window hu
-    grind
+    exact ⟨rfl, mem_twoWindows_union_iff.2 (by omega)⟩
   have h_exponent (l : ℕ) (u : ℤ) :
       raisedOrdersAtZero (-t) l u ≤ improvedOrders (raisedOrdersAtZero (-a)) (plainDepth a t 1 0) l
         u := by
-    grind [raisedOrdersAtZero, plainDepth, standardDepth]
+    dsimp only [improvedOrders, raisedOrdersAtZero, plainDepth, standardDepth]
+    split_ifs <;> omega
   exact pointsOver_nonempty_of_near_steps hk hβ_gap
     (pointsOver_nonempty_of_killsCokernel h_kill c) h_steps fun l u _ ↦ h_exponent l u
 
@@ -273,15 +283,19 @@ lemma pointsOver_nonempty_of_jumps_nonpos {a η t n : ℕ} {β : ℤ} (hk : k.Is
   -- As the jumps are at most `0`, the element `1 = p ^ 0 * E ^ 0` kills the cokernel.
   have h_kill : S.KillsCokernel i 0 0 := killsCokernel_zero_zero_of_small_jumps (ω := 0)
     (fun j u hu ↦ (mem_Icc.1 (h_nonpos j hu)).2) (Nat.zero_le _) i
-  have h_point : (S.pointsOver c i 0 (raisedOrdersAtZero 0) (raisedOrdersAtZero 0)).Nonempty := by
-    simpa only [Nat.cast_zero, neg_zero] using pointsOver_nonempty_of_killsCokernel h_kill c
-  have h_steps : ∀ l : ℕ, ∀ u ∈ S.jumpSet (i.stepBack l), ∀ y : ℤ, raisedOrdersAtZero 0 l u ≤ y →
-      y < plainDepth a t 1 0 l u → l = 0 ∧ y ∈ twoWindows n β ∪ twoWindows n (-β) :=
-    fun l u hu ↦ by grind [h_nonpos _ hu, raisedOrdersAtZero, plainDepth, standardDepth]
-  have h_exponent : ∀ l : ℕ, ∀ u ∈ S.jumpSet (i.stepBack l),
-      raisedOrdersAtZero 0 l u ≤ improvedOrders (raisedOrdersAtZero 0) (plainDepth a t 1 0) l u :=
-    fun l u hu ↦ by grind [h_nonpos _ hu, raisedOrdersAtZero, plainDepth, standardDepth]
-  exact pointsOver_nonempty_of_near_steps hk hβ_gap h_point h_steps h_exponent
+  -- With no pole, apply the gap lemma with pole order zero and total depth `a + t`.
+  have h_depth : plainDepth 0 (a + t) 1 0 = plainDepth a t 1 0 := by
+    funext l u
+    cases l <;> simp [plainDepth, standardDepth]
+    omega
+  rw [← h_depth]
+  refine pointsOver_nonempty_of_gap (stepCost := 0) h_kill (by simp)
+    (steps := twoWindows n β ∪ twoWindows n (-β)) ?_ ?_ c
+  · intro u hu y hy
+    have := mem_Icc.1 (h_nonpos i hu)
+    have := mem_Ico.1 hy
+    exact mem_twoWindows_union_iff.2 (.inl (by omega))
+  · exact sum_nonpos fun y hy ↦ cost_le_of_isUnramified hk (hβ_gap.eq_zero_of_dvd hy)
 
 /-- On an unramified chart let the jumps `u` of the side `S'` lie in `[-η, 0]`, and let `x₀'` be a
 point over `c'` at the letter `i.stepBack 1` before `i`, without pole and of depth `a + t - u` at
@@ -306,11 +320,18 @@ lemma pointsOver_stopOrders_nonempty {a η : ℕ} {i : k.Letter} {c' : S'.paramL
   have h_steps : ∀ l : ℕ, ∀ u ∈ S'.jumpSet (i.stepBack l), ∀ y : ℤ,
       shiftedOrders 1 1 (plainDepth a t 1 0) l u ≤ y → y < plainDepth a t 1 t l u →
       l = 0 ∧ y ∈ twoWindows n β ∪ twoWindows n (-β) :=
-    fun l u hu ↦ by grind [h_nonpos _ hu, plainDepth, standardDepth]
+    fun l u hu y hy_ge hy_lt ↦ by
+      have hu' := mem_Icc.1 (h_nonpos _ hu)
+      dsimp only [shiftedOrders, plainDepth, standardDepth] at hy_ge hy_lt
+      refine ⟨by split_ifs at hy_ge hy_lt <;> omega, mem_twoWindows_union_iff.2 ?_⟩
+      split_ifs at hy_ge hy_lt <;> omega
   have h_exponent : ∀ l : ℕ, ∀ u ∈ S'.jumpSet (i.stepBack l), stopOrders t 1 l u ≤
       improvedOrders (shiftedOrders 1 0 (raisedOrdersAtZero 0)) (plainDepth a t 1 t) l u :=
     fun l u hu ↦ by
-      grind [h_nonpos _ hu, stopOrders, stdOrders, raisedOrdersAtZero, plainDepth, standardDepth]
+      have hu' := mem_Icc.1 (h_nonpos _ hu)
+      dsimp only [stopOrders, stdOrders, improvedOrders, shiftedOrders, raisedOrdersAtZero,
+        plainDepth, standardDepth]
+      split_ifs <;> omega
   exact pointsOver_nonempty_of_near_steps hk hβ_gap ⟨_, h_frob⟩ h_steps h_exponent
 
 /-- Let the chart be unramified, let `P` be a pairing of the lattices of the sides `S` and `S'`, and
@@ -336,30 +357,26 @@ lemma SidePairing.isScaledCupCoboundary_of_jumps_nonpos (P : S.SidePairing S') {
   set t : ℕ := a + η with ht
   have h_radius : a + t + η + W ≤ 6 * (t + W) := by omega
   have h_radius' : a + t + η ≤ 6 * (t + W) := by omega
-  have h_left (i : Letter) : ∃ x : S.extensionLattice.Ambient,
-      x ∈ S.pointsOver c i κ (raisedOrdersAtZero (-t)) (plainDepth a t 1 0) :=
-    pointsOver_nonempty_of_fitsWindows hk (h_kill i) (hb_gap i) (h_window i) (by omega)
-      h_radius c
-  have h_right (i : Letter) : ∃ x' : S'.extensionLattice.Ambient,
-      x' ∈ S'.pointsOver c' i 0 (raisedOrdersAtZero 0) (plainDepth a t 1 0) :=
+  choose x hx using fun i ↦
+    pointsOver_nonempty_of_fitsWindows hk (h_kill i) (hb_gap i) (h_window i) (by omega) h_radius c
+  choose x' hx'_no_pole using fun i ↦
     pointsOver_nonempty_of_jumps_nonpos hk (hb_gap i) h_radius' h_nonpos c' i
-  choose x hx using h_left
-  choose x' hx'_no_pole using h_right
-  have hx' (i : Letter) : x' i ∈ S'.pointsOver c' i 0 (raisedOrdersAtZero (-t))
-    (plainDepth a t 1 0) :=
-    mem_pointsOver_of_exponent_le (hx'_no_pole i) fun l u _ ↦ raisedOrdersAtZero_mono (by omega) l u
+  have hx' (i : Letter) := mem_pointsOver_of_no_pole t (hx'_no_pole i)
   refine P.isScaledCupCoboundary_of_stops_at_all_letters x x' h_kill_tateDual
     (fun i ↦ mem_standardPoints_of_plainDepth (hx i))
     (fun i ↦ mem_standardPoints_of_plainDepth (hx' i)) (fun i ↦ ?_) (by omega)
   obtain Pε | Pε := units_eq_one_or (ε i)
-  · have h_down : ∀ u ∈ S.jumpSet i, u ≤ t := by
-      grind [jump_le_of_fitsWindows (h_window i) (.inl (neg_inj.2 Pε))]
-    have h_up : ∀ u ∈ S'.jumpSet i, -t ≤ u := fun u hu ↦ by grind [h_nonpos i hu]
+  · have h_down : ∀ u ∈ S.jumpSet i, u ≤ t :=
+      fun u hu ↦ (jump_le_of_fitsWindows (h_window i) (.inl (neg_inj.2 Pε)) u hu).trans (by omega)
+    have h_up : ∀ u ∈ S'.jumpSet i, -t ≤ u := fun u hu ↦ by
+      have := (mem_Icc.1 (h_nonpos i hu)).1
+      omega
     exact .inl (P.exists_mem_stopPoints_isSafeMoveSnd one_pos (h_kill_tateDual i)
       (forall_mem_U_stepBack_of_lt_one h_down)
       (forall_mem_U_stepBack_of_lt_one h_up) (hx i) (hx' i) (hx'_no_pole (i.stepBack 1)))
-  · have h_up : ∀ u ∈ S.jumpSet i, -t ≤ u := by
-      grind [neg_le_jump_of_fitsWindows (h_window i) (.inl (neg_eq_iff_eq_neg.2 Pε))]
+  · have h_up : ∀ u ∈ S.jumpSet i, -t ≤ u :=
+      fun u hu ↦ le_trans (by omega)
+        (neg_le_jump_of_fitsWindows (h_window i) (.inl (neg_eq_iff_eq_neg.2 Pε)) u hu)
     obtain ⟨q', hq'⟩ : (S'.pointsOver c' i 0 (stopOrders t 1) (plainDepth a t 1 t)).Nonempty :=
       pointsOver_stopOrders_nonempty hk (hb_gap i) h_radius' (by omega) h_nonpos
         (hx'_no_pole (i.stepBack 1))
@@ -403,7 +420,8 @@ lemma SidePairing.isScaledCupCoboundary_of_killsCokernel (P : S.SidePairing S') 
       intro u hu y hy
       have hu_window : -η ≤ u ∧ u ≤ η ∨ β ≤ u ∧ u ≤ β + W ∨ β ≤ -u ∧ -u ≤ β + W :=
         low_or_far_of_fitsWindows hU_window hu
-      grind
+      rw [mem_Ico] at hy
+      exact mem_twoWindows_union_iff.2 (by omega)
     exact P.isScaledCupCoboundary_of_gap h_kill_tateDual h_kill h_kill' h_window h_window'
       (fun i u hu ↦ h_gap i u (.inl hu)) (fun i u hu ↦ h_gap i u (.inr hu))
       (fun i ↦ twoWindows (6 * (a + η + W)) (b i) ∪ twoWindows (6 * (a + η + W)) (-b i))

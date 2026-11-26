@@ -825,25 +825,19 @@ lemma paramsCorrespond_descentPair (ϑ : D.TameChar) (j : D.LiftIndex) :
       (fun τ : D.Φ ↦ (card (D.RowIndex ⊕ Fin D.t) / 2 : ℕ) + -(D.liftWeight j τ : ℤ))
       D.paramW (D.descentPair ϑ j).paramV (D.signsW j) 1 := by
   intro τ
-  obtain ⟨h_one_le, h_le⟩ : 1 ≤ (j : ℕ) ∧ (j : ℕ) ≤ D.m := j.prop
   let u : ℤ := D.m - j + D.liftWeight j τ - D.r / 2
-  have h_centre : Sum.inr (j - 1 : ℕ) ∈ (D.gridCentres τ false).centres := by
-    simpa [gridCentres] using Nat.sub_one_lt_of_le h_one_le h_le
-  have h_gap : 500 * (card D.RowIndex + card (D.RowIndex ⊕ Fin D.t)) ^ 3 ≤ D.gap - D.t - 2 := by
-    have h_size : 500 * (D.r + (D.r + D.t)) ^ 3 + D.t + 2 ≤ D.gap := D.nat_le_of_hasLogBound
-    grind [card_rowIndex_sum_fin, card_rowIndex]
+  have : 500 * (D.r + (D.r + D.t)) ^ 3 + D.t + 2 ≤ D.gap := D.nat_le_of_hasLogBound
   -- Insert the block of the centre `-w_j`, then raise the first weight by `u`.
-  have h_rule : IsBlockRule (-D.liftWeight j τ + card D.RowIndex / 2)
-      (-D.liftWeight j τ + card (D.RowIndex ⊕ Fin D.t) / 2) (toHCParam (D.signsW j) (D.paramW τ))
-      (toHCParam 1 fun x : D.RowIndex ⊕ Fin D.t ↦ (D.descentPair ϑ j).paramV τ x - 2 * u) := by
-    rw [← descentCentres_centre]
-    exact (D.isParam_paramW τ j).isBlockRule_insert_of_down (D.isParam_paramV ϑ τ j) rfl
-      ((D.isSeparated_gridCentres τ false).subset (singleton_subset_iff.2 h_centre))
-      (empty_subset _) (mem_singleton_self _) (notMem_empty _) h_gap rfl
-  have h_weight : (negCount (D.signsW j) : ℤ) = -D.liftWeight j τ + card D.RowIndex / 2 + u := by
-    grind [negCount_signsW, card_rowIndex]
-  rw [h_weight]
-  simpa [add_comm] using h_rule.shift u 0
+  have h_rule : IsBlockRule _ _ (toHCParam (D.signsW j) (D.paramW τ))
+      (toHCParam 1 fun x ↦ (D.descentPair ϑ j).paramV τ x - 2 * u) :=
+    (D.isParam_paramW τ j).isBlockRule_insert_of_down (D.isParam_paramV ϑ τ j) rfl
+      ((D.isSeparated_gridCentres τ false).subset (singleton_subset_iff.2
+        (by simpa [gridCentres] using Nat.sub_one_lt_of_le j.prop.1 j.prop.2)))
+      (empty_subset _) (mem_singleton_self _) (notMem_empty _)
+      (by grind [card_rowIndex_sum_fin, card_rowIndex]) rfl
+  rw [show (negCount (D.signsW j) : ℤ) = -D.liftWeight j τ + card D.RowIndex / 2 + u by
+    grind [negCount_signsW, card_rowIndex]]
+  simpa [descentCentres_centre, add_comm] using h_rule.shift u 0
 
 /-- The doubled parameter 2ς = `D.paramW` on W_j fits the j-th descent pair (W_j, V_j), that is:
 * it corresponds to the doubled parameter `paramV` on V_j;

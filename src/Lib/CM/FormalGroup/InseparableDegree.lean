@@ -59,11 +59,6 @@ lemma constantCoeff_taylorVia_translatedY : constantCoeff (taylorVia ιₚ C.tra
 lemma coeff_one_taylorVia_translatedY : coeff 1 (taylorVia ιₚ C.translatedY) = 1 :=
   C.isSeriesGenerator_translatedY.coeff_one
 
-/-- Every element of `C.integralSeriesRing = 𝒪[[y]]` is `g(y)` for an integral series `g`. -/
-lemma exists_eq_subst_of_mem_integralSeriesRing {f : ℂ_[p]⟦X⟧} (hf : f ∈ C.integralSeriesRing) :
-    ∃ g : (valRingCp p)⟦X⟧, f = subst (taylorVia ιₚ C.translatedY) (seriesToCp g) :=
-  (C.isSeriesGenerator_translatedY.mem_iff f).1 hf
-
 /-- For an integral series `g ∈ 𝒪[[X]]`, viewed in `ℂ_[p][[X]]` by `seriesToCp`, the reduced order
 of `g(y)` is the order of the reduction of `g` modulo the maximal ideal of `𝒪`, where `y` is the
 Taylor series of `C.translatedY`. -/
@@ -80,8 +75,8 @@ lemma reducedOrder_subst_translatedY (g : (valRingCp p)⟦X⟧) :
 lemma reducedOrder_mul {f g : ℂ_[p]⟦X⟧} (hf : f ∈ C.integralSeriesRing)
     (hg : g ∈ C.integralSeriesRing) :
     C.reducedOrder (f * g) = C.reducedOrder f + C.reducedOrder g := by
-  obtain ⟨u, rfl⟩ := C.exists_eq_subst_of_mem_integralSeriesRing hf
-  obtain ⟨v, rfl⟩ := C.exists_eq_subst_of_mem_integralSeriesRing hg
+  obtain ⟨u, rfl⟩ := C.mem_integralSeriesRing.1 hf
+  obtain ⟨v, rfl⟩ := C.mem_integralSeriesRing.1 hg
   rw [← subst_mul (.of_constantCoeff_zero' C.constantCoeff_taylorVia_translatedY), ← map_mul,
     reducedOrder_subst_translatedY, map_mul, order_mul, reducedOrder_subst_translatedY,
     reducedOrder_subst_translatedY]
@@ -94,7 +89,7 @@ lemma reducedOrder_subst {T : ℂ_[p]⟦X⟧} (hT : T ∈ C.integralSeriesRing) 
     C.reducedOrder (subst T (seriesToCp g)) =
       (g.map (residue (valRingCp p))).order * C.reducedOrder T := by
   -- With `T = u(y)` we have `g(T) = g(u)(y)`, and reduction commutes with substitution.
-  obtain ⟨u, rfl⟩ := C.exists_eq_subst_of_mem_integralSeriesRing hT
+  obtain ⟨u, rfl⟩ := C.mem_integralSeriesRing.1 hT
   set y : ℂ_[p]⟦X⟧ := taylorVia ιₚ C.translatedY
   have hy₀ : constantCoeff y = 0 := C.constantCoeff_taylorVia_translatedY
   have hu₀ : constantCoeff u = 0 := Subtype.ext (by rwa [constantCoeff_subst_eq hy₀] at hT₀)
@@ -112,7 +107,7 @@ lemma reducedOrder_subst {T : ℂ_[p]⟦X⟧} (hT : T ∈ C.integralSeriesRing) 
 reduced order (the order in `y` modulo the maximal ideal) zero. -/
 lemma reducedOrder_eq_zero {f : ℂ_[p]⟦X⟧} (hf : f ∈ C.integralSeriesRing)
     (hf₀ : ‖constantCoeff f‖ = 1) : C.reducedOrder f = 0 := by
-  obtain ⟨u, rfl⟩ := C.exists_eq_subst_of_mem_integralSeriesRing hf
+  obtain ⟨u, rfl⟩ := C.mem_integralSeriesRing.1 hf
   rw [constantCoeff_subst_eq C.constantCoeff_taylorVia_translatedY] at hf₀
   have hu : IsUnit u := isUnit_iff_constantCoeff.2 (isUnit_integer_iff_norm_eq_one.2 hf₀)
   rw [reducedOrder_subst_translatedY, order_zero_of_isUnit (hu.map _)]
@@ -121,7 +116,7 @@ lemma reducedOrder_eq_zero {f : ℂ_[p]⟦X⟧} (hf : f ∈ C.integralSeriesRing
 norm one has the reduced order (the order in `y` modulo the maximal ideal) one. -/
 lemma reducedOrder_eq_one {T : ℂ_[p]⟦X⟧} (hT : T ∈ C.integralSeriesRing) (hT₀ : constantCoeff T = 0)
     (hT₁ : ‖coeff 1 T‖ = 1) : C.reducedOrder T = 1 := by
-  obtain ⟨u, rfl⟩ := C.exists_eq_subst_of_mem_integralSeriesRing hT
+  obtain ⟨u, rfl⟩ := C.mem_integralSeriesRing.1 hT
   rw [constantCoeff_subst_eq C.constantCoeff_taylorVia_translatedY] at hT₀
   rw [coeff_one_subst C.constantCoeff_taylorVia_translatedY, coeff_one_taylorVia_translatedY,
     mul_one, Algebra.algebraMap_self_apply] at hT₁
@@ -170,11 +165,11 @@ order of `f(α z)` is the reduced order of `f` times `o(α) = C.insepDegree α`.
 lemma reducedOrder_rescale {α : ℂ} (hα : α ∈ quadInt d) {f : ℂ_[p]⟦X⟧}
     (hf : f ∈ C.integralSeriesRing) :
     C.reducedOrder (rescale (ιₚ α) f) = C.reducedOrder f * C.insepDegree α := by
-  obtain ⟨g, rfl⟩ := C.exists_eq_subst_of_mem_integralSeriesRing hf
+  obtain ⟨g, rfl⟩ := C.mem_integralSeriesRing.1 hf
   have hy₀ := C.constantCoeff_taylorVia_translatedY (p := p)
   rw [rescale_subst hy₀, reducedOrder_subst_translatedY, insepDegree,
     C.reducedOrder_subst (C.rescale_translatedY_mem_of_mem_quadInt hα)
-      (constantCoeff_rescale.trans hy₀)]
+      ((constantCoeff_rescale ..).trans hy₀)]
 
 /-- The inseparable degree is multiplicative on the ring of integers `quadInt d`. -/
 lemma insepDegree_mul {α β : ℂ} (hα : α ∈ quadInt d) (hβ : β ∈ quadInt d) :
@@ -255,7 +250,7 @@ lemma exists_rescale_sigma_sq_eq {α : ℂ} (hα : α ∈ quadInt d) (hα₀ : �
         Finset.sum_mul, mul_assoc]
   -- The monomials have integral torsion values, so the largest term has a unit coefficient.
   have hm (i : ℕ) (hi : i ≤ ν) : ‖ιₚ (m i)‖ ≤ 1 := by
-    have h_deg : monomialDeg (2 * ν - 2 * i, i, 0) = 2 * ν := by grind
+    have h_deg : monomialDeg (2 * ν - 2 * i, i, 0) = 2 * ν := by lia
     simpa only [h_deg] using C.hasIntegralValues_monomialSection (2 * ν - 2 * i, i, 0) _
       (C.isTorsion_t_div hα hα₀ hν)
   obtain ⟨i, hi, h_le⟩ : ∃ i ∈ Finset.range (ν + 1),

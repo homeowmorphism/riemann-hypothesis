@@ -217,7 +217,6 @@ lemma exists_isIntMatrix_mul_eq {B : Matrix l m A} {C : Matrix l n A}
 columns of `B`. -/
 lemma colLattice_mul_le (B : Matrix l m A) {U : Matrix m n A} (hU : IsIntMatrix R U) :
     colLattice R (B * U) ≤ colLattice R B := by
-  classical
   rw [colLattice_mul]
   exact Submodule.map_mono (colLattice_le fun j i ↦ hU i j)
 
@@ -245,12 +244,12 @@ lemma _root_.New.IsValuationPair.exists_square_colLattice_eq (hR : IsValuationPa
   -- Column operations over `R` on `(0 | Y)` clear the columns of the second block.
   let X : Matrix m (m ⊕ n) A := fromCols 0 Y
   obtain ⟨V, hV, h_clear⟩ : ∃ V ∈ intGL (m ⊕ n) R,
-      ∀ᵉ (a : m) (j ∉ Set.range (Function.Embedding.inl : m ↪ m ⊕ n)), (X * V.val) a j = 0 :=
+      ∀ a : m, ∀ j ∉ Set.range (Function.Embedding.inl : m ↪ m ⊕ n), (X * V.val) a j = 0 :=
     hR.exists_mul_clear_cols X .inl
   let D : Matrix m m A := (X * V.1).toCols₁
   have hD : Y * V.1.toBlocks₂₁ = D := by
     ext i j
-    simp [D, X, toCols₁, toBlocks₂₁, Matrix.mul_apply]
+    simp [D, X, toBlocks₂₁, Matrix.mul_apply]
   have hY : D * V⁻¹.1.toBlocks₁₂ = Y := by
     ext i j
     have h_cancel : (X * V.1 * V⁻¹.1) i (.inr j) = Y i j := by simp [X, Matrix.mul_assoc]
@@ -677,7 +676,7 @@ lemma IsLatticeOfRank.exists_eq_colLattice_sublatticeBasis_mul {L : Submodule (�
     rw [← hW, LinearMap.finrank_range_of_inj hx.injective_mulVec, Module.finrank_fin_fun]
   obtain ⟨y, b, -, hy_span, h_basis⟩ := exists_sublatticeBasis_eq_finAdeleMatrix_mul h_left_inv W
   set S : Matrix κ (Fin (finrank E W)) (𝔸f E) := (sublatticeBasis h_left_inv W).val with hS
-  obtain ⟨T, hT : y * T = x⟩ := exists_mul_eq_of_col_mem_range fun i ↦
+  obtain ⟨T, hT : y * T = x⟩ := exists_mul_eq_of_range_le fun i ↦
     hy_span.ge (hW.le ⟨Pi.single i 1, x.mulVec_single_one i⟩)
   have ⟨xInv, hxInv⟩ := hx
   have hT_unit : IsUnit T := .of_mul_eq_one_right (xInv * y) (by rw [Matrix.mul_assoc, hT, hxInv])

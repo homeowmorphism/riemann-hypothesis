@@ -1,6 +1,7 @@
 module
 
 public import Lib.Analytic.PrimeNumberTheorem.ZeroFreeRegion
+import TauCeti.NumberTheory.ArithmeticFunction.VonMangoldt
 
 /-!
 # Primes congruent to `1` modulo `M ^ k` with logarithm in a prescribed window
@@ -182,22 +183,11 @@ lemma New.norm_term_le_exp_mul (a : ℕ → ℂ) {z : ℂ} (σ E : ℝ) {n : ℕ
     ‖term a (1 + z) n‖ ≤ Real.exp E * ‖term a (1 + σ) n‖ := by
   obtain rfl | hn := eq_or_ne n 0
   · simp
-  -- `↓cpow_add` must fire before simp rewrites the exponent.
-  have h_eq : ‖term a (1 + z) n‖ = Real.exp (Real.log n * (σ - z.re)) * ‖term a (1 + σ) n‖ := by
-    simp [hn, ↓cpow_add, cpow_def, norm_exp, field, mul_sub, Real.exp_sub, ← natCast_log]
-  grw [h_eq, h_le]
-
-/-- The Dirichlet series of the function that is `Λ n` at the numbers `n` that are not prime and
-`0` at the primes converges absolutely at `3 / 4 = 1 + -4⁻¹`, because Chebyshev's functions satisfy
-`ψ - θ = O(√x)`. -/
-lemma New.summable_vonMangoldt_not_prime : Summable fun n : ℕ ↦
-    ‖term (fun m : ℕ ↦ ((if m.Prime then 0 else vonMangoldt m : ℝ) : ℂ)) (1 + -4⁻¹) n‖ := by
-  have h_bigO : (fun n : ℕ ↦ ∑ m ∈ Finset.Icc 1 n, if m.Prime then 0 else vonMangoldt m) =O[atTop]
-      fun n : ℕ ↦ (n : ℝ) ^ (2⁻¹ : ℝ) := by
-    simpa [Function.comp_def, psi_sub_theta_eq_sum_not_prime, sum_filter, sqrt_eq_rpow,
-      ← Finset.Icc_add_one_left_eq_Ioc] using isBigO_psi_sub_theta_sqrt.natCast_atTop
-  exact (LSeriesSummable_of_sum_norm_bigO_and_nonneg h_bigO
-    (fun m ↦ by split_ifs <;> simp [vonMangoldt_nonneg]) (by simp) (by norm_num)).norm
+  have hn_pos : 0 < (n : ℝ) := Nat.cast_pos.2 (Nat.pos_of_ne_zero hn)
+  simp only [norm_term_eq, ite_eq_right hn, add_re, one_re, ofReal_re]
+  rw [show 1 + z.re = (1 + σ) - (σ - z.re) by ring,
+    Real.rpow_sub hn_pos, div_div_eq_mul_div, mul_comm ‖a n‖, mul_div_assoc]
+  grw [Real.rpow_def_of_pos hn_pos (σ - z.re), h_le]
 
 /-- For `0 < re z` the Dirichlet series of `Λ` on the class `1` mod `q` has at `1 + z` the sum
 `(1 - z * ∑ χ, L_χ'/L_χ (1 + z)) / φ(q) / z`. Here `L_χ = entireL χ` is `L(s, χ)` with the pole
@@ -382,7 +372,6 @@ lemma New.analyticOnNhd_sub_mul_sum_term (q : ℕ) [NeZero q] (N : ℕ) {r : ℝ
         z * ∑ n ∈ .range N, term (fun n : ℕ ↦ (residueClass (1 : ZMod q) n : ℂ)) (1 + z) n)
       (Metric.closedBall 0 r) := by
   intro z hz
-  have hz_ne (χ : DirichletCharacter ℂ q) : entireL χ (1 + z) ≠ 0 := h_ne z (by simpa using hz) χ
   have h_term (i : ℕ) : AnalyticAt ℂ
       (fun s : ℂ ↦ term (fun n : ℕ ↦ (residueClass (1 : ZMod q) n : ℂ)) s i) (1 + z) :=
     Differentiable.analyticAt (fun s ↦ (hasDerivAt_term _ i s).differentiableAt) _
@@ -399,7 +388,14 @@ theorem New.exists_prime_modEq_one_log_mem (M A : ℕ) [NeZero M] (hM : 4 ∣ M)
   -- `exp (2 - U z - X (1 + X z)² / 4)` is at most `3 U` on `‖z‖ = 1 / X`, yet of size
   -- `e ^ (X / 4 - 2) / φ(q)` at `0`.
   let b (n : ℕ) : ℂ := ↑(if n.Prime then 0 else vonMangoldt n : ℝ)
-  obtain ⟨C, hC⟩ : Summable fun n ↦ ‖term b (1 + -4⁻¹) n‖ := summable_vonMangoldt_not_prime
+  have h_sum : Summable fun n ↦ ‖term b (1 + -4⁻¹) n‖ := by
+    refine (vonMangoldt.summable_nonprime_div_rpow (σ := (1 + -(4 : ℂ)⁻¹).re)
+      (by norm_num [Complex.inv_re, Complex.normSq_apply])).congr fun n ↦ ?_
+    rw [norm_term_eq]
+    by_cases hn : n = 0
+    · simp [hn]
+    simp [b, hn, apply_ite, abs_of_nonneg vonMangoldt_nonneg]
+  obtain ⟨C, hC⟩ := h_sum
   -- Take `X` large: `q, U ≤ X ^ (2 * A)`, so `3 * U * q ≤ 3 * X ^ (4 * A) < e ^ (X / 4 - 2)`.
   -- The substitution `W = X ^ 2` turns "for large `W`" into "for large `X = √W`".
   rw [← comap_sqrt_atTop, eventually_comap]

@@ -258,7 +258,7 @@ lemma exists_isTiedPrimes_singleton {O ι : Type} [CommRing O] {W : Set Gal(Ω/E
   have hR : R.Finite := S₀.finite_toSet.biUnion fun v _ ↦
     have : NeZero v.q := ⟨v.one_lt_q.ne_bot⟩
     finite_natCast_mem v.q
-  have hS₀ (v : FinPlace E) (hv : v ∈ S₀) : v ∈ R := Set.mem_biUnion hv v.1.absNorm_mem
+  have hS₀ (v : FinPlace E) (hv : v ∈ S₀) : v ∈ R := Set.mem_biUnion hv v.asIdeal.absNorm_mem
   have hg₀R : g₀ ∈ inertiaAbove (R \ (.conjClosure (∅ : Finset (FinPlace E)) ∪
       placesDividing E ℓ)) := by
     obtain ⟨v, ⟨hvS, hvℓ⟩, hv⟩ := hg₀
@@ -269,7 +269,7 @@ lemma exists_isTiedPrimes_singleton {O ι : Type} [CommRing O] {W : Set Gal(Ω/E
   -- If `v ∈ S₀` divided the prime number `P₀.q`, then `P₀.q ∣ v.q` and `P₀` would divide `v.q`.
   have h_norm (v : FinPlace E) (hv : v ∈ S₀) : v ∉ placesDividing E P₀.q := fun hvP ↦ by
     obtain h_coprime | h_dvd := Nat.coprime_or_dvd_of_prime h_prime v.q
-    · exact natCast_notMem_of_coprime h_coprime hvP v.1.absNorm_mem
+    · exact natCast_notMem_of_coprime h_coprime hvP v.asIdeal.absNorm_mem
     · exact hP₀R (Set.mem_biUnion hv (P₀.1.mem_of_dvd (Nat.cast_dvd_cast h_dvd) P₀.1.absNorm_mem))
   have h_split : star P₀ ≠ P₀ := (hl_anti _ Set.subset_union_right).star_ne
   have h_notMem : P₀ ∉ S₀ ∧ star P₀ ∉ S₀ := ⟨mt (hS₀ P₀) hP₀R, mt (hS₀ (star P₀)) hP₀R'⟩

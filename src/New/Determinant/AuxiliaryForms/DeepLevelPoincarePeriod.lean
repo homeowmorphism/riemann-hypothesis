@@ -130,7 +130,7 @@ lemma New.Data.exists_isSteep {P : Parameters} (D : Data P) (z : Bool) :
   have h_entry (x : D.GridIndex z 0 0) :
       D.gridSigns z 0 0 0 x = entrySign 0 0 (ν x + 1 - D.k) ∧
       D.gridParam z 0 0 0 τ x = 2 * D.targetParameter τ (ν x) + z.toNat := by
-    cases z <;> aesop (add simp [gridSigns, gridParam, gridNumber])
+    cases z <;> aesop (add simp [gridSigns, gridNumber])
   -- The far entries of `D.targetParameter τ` are `Δ / 2 - κ_j` with `j ≤ Δ`, and `κ_j` lies between
   -- `B = D.liftWeight 0 τ` and `D.liftWeight D.gap τ ≤ 2 * B`.
   have h_sq_le : D.gap ^ 2 ≤ D.liftWeight 0 τ := D.nat_le_of_hasLogBound

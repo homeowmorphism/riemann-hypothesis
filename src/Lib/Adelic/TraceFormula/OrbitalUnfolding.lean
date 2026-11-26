@@ -82,7 +82,7 @@ theorem New.Space.exists_kernel_form {E n : Type} [Field E] [CMType E] [Fintype 
   refine ⟨k, fun g ↦ ?_⟩
   -- Conjugate term by term and replace `γ` by `γ⁻¹`, using `e y⁻¹ = conj (e y)`.
   have hφ_inv (y : Gf E n) : starRingEnd ℂ (φ.1 y⁻¹) = Set.indicator K 1 y := by
-    simp [φ, TestFunction.indicator, Set.indicator, apply_ite (starRingEnd ℂ)]
+    simp [φ, TestFunction.indicator, Set.indicator]
   have h_term (γ : U V.J) :
       starRingEnd ℂ (V.kernelTerm e φ (Set.univ.indicator 1) g γ⁻¹ x⁻¹) =
         e (x * V.ratEmbed γ * g).1 * Set.indicator K 1 (x * V.ratEmbed γ * g).2 := by
@@ -380,7 +380,7 @@ lemma lintegral_tsum_polyTerm_lt_top [Nonempty n] (hB : 13 * card n ^ 3 ≤ B)
     · simp [kernelTerm, hγ, hR]
     · simp [kernelTerm, hγ]
   calc _ ≤ ∫⁻ _ : G E s, ENNReal.ofReal C ∂V.quotMeasure :=
-        lintegral_mono fun x ↦ (ENNReal.tsum_le_tsum fun γ ↦ h_le γ x).trans (hC x)
+        lintegral_mono fun x ↦ (tsum_le_tsum fun γ ↦ h_le γ x).trans (hC x)
     _ < ∞ := lintegral_const_lt_top ofReal_ne_top
 
 /-- Let `φ` be a test function on `G_f`, let `k` be measurable on `G_∞` with
@@ -460,7 +460,7 @@ lemma row_mul_eq_smul_of_commute {A t : Matrix n n ℂ} {k : (Matrix n n ℂ)ˣ}
 omit [CMType E] in
 /-- For a nonzero matrix `Q` and points `a`, `b` of the real group, multiplying `a` by `b` on the
 right moves `log ‖Q a_w‖` by at most `‖b_w‖`, in the operator norm. -/
-lemma abs_log_norm_mul_sub_le [Nonempty n] {Q : Matrix n n ℂ} (hQ : Q ≠ 0) (w : InfinitePlace E)
+lemma abs_log_norm_mul_sub_le {Q : Matrix n n ℂ} (hQ : Q ≠ 0) (w : InfinitePlace E)
     (a b : GInf E s) :
     |‖Q * ((a * b) w : Matrix n n ℂ)‖.log - ‖Q * (a w : Matrix n n ℂ)‖.log| ≤
       ‖(b w : Matrix n n ℂ)‖ := by

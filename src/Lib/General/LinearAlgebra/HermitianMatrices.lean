@@ -331,7 +331,24 @@ section UnitaryNorm
 
 open Matrix CStarRing Norms.L2Operator IsHermitianInvolution
 
-variable {n : Type*} [Fintype n] [DecidableEq n] {J : Matrix n n ℂ}
+variable {n : Type*} [Fintype n] [DecidableEq n]
+
+/-- The L² operator norm of diag(x, b) is the larger of the norms of x and b. -/
+@[simp]
+theorem norm_fromBlocks_zero_zero {m : Type*} [Fintype m] [DecidableEq m]
+    (x : Matrix n n ℂ) (b : Matrix m m ℂ) :
+    ‖fromBlocks x 0 0 b‖ = ‖x‖ ⊔ ‖b‖ := by
+  -- `(x, b) ↦ fromBlocks x 0 0 b` is an injective star homomorphism of C⋆-algebras, so an isometry
+  let φ : Matrix n n ℂ × Matrix m m ℂ →⋆ₙₐ[ℂ] Matrix (n ⊕ m) (n ⊕ m) ℂ :=
+    { toFun p := fromBlocks p.1 0 0 p.2
+      map_smul' := by simp [fromBlocks_smul]
+      map_zero' := fromBlocks_zero
+      map_add' := by simp [fromBlocks_add]
+      map_mul' := by simp [fromBlocks_multiply]
+      map_star' := by simp [star_eq_conjTranspose, fromBlocks_conjTranspose] }
+  exact NonUnitalStarAlgHom.norm_map φ (fun p q h ↦ by simpa [φ, Prod.ext_iff] using h) (x, b)
+
+variable {J : Matrix n n ℂ}
   [IsHermitianInvolution (n := n) J] (g : U J)
 
 theorem IsHermitianInvolution.isUnit : IsUnit J := .of_mul_eq_one _ mul_self

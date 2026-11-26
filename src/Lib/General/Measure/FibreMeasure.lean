@@ -84,7 +84,7 @@ under `ψ b` is at most the fibre measure `dμ / dν` of `π` over `b`, in the s
 `LeFibreMeasure`: a bound `C ν(S)` on the integrals over small `π ⁻¹' S` of a lower semicontinuous
 `K ≥ 0` bounds its integral for this image by `C`. -/
 theorem of_coordinates [OpensMeasurableSpace X] [OpensMeasurableSpace B] [FirstCountableTopology B]
-    [ν.IsOpenPosMeasure] [IsLocallyFiniteMeasure ν] {ρ : Measure P} [SFinite ρ]
+    [ν.IsOpenPosMeasure] [IsLocallyFiniteMeasure ν] {ρ : Measure P}
     {ψ : B → P → X} {w : B → P → ℝ≥0∞} {V : Set B} (hπ : Measurable π)
     (hψ : Measurable ψ.uncurry) (hw : Measurable w.uncurry) (hV : V ∈ 𝓝 b)
     (h_fibre : ∀ t ∈ V, ∀ᵐ p : P ∂ρ, w t p ≠ 0 → π (ψ t p) = t)

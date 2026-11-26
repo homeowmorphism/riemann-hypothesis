@@ -115,9 +115,17 @@ lemma map_eq_one_iff_pos {M : Type*} [Monoid M] (F : ℚˣ →* M)
   have h_nat : ∀ (n : ℕ) (h0 : (n : ℚ) ≠ 0), F (Units.mk0 n h0) = 1 :=
     recOnMul nofun (by simp) h_prime (by simp +contextual)
   -- A rational number times its denominator is its sign times a natural number.
-  have h_sign : x * .mk0 x.val.den (by simp) =
-      (if 0 < x.val then 1 else -1) * .mk0 x.val.num.natAbs (by simp) := by
-    aesop (add simp [abs, le_of_lt])
+  have h_sign : x * .mk0 x.val.den (Nat.cast_ne_zero.mpr x.val.den_nz) =
+      (if 0 < x.val then 1 else -1) *
+        .mk0 x.val.num.natAbs (Nat.cast_ne_zero.mpr (Int.natAbs_ne_zero.mpr
+          (Rat.num_ne_zero.mpr x.ne_zero))) := by
+    apply Units.ext
+    rw [Units.val_mul, Units.val_mk0, Rat.mul_den_eq_num, Units.val_mul, Units.val_mk0]
+    split_ifs with hx
+    · rw [Units.val_one, one_mul, ← Int.cast_natCast,
+        Int.natAbs_of_nonneg (Rat.num_pos.mpr hx).le]
+    · rw [Units.val_neg, Units.val_one, neg_one_mul, ← Int.cast_natCast, ← Int.cast_neg,
+        Int.ofNat_natAbs_of_nonpos (Rat.num_nonpos.mpr (le_of_not_gt hx)), neg_neg]
   have h_val : F x = F (if 0 < x.val then 1 else -1) := by
     simpa only [F.map_mul, h_nat, mul_one] using congrArg F h_sign
   simp [h_val, apply_ite F, h_neg]
@@ -407,9 +415,10 @@ lemma resH2_ker_cyclicClass_eq_zero {ξ χ : QZChar Γ} {x : Kˣ} (U : OpenSubgr
     (hv.isLocalGalois_and_residueCard_eq_and_isUniformiser Γ).left.resH2_classOfInvariant_eq_zero V
       hr
   -- The restricted class lives in `restrictTo` of the module, which is
-  -- `unitsModule (decompGroup Γ A)` only after unfolding, hence `erw`.
-  erw [hv.abelianLift_artinAt_principal, _root_.map_neg, neg_eq_zero] at h_cls
-  exact (unitsModule ..).resH2_subgroupOf_eq_zero_symm (V := decompGroup ..) h_cls
+  -- `unitsModule (decompGroup Γ A)` only after unfolding, so `map_neg` is used as an equation.
+  rw [hv.abelianLift_artinAt_principal] at h_cls
+  exact (unitsModule ..).resH2_subgroupOf_eq_zero_symm (V := decompGroup ..)
+    (neg_eq_zero.mp ((_root_.map_neg _ _).symm.trans h_cls))
 
 /-- `Ω` is an algebraic closure of `ℚ`, on which `Γ` acts as the Galois group of `Ω/K`.
 If the symbols `(ξ, x)` and `(χ, y)` are equal in `H²(Γ, Ωˣ)`, then `ξ` at the local Artin
@@ -489,7 +498,8 @@ lemma artin_reciprocity {ξ : QZChar Γ} {x : Kˣ} (U : OpenSubgroup Γ)
     obtain ⟨a, ha, h_zero⟩ :=
       (mem_H v l _).mp ((H ⟨v, l⟩).nsmul_index_mem (⟨χ, (mem_G χ).mpr hχ⟩ : G))
     have h_zero' : a • (n v * (H ⟨v, l⟩).index) • χ.val (σ v) = 0 := by
-      simpa [mul_smul] using h_zero
+      rw [mul_smul]
+      exact h_zero
     exact h_ne a ha h_zero'
   -- Finitely many subgroups of infinite index do not cover `G`.
   obtain ⟨χ, hχ⟩ : ∃ χ : G, ∀ (v : FinPlace K) (l : ℕ), l.Prime → l ∣ n v → χ ∉ H ⟨v, l⟩ := by
@@ -501,7 +511,9 @@ lemma artin_reciprocity {ξ : QZChar Γ} {x : Kˣ} (U : OpenSubgroup Γ)
       refine eq_univ_of_forall fun χ ↦ ?_
       obtain ⟨v, l, hl, hln, hχ_mem⟩ := h_cover χ
       have hv : s v ≠ 1 := fun h_one ↦ by simp [n, h_one, hl.ne_one] at hln
-      exact mem_iUnion₂.mpr ⟨⟨v, l⟩, by simp [S, hv, hl, hln, hn v], by simpa using hχ_mem⟩
+      exact mem_iUnion₂.mpr ⟨⟨v, l⟩,
+        Finset.mem_sigma.mpr ⟨h_fin.mem_toFinset.mpr hv, Nat.mem_primeFactors.mpr ⟨hl, hln, hn v⟩⟩,
+        ⟨χ, hχ_mem, zero_add χ⟩⟩
     obtain ⟨⟨v, l⟩, hl, ⟨h_ne⟩⟩ :=
       AddSubgroup.exists_finiteIndex_of_leftCoset_cover (H := H) (g := 0) (s := S) h_covers
     exact h_ne (h_index v l (Nat.prime_of_mem_primeFactors (Finset.mem_sigma.mp hl).right))

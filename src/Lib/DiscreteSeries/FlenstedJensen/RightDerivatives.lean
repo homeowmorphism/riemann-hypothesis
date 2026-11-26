@@ -287,7 +287,7 @@ theorem hasDerivAt_curve (f : SmoothU ε E) {γ : ℝ → USign ε} {t : ℝ} {X
   obtain ⟨F, rfl⟩ := (restrictU ε E).surjective_rangeRestrict f
   -- The curve stays in the group, so its logarithmic derivative `X` lies in the real Lie algebra.
   have h_γ : (γ t).val.valᴴ * signMatrix ε * (γ t).val.val = signMatrix ε :=
-    mem_unitaryGroupOf_iff.1 (γ t).2
+    mem_unitaryGroupOf_iff.1 (γ t).property
   have h_conj : Xᴴ * signMatrix ε = -(signMatrix ε * X) := by
     simpa [logDerivU, hγ.deriv, ← mul_assoc, h_γ, (isHermitian (J := signMatrix ε)).eq] using
       conjTranspose_logDerivU hγ.differentiableAt 1

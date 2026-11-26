@@ -101,7 +101,8 @@ lemma framePoint_eq_mulVec (h : D.IsAdapted 1 b) (a : InfinitePlace E × r → �
         (vecToMatrix a w ⊕ᵥ vecToMatrix c w ⊕ᵥ vecToMatrix z w) i := by
   ext ⟨w, i⟩
   simp [vecToMatrix, framePoint, IsAdapted.mixedModel, mulVec, dotProduct, sum_prod_type,
-    Splitting.frameAt, realMatrix, blockDiagonal, G.adeleMatrix_one, add_right_comm]
+    Splitting.frameAt, realMatrix, blockDiagonal, G.adeleMatrix_one]
+  exact add_right_comm ..
 
 /-- At the infinite place `w`, the point `framePoint h a z c`, which is `L a + I z + K c`, is the
 image under the component at `w` of the adapted frame `D.frameAt 1 b` of the three blocks of

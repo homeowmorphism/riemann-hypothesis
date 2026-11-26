@@ -765,7 +765,7 @@ lemma _root_.New.fockRowSubst_fockLetters (s : r → ℤˣ) (ord : r → ℕ) (y
 /-- If the first weight is the number of negative signs of s, then (1, y), y in the compact group
 U(n)(ℝ), acts on the Fock vector of `New.fockLetters s ord c F` by substituting yᵀ in the variables
 of F if c = 1, and y⁻¹ otherwise. -/
-lemma _root_.New.realPairWeil_fockLetters [WeilData E]
+lemma _root_.New.realPairWeil_fockLetters
     (s : r → ℤˣ) (ord : r → ℕ) (γ' : InfinitePlace E → ℤ)
     (y : GInf E 1) (c : ℤˣ) (F : MatrixPoly ((_ : InfinitePlace E) × n) ℂ) :
     realPairWeil (n' := n) (s := s) (fun _ ↦ negCount s) γ' (1, y) (fockLetters s ord c F) =
@@ -949,8 +949,8 @@ lemma FitsParams.isJointHarmonic_productOfMinors {O : DescentPair E r n}
       (FockDualPair.std 1 O.signs (negCount O.signs) (-((Fintype.card n / 2 : ℕ) + O.weight w)))
       (O.paramV w) (-l w) (O.productOfMinors w) := by
   refine ⟨h_fits.paramsCorrespond.isMatch w, ?_⟩
-  rw [funext (h_fits.lowestKType_eq_staircaseWeight w)]
-  exact h_fits.isJointHighest_productOfMinors w
+  simpa only [funext (h_fits.lowestKType_eq_staircaseWeight w)] using
+    h_fits.isJointHighest_productOfMinors w
 
 /-- Let the parameter l fit O, let l' = `O.paramV`, let r₋ be the number of minus signs of W and
 γ_w = ⌊n/2⌋ + `O.weight w`. There are polynomials Φ_w, one for each infinite place w, such that

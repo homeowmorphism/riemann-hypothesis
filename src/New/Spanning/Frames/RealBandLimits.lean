@@ -106,7 +106,7 @@ lemma IsCutBessel.continuous_normalizedCellIntegral (hF : IsCutBessel F rep ρ s
         {c | Γ.IsHead 𝔰.ϱ c} := by
     refine (PiLp.continuous_toLp ..).comp_continuousOn (continuousOn_pi.2 fun i ↦
       continuousOn_integral_of_compact_support (Γ.isCompact_hasMatrixSize (j := 60 * 𝔰.n ^ 2))
-        (by fun_prop) fun c y hc y_large ↦ ?_)
+        (Continuous.continuousOn (by fun_prop)) fun c y hc y_large ↦ ?_)
     -- Off the compact set one of the two values of `F` in the integrand is zero.
     have h_zero : F y = 0 ∨ F ((weylElem 𝔰.ϱ c * cellChart 𝔰 𝔰.ϱ (c 𝔰.ϱ))⁻¹ * y) = 0 := by
       by_contra! ⟨hy, hy'⟩
@@ -284,7 +284,7 @@ lemma sq_lintegral_enorm_inner_le {A B : 𝔰.G₁ → EuclideanSpace ℂ I} (hA
   have h_inv (u : (𝔰.middleGram (1 : ℂ)).besselU) (y : 𝔰.G₁) :
       ‖B (u • y)‖ₑ ^ 2 = ‖B y‖ₑ ^ 2 := by
     rw [Subgroup.smul_def, smul_eq_mul,
-      hB.enorm_besselS_mul (mem_partialUnitriangularGroup_of_mem_besselU u.2)]
+      hB.enorm_besselS_mul (mem_partialUnitriangularGroup_of_mem_besselU u.property)]
   have h_translate : ∫⁻ y, ‖B (y * x)‖ₑ ^ 2 ∂besselQuotMeasure =
       ∫⁻ y, ‖B y‖ₑ ^ 2 ∂besselQuotMeasure :=
     (identDistrib_orbitMeasure_mul_right (F := fun y ↦ ‖B y‖ₑ ^ 2) x h_inv).lintegral_eq
@@ -436,7 +436,7 @@ lemma IsCutBessel.norm_le_of_mem_positionBall (hF : IsCutBessel F rep ρ s b W f
     one_le_pow₀ (one_le_mul_of_one_le_of_one_le (one_le_pow₀ one_le_b) (one_le_pow₀ one_le_ρ))
   have h_entries : ‖X - 1‖ ≤ 𝔰.r * 𝔰.r * R := l2_opNorm_le_of_apply hx
   have rank_sq_le : (𝔰.r : ℝ) * 𝔰.r + 1 ≤ ρ ^ 2 := by
-    nlinarith [hF.eight_mul_r_le_rho, hF.four_le, Nat.cast_nonneg (α := ℝ) 𝔰.r]
+    nlinarith only [hF.eight_mul_r_le_rho, hF.four_le, Nat.cast_nonneg (α := ℝ) 𝔰.r]
   have cube_le : 10 ^ 9 * 𝔰.n ^ 3 ≤ 𝔰.r := hF.mul_cube_lt_s.le.trans (by grind [hF.r_eq_add])
   calc ‖X‖ ≤ ‖X - 1‖ + 1 := by simpa using norm_add_le (X - 1) 1
     _ ≤ (𝔰.r * 𝔰.r + 1) * R := by linarith

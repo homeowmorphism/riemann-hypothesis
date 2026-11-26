@@ -1,6 +1,7 @@
 module
 
 public import Lib.Base
+public import TauCeti.Algebra.Group.AddChar.Basic
 
 /-!
 # Orthogonality, Fourier inversion and matrix Gauss sums over a finite ring
@@ -29,12 +30,6 @@ Known; see `Lib.Weil.TameGaussSum` for sources.
 @[expose] public section
 
 open Matrix Finset Fintype AddChar Function
-
-/-- An additive character `ψ` sends a finite sum to the product of its values on the terms. -/
-lemma AddChar.map_sum_eq_prod {ι A M : Type*} [AddCommMonoid A] [CommMonoid M]
-    (ψ : AddChar A M) (s : Finset ι) (f : ι → A) :
-    ψ (∑ i ∈ s, f i) = ∏ i ∈ s, ψ (f i) :=
-  congrArg Additive.toMul (map_sum ψ.toAddMonoidHom f s)
 
 namespace New
 

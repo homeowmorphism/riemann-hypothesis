@@ -244,18 +244,15 @@ lemma exists_firstCols_eq_mul_of_invLastRows_eq {γ γ' : GL n R}
     ∃ h : GL b R, firstCols e γ' = firstCols e γ * h.val ∧ γ'.val.det = γ.val.det * h.val.det := by
   have h_cols : firstCols e γ * (invFirstRows e γ * firstCols e γ') = firstCols e γ' :=
     firstCols_mul_invFirstRows_mul e γ (by rw [h_eq, invLastRows_mul_firstCols])
-  have h_cols' : firstCols e γ' * (invFirstRows e γ' * firstCols e γ) = firstCols e γ :=
-    firstCols_mul_invFirstRows_mul e γ' (by rw [← h_eq, invLastRows_mul_firstCols])
-  let h : GL b R :=
-    { val := invFirstRows e γ * firstCols e γ'
-      inv := invFirstRows e γ' * firstCols e γ
-      val_inv := by rw [Matrix.mul_assoc, h_cols', invFirstRows_mul_firstCols]
-      inv_val := by rw [Matrix.mul_assoc, h_cols, invFirstRows_mul_firstCols] }
+  let h : GL b R := .mk'' (invFirstRows e γ * firstCols e γ') <|
+    isUnit_det_of_left_inverse (B := invFirstRows e γ' * firstCols e γ) <| by
+      rw [Matrix.mul_assoc, h_cols, invFirstRows_mul_firstCols]
   refine ⟨h, h_cols.symm, ?_⟩
   let d : R := ((fromRows (invFirstRows e γ) (invLastRows e γ)).submatrix e.symm id).det
   have h_one : d * γ.val.det = 1 := by
     rw [det_fromRows_invLastRows, invFirstRows_mul_firstCols, det_one]
-  have h_mixed : d * γ'.val.det = h.val.det := by simp only [d, h, h_eq, det_fromRows_invLastRows]
+  have h_mixed : d * γ'.val.det = h.val.det := by
+    simp only [d, h, h_eq, det_fromRows_invLastRows, GeneralLinearGroup.val_mk'']
   linear_combination γ.val.det * h_mixed - γ'.val.det * h_one
 
 omit [Fintype R] in
@@ -404,7 +401,7 @@ lemma matrixFourier_nextDatum_fromBlocks {R a b n : Type} [CommRing R] [Fintype 
   have h_trace (η : Matrix n a R) (s : Matrix n b R) :
       (fromBlocks A B C D * fromBlocks η s (0 : Matrix b a R) (1 : Matrix b b R)).trace =
         (A * η).trace + (C * s).trace + D.trace := by
-    simp [fromBlocks_multiply, trace, sum_add_distrib, add_assoc]
+    simp [fromBlocks_multiply, add_assoc]
   have h_neg : ∑ η : Matrix n a R, p (-η) * ψ (A * η).trace = matrixFourier ψ p (-A) :=
     sum_bijective _ neg_bijective _ _ fun η ↦ by simp
   calc _ = ∑ s : Matrix n b R, ∑ η : Matrix n a R, p (-η) / card (Matrix n b R) *

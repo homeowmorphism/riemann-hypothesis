@@ -210,10 +210,6 @@ noncomputable def firstColumnExponent (α : ∀ τ : Φ, n τ → ℕ) : ((τ : 
   (Finsupp.equivFunOnFinite.symm fun x : (τ : Φ) × n τ ↦ α x.1 x.2).embDomain
     (Function.Embedding.sectL ((τ : Φ) × n τ) 0)
 
-lemma firstColumnExponent_injective : Function.Injective (firstColumnExponent (n := n)) :=
-  (Finsupp.embDomain_injective _).comp <| Finsupp.equivFunOnFinite.symm.injective.comp
-    (Equiv.piCurry fun τ (_ : n τ) ↦ ℕ).symm.injective
-
 /-- A product over the exponent `firstColumnExponent α` runs over the variables in the first
 columns. -/
 lemma prod_firstColumnExponent {M : Type} [CommMonoid M] (α : ∀ τ : Φ, n τ → ℕ)
@@ -395,7 +391,7 @@ lemma exists_tightFrame : ∃ η : ColumnFilling n κ → WeylIndexFamily n κ �
       rw [← fillingMatrix_transpose_mul_self, ← mulVec_mulVec, dotProduct_mulVec, vecMul_transpose]
     have h_single : w T * w T ≤ w ⬝ᵥ w :=
       Finset.single_le_sum (fun S _ ↦ mul_self_nonneg (w S)) (Finset.mem_univ T)
-    have h_le : η T ⬝ᵥ weylGram n κ *ᵥ η T ≤ hk ^ 2 := by nlinarith [sq_nonneg (hk - w T)]
+    have h_le : η T ⬝ᵥ weylGram n κ *ᵥ η T ≤ hk ^ 2 := by linarith [sq_nonneg (hk - w T)]
     simpa [weylNormSq, dotProduct, mulVec] using (Int.cast_le (R := ℝ)).2 h_le
 
 omit [DecidableEq Φ] [∀ τ : Φ, DecidableEq (n τ)] in

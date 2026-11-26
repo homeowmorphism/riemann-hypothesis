@@ -143,7 +143,6 @@ lemma enorm_classGaussSum_sq_le (hJ : IsUnimodular P.integers J)
   have M_open : IsOpen (M : Set (κ → A)) := isOpen_latticeMultiple g
   have M_compact : IsCompact (M : Set (κ → A)) := isCompact_latticeMultiple g
   let F (y : κ → A) : ℂ := P.ψ (P.element * b * (star (x₀ + y) ⬝ᵥ J *ᵥ (x₀ + y) - α))
-  have hψ_cont : Continuous P.ψ := P.continuous_psi
   have F_cont : Continuous F := by fun_prop
   let corr (d : κ → A) : ℂ := ∫ y in M, conj (F y) * F (y + d)
   have h_char (d y y' : κ → A) : P.ψ (b * (star (y + y') ⬝ᵥ J *ᵥ d)) =
@@ -160,9 +159,8 @@ lemma enorm_classGaussSum_sq_le (hJ : IsUnimodular P.integers J)
     rw [setIntegral_char M_open (χ := fun y : κ → A ↦ P.ψ (b * (star y ⬝ᵥ J *ᵥ d))) (h_char d)]
     split_ifs with h_triv
     · have h_mem : d ∈ N := mem_latticeMultiple_mul_of_psi_eq_one hJ hw hd h_triv
-      have h_norm (a : A) : ‖P.ψ a‖ₑ = 1 := by simp [← ofReal_norm, P.norm_psi]
       rw [indicator_of_mem h_mem]
-      simpa [h_norm, ← ofReal_norm, Measure.real] using ofReal_toReal_le
+      simpa [← ofReal_norm, P.norm_psi, Measure.real] using ofReal_toReal_le
     · simp
   have h_sq : conj (∫ y in M, F y) * ∫ y in M, F y = ∫ d in M, corr d := by
     have h_integrable : Integrable (uncurry fun (y d : κ → A) ↦ conj (F y) * F (y + d))
@@ -192,7 +190,6 @@ has a finite integral. -/
 lemma integrable_classGaussSum {g : Aˣ} {x₀ : κ → A} {α : A}
     (h_lt : ∫⁻ b : skewAdjoint A, ‖classGaussSum J g x₀ α b‖ₑ ∂P.skewMeasure < ∞) :
     Integrable (fun b : skewAdjoint A ↦ classGaussSum J g x₀ α b) P.skewMeasure := by
-  have hψ_cont : Continuous P.ψ := P.continuous_psi
   have h_cont : Continuous (uncurry fun (b : skewAdjoint A) (y : κ → A) ↦
       P.ψ (P.element * b * (star (x₀ + y) ⬝ᵥ J *ᵥ (x₀ + y) - α))) := by
     fun_prop

@@ -166,7 +166,8 @@ lemma constantCoeff_negLogTheta : constantCoeff C.negLogTheta = 0 := by
   rw [negLogTheta, map_neg, constantCoeff_logOf C.constantCoeff_taylorVia_theta, neg_zero]
 
 lemma taylorVia_theta_eq_expSubst : taylorVia ιₚ C.θ = expSubst (-C.negLogTheta) := by
-  rw [negLogTheta, neg_neg, expSubst_logOf C.constantCoeff_taylorVia_theta]
+  rw [negLogTheta, neg_neg]
+  exact (subst_exp_logOf C.constantCoeff_taylorVia_theta).symm
 
 lemma derivative_taylorVia_theta :
     d⁄dX (taylorVia ιₚ C.θ) = -(taylorVia ιₚ C.θ * d⁄dX C.negLogTheta) := by
@@ -545,7 +546,7 @@ lemma norm_constantCoeff_le_of_mem_multiSeriesRing (hH : H ∈ C.multiSeriesRing
     ‖constantCoeff H‖ ≤ 1 := by
   obtain ⟨G, rfl⟩ := C.mem_multiSeriesRing_iff.1 hH
   rw [constantCoeff_subst_translatedY_subst, constantCoeff_map]
-  exact (constantCoeff G).2
+  exact (constantCoeff G).property
 
 /-- An element of `𝒪[[y(μ_i z)]]` whose constant term has norm one is a unit of that ring. -/
 lemma exists_mul_eq_one_of_mem_multiSeriesRing (hH : H ∈ C.multiSeriesRing μ)
@@ -596,7 +597,7 @@ variable {C}
 /-- An element `v` of `𝒪[[y]]` (the ring `integralSeriesRing` of the lattice), taken at the linear
 form `μ_i z` (`linearSeries (μ i)`), lies in the ring `𝒪[[y(μ_j z)]]` of all the forms. The
 hypothesis `PrimeSevenModEight d` says that `d` is a prime that is 7 modulo 8. -/
-lemma subst_mem_multiSeriesRing (μ : I → X → ℂ_[p]) [PrimeSevenModEight d] {v : PowerSeries ℂ_[p]}
+lemma subst_mem_multiSeriesRing (μ : I → X → ℂ_[p]) {v : PowerSeries ℂ_[p]}
     (hv : v ∈ C.integralSeriesRing) (i : I) :
     v.subst (linearSeries (μ i)) ∈ C.multiSeriesRing μ := by
   -- If `v = g(y)` with `g` integral, then `v(μ i)` is `g(X i)` evaluated at the series `y(μ j)`.
@@ -690,7 +691,7 @@ lemma translatedY_add_mem_multiSeriesRing [PrimeSevenModEight d] :
     have h_euler : D (eulerAddition a (x 0) (y 0) (x 1) (y 1) u) = 0 :=
       derivation_eulerAddition D (h_curve 0) (h_curve 1) (by rwa [mul_comm])
         (by simp [D, a, pderiv_C]) hDx₀ hDy₀ hDx₁ hDy₁
-    rw [← Derivation.sub_apply (eulerAddition ..), h_euler]
+    rw [← sub_apply (pderiv 0) (pderiv 1) (eulerAddition ..), h_euler]
     simp [pderiv_subst_linearSeries]
   · -- At `z₀ = 0` both `x₀` and `y₀` vanish.
     have h_kill {g : PowerSeries ℂ_[p]} (hg : g.constantCoeff = 0) :

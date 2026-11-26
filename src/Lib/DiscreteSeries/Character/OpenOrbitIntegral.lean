@@ -258,7 +258,7 @@ lemma sign_mul_orbital_eq_integral_weightMinors_div (hg : l.HasGap h) (x : n →
     congr with k
     -- the numerator of `F (g * k)` is constant, as `(g * k)ᴴ J (g * k) = J`
     simp only [w, F, show ((g * k : U (signMatrix ε)) : Matrix n n ℂ)ᴴ * signMatrix ε *
-      (g * k : U (signMatrix ε)) = signMatrix ε from mem_unitaryGroupOf_iff.1 (g * k).2]
+      (g * k : U (signMatrix ε)) = signMatrix ε from mem_unitaryGroupOf_iff.1 (g * k).property]
     push_cast
     simp [U.inv_coe_eq_mul_conjTranspose_mul, mul_assoc, signMatrix, field, mul_conj', zpow_sub₀,
       prod_eq_zero_iff,
@@ -268,7 +268,7 @@ lemma sign_mul_orbital_eq_integral_weightMinors_div (hg : l.HasGap h) (x : n →
     -- exchange the integrals; right translation by `k` preserves the measure of `G`
     _ = ∫ k, ∫ g : USign ε, w k * F g ∂volume ∂haarK ε :=
         integral_integral_skew_product (T := fun (k : maxCompactU ε) (g : USign ε) ↦ g * k)
-          (f := fun z ↦ w z.1 * F z.2) (fun k ↦ map_mul_right_eq_self _ k.1)
+          (f := fun z ↦ w z.1 * F z.2) (fun k ↦ map_mul_right_eq_self _ k.val)
           ((integrable_of_compactSpace (f := w)
             (by fun_prop (disch := simp [GeneralLinearGroup.det_ne_zero]))).mul_prod h_int)
     -- `w` has integral one
@@ -320,7 +320,7 @@ lemma kTypeNormSq_mul_kTypeChar_eq_integral (hg : l.HasGap h) (x : n → Circle)
     fun_prop (disch := simp (disch := simp [*, GeneralLinearGroup.det_ne_zero]) [A,
       maxCompactU.coe_inv, GeneralLinearGroup.det_ne_zero, IsHermitianInvolution.det_ne_zero])
   have expand (y : K) :
-      weightMinors Λ (y⁻¹ * diagTorusK x * y).1 = (∫ k, Φ (y, k) ∂haarK 1) / Λ.kTypeNormSq := by
+      weightMinors Λ (y⁻¹ * diagTorusK x * y).val = (∫ k, Φ (y, k) ∂haarK 1) / Λ.kTypeNormSq := by
     -- split `y⁻¹ x y = a * z` with `a = y⁻¹ J⁻¹ y` and `z = y⁻¹ A y` accretive
     let a : Matrix n n ℂ := y⁻¹ * (signMatrix ε)⁻¹ * y
     have split : a⁻¹ * ((y⁻¹ * diagTorusK x * y : K) : Matrix n n ℂ) = y⁻¹ * A * y := by

@@ -390,16 +390,6 @@ lemma isScalarFrame_centralScalar (x : (𝔸f (QuadField d₀))ˣ) {c : ℚ}
     IsScalarFrame (centralScalar x : GL n (𝔸f E)) c :=
   isScalarFrame_of_gram_eq _ (conjTranspose_centralScalar_mul_centralScalar x) hc
 
-/-- For a finite idele x of K₀, both `mem_GU_centralScalar` and `isScalarFrame_centralScalar`:
-`centralScalar x` is a unitary similitude, and a frame for c·1 whenever the rational c is the
-idelic absolute value of the norm of x to ℚ. -/
-lemma centralScalar_mem_GU (x : (𝔸f (QuadField d₀))ˣ) :
-    centralScalar x ∈ GU E n ∧
-    ∀ c : ℚ,
-      c = finIdeleAbs (x.map (adeleNorm ℚ (QuadField d₀))) →
-      IsScalarFrame (centralScalar x : GL n (𝔸f E)) c :=
-  ⟨mem_GU_centralScalar x, fun _ hc ↦ isScalarFrame_centralScalar x hc⟩
-
 /-- The Hecke element `τ_{w,j} = heckeSum n k w j` is a combination of the elements
 `invHeckeIsogeny w U`. -/
 lemma heckeSum_mem_spanOn {j : ℕ} : heckeSum n k w j ∈ spanOn k (range (invHeckeIsogeny w)) :=
@@ -444,7 +434,7 @@ lemma invHeckeIsogeny_mem_GUPlus (w : SplitFinPlace E)
   -- Put `D = (basicCosetRep U)ᵀ` and `q = uniformizerNorm w`. The inverse of `invHeckeIsogeny w U`
   -- is the transpose of the product of `singleGL w D` and the conjugate transpose of
   -- `q ^ dim U • singleGL w D⁻¹`; both are integral.
-  obtain ⟨h_int, -, h_det⟩ := (basicCosetRep_mem_and_residueKer_eq U).left
+  obtain ⟨h_int, -, h_det⟩ := basicCosetRep_mem_basicDoubleCoset U
   have h_mul_locGL_mem (g : GL n (LocField w.1)) (a : 𝔸f E) (ha : a ∈ Ô E)
       (hg : ∀ i j : n, v (a w * g i j) ≤ 1) (i j : n) :
       a * singleGL _ g i j ∈ Ô E := by
@@ -455,10 +445,11 @@ lemma invHeckeIsogeny_mem_GUPlus (w : SplitFinPlace E)
     simp +decide +contextual [mem_Ô, ← and_forall_ne w.1]
   have hq_int : (uniformizerNorm w).val ∈ Ô (QuadField d₀) := adeleNorm_mem_Ô h_loc_mem
   have hq_lt : v (finAdeleIncl (QuadField d₀) E (uniformizerNorm w).val w) < 1 := by
-    -- `erw`: `norm_localNorm` meets `uniformizerNorm w` at the place below `w` only by unfolding
-    -- `uniformizerNorm` and the local idele.
-    erw [(isEquiv_comap_locMap _ rfl).lt_one_iff_lt_one, ← toNormedField.norm_lt_one_iff,
-      norm_localNorm]
+    -- `norm_localNorm` meets `uniformizerNorm w` at the place below `w` only by unfolding
+    -- `uniformizerNorm` and the local idele, so these steps are used as equations.
+    refine (isEquiv_comap_locMap _ rfl).lt_one_iff_lt_one.mpr ?_
+    rw [← toNormedField.norm_lt_one_iff]
+    refine (norm_localNorm ..).trans_lt ?_
     simp +decide
   -- `D⁻¹ = (det D)⁻¹ • adjugate D`, and `q ^ dim U` absorbs `det D`, of order `dim U` at `w`.
   have h_inv (i j : n) :
@@ -514,31 +505,18 @@ lemma asAlgebraHom_heckeSum (h : x ∈ levelSpace π (levelGU n 𝔑)) :
 
 /-- For `s = (w, j)` with `w` a safe place, τ_{w,j} lies in the Hecke algebra of the level K(𝔑). -/
 lemma heckeSum_mem_heckeAlgebra : heckeSum n k s.1 s.2 ∈ heckeAlgebra n k 𝔑 := by
-  -- the level is prime to the conjugate of the safe place
-  obtain ⟨-, -, h_conj_prime⟩ := s.1.prop
-  have h_notMem : 𝔑 ∉ (star (s.1.val : FinPlace E)).asIdeal := h_conj_prime _ (below_star _)
-  -- the last argument is membership in `fixedToEigen`: for every representation `π` on a module
-  -- `W` and every `y` fixed by K(𝔑), `τ y` is fixed by the preimage of K(𝔑) under `conjAtSplit`
-  refine mem_heckeAlgebra_of_mem_fixedToEigen h_notMem heckeSum_mem_spanOn ?_ fun W _ _ π y hy a ↦
-    ?_
-  · -- The terms of `τ` are a central element times an element in the image of `conjAtSplit`.
+  refine mem_heckeAlgebra_of_mem_fixedToEigen (s.1.prop.2.2 _ (below_star _)) heckeSum_mem_spanOn
+    ?_ fun W _ _ π y hy a ↦ ?_
+  · -- Each term of `τ` is a central element times an element in the image of `conjAtSplit`.
     rintro _ ⟨U, rfl⟩
-    refine ⟨invHeckeIsogeny_mem_GUPlus _ U, fun d hd ↦ ?_⟩
-    rw [invHeckeIsogeny]
-    exact (commute_scalar_GL _ d).mul_right (hd _)
-  · -- `τ y` is a central translate of a Hecke operator applied to `y`, and the latter vector is
-    -- fixed by `localIntGL`.
-    have h_sph : heckeGL (π.comp (conjAtSplit s.1)) s.2 y ∈
-        levelSpace (π.comp (conjAtSplit s.1)) (localIntGL n _) :=
-      (isHeckeFunction_basicDoubleCoset _).heckeFun_mem (SafePlace.mem_levelSpace_conjAtSplit s hy)
-    -- `a` maps into the level, so it is integral at the safe place
-    have h_a_int : conjAtSplit s.1 a ∈ intGL n (Ô E) :=
-      (Subgroup.mem_inf.mp (Subgroup.mem_comap.mp a.prop)).right.left
+    exact ⟨invHeckeIsogeny_mem_GUPlus _ U, fun d hd ↦ (commute_scalar_GL _ d).mul_right (hd _)⟩
+  · -- `τ y` is a central translate of a spherical Hecke operator on `y`, fixed by `localIntGL`.
     rw [asAlgebraHom_heckeSum s hy]
-    refine map_mem_levelSpace_of_commute h_sph (fun κ ↦ ?_)
-      ⟨a, conjAtSplit_mem_intGL_iff.mp h_a_int⟩
-    -- the central element commutes with the image of `conjAtSplit`
-    simp [commute_scalar_GL, Commute.map]
+    exact map_mem_levelSpace_of_commute
+      ((isHeckeFunction_basicDoubleCoset _).heckeFun_mem
+        (SafePlace.mem_levelSpace_conjAtSplit s hy))
+      (fun _ ↦ by simp [commute_scalar_GL, Commute.map])
+      ⟨a, conjAtSplit_mem_intGL_iff.mp a.prop.2.1⟩
 
 /-- For s = (w, j), with w a safe split place and j a natural number, the element τ_{w,j} as a
 member of the Hecke algebra of level K(𝔑) over k. The pair is one argument so that words in
@@ -774,42 +752,31 @@ elements, where N(I) is the absolute norm and |n| the size of the index set. -/
 lemma card_torsionBySet_adelicTorsion {I : Ideal (𝓞 E)} (hI : I ≠ ⊥) :
     Nat.card (torsionBySet (𝓞 E) (AdelicTorsion E n) I) = I.absNorm ^ Fintype.card n := by
   classical
-  -- Under `frameTorsionClass 1 : Eⁿ → AdelicTorsion E n`, onto with kernel `𝓞ⁿ`, the `I`-torsion is
-  -- the image of `(I⁻¹)ⁿ`. So it is `(I⁻¹ ⧸ 𝓞)ⁿ`, and `I⁻¹ ⧸ 𝓞 ≃ 𝓞 ⧸ I`.
+  -- Under `frameTorsionClass 1 : Eⁿ → AdelicTorsion E n`, onto with kernel `𝓞ⁿ`, the `I`-torsion
+  -- is the image of `(I⁻¹)ⁿ`, so it is `(I⁻¹ ⧸ 𝓞)ⁿ`, and `I⁻¹ ⧸ 𝓞 ≃ 𝓞 ⧸ I`.
   let 𝔞 : FractionalIdeal (nonZeroDivisors (𝓞 E)) E := I
   have h𝔞 : 𝔞 ≠ 0 := coeIdeal_ne_zero.2 hI
   let J : 𝔞⁻¹.coeToSubmodule →ₗ[𝓞 E] E := 𝔞⁻¹.coeToSubmodule.subtype
   have h_comap : (torsionBySet (𝓞 E) (AdelicTorsion E n) I).comap (frameTorsionClass 1) =
       (J.compLeft n).range := by
-    -- the class of `y` is killed by `I` iff `c * y i ∈ 𝓞` for all `c ∈ I` and `i`
     ext
     simp_rw [Submodule.mem_comap, mem_torsionBySet_iff, ← map_smul, ← mem_ker]
     simp [ker_frameTorsionClass_one, J, 𝔞, range_compLeft, mem_inv_iff h𝔞, Algebra.smul_def,
       mul_comm, forall_comm (α := n)]
   have h_index : (comap J 1).toAddSubgroup.index = I.absNorm := by
-    -- `e : 𝔞⁻¹ ⧸ 1 ≃ 1 ⧸ 𝔞`, since `𝔞⁻¹ * 𝔞 = 1 * 1`
-    let A : Submodule (𝓞 E) E := (𝔞⁻¹ : FractionalIdeal (nonZeroDivisors (𝓞 E)) E)
-    let B : Submodule (𝓞 E) E := (1 : FractionalIdeal (nonZeroDivisors (𝓞 E)) E)
-    let C : Submodule (𝓞 E) E := 𝔞
-    have e : (↥A ⧸ B.comap A.subtype) ≃ₗ[𝓞 E] (↥B ⧸ C.comap B.subtype) :=
-      quotientEquiv 𝔞⁻¹ 1 1 𝔞 (by simp [h𝔞]) (by simp [𝔞, mem_inv_iff h𝔞]) coeIdeal_le_one
-        h𝔞 (inv_ne_zero h𝔞)
     let ι : 𝓞 E →+ E := AddSubgroupClass.subtype (integralClosure ℤ E)
-    calc
-      _ = (I.toAddSubgroup.map ι).relIndex (.map ι ⊤) := by
-        -- `using!`: the index is the cardinality of the quotient only after unfolding
-        -- `AddSubgroup.index` and the coercions of the fractional ideals
-        simpa [ι, 𝔞, A, B, C] using! card_congr e.toEquiv
-      _ = I.toAddSubgroup.relIndex ⊤ := relIndex_map_map_of_injective _ ⊤ Subtype.val_injective
-      _ = I.absNorm := (relIndex_top_right _).trans (Ideal.absNorm_of_ne_bot hI).symm
-  -- the torsion is `(I⁻¹)ⁿ` modulo the vectors in `𝓞ⁿ`, a subgroup whose index is a product
-  calc Nat.card (torsionBySet (𝓞 E) (AdelicTorsion E n) I)
-    _ = Nat.card (frameTorsionClass (E := E) (n := n) 1 ∘ₗ J.compLeft n).range := by
-      rw [range_comp, ← h_comap, map_comap_eq_of_surjective frameTorsionClass_surjective]
-    _ = (AddSubgroup.pi Set.univ fun _ : n ↦ (comap J 1).toAddSubgroup).index := by
-      rw [← card_congr (quotKerEquivRange _).toEquiv, ker_comp, ker_frameTorsionClass_one]
-      rfl
-    _ = I.absNorm ^ Fintype.card n := by simp [index_pi, h_index]
+    rw [show (comap J 1).toAddSubgroup.index = (I.toAddSubgroup.map ι).relIndex (.map ι ⊤) by
+      simpa [ι, 𝔞, J] using! card_congr (quotientEquiv 𝔞⁻¹ 1 1 𝔞 (by simp [h𝔞])
+        (by simp [𝔞, mem_inv_iff h𝔞]) coeIdeal_le_one h𝔞 (inv_ne_zero h𝔞)).toEquiv,
+      relIndex_map_map_of_injective _ ⊤ Subtype.val_injective, relIndex_top_right]
+    exact (Ideal.absNorm_of_ne_bot hI).symm
+  -- The torsion is `(I⁻¹)ⁿ` modulo `𝓞ⁿ`, a subgroup whose index is a product.
+  rw [show torsionBySet (𝓞 E) (AdelicTorsion E n) I =
+      (frameTorsionClass (E := E) (n := n) 1 ∘ₗ J.compLeft n).range by
+    rw [range_comp, ← h_comap, map_comap_eq_of_surjective frameTorsionClass_surjective],
+    ← card_congr (quotKerEquivRange _).toEquiv, ker_comp, ker_frameTorsionClass_one]
+  change (AddSubgroup.pi Set.univ fun _ : n ↦ (comap J 1).toAddSubgroup).index = _
+  simp [index_pi, h_index]
 
 end
 
@@ -845,25 +812,18 @@ lemma ThetaObject.exists_apply_eq_of_torsion
     {f : AdelicTorsion E D.Index →ₗ[𝓞 E] 𝟙_ (Over (Spec (CommRingCat.of ℂ))) ⟶ x.groupScheme}
     (hf : Function.Injective f) (y : 𝟙_ (Over (Spec (CommRingCat.of ℂ))) ⟶ x.groupScheme)
     (hy_torsion : ∃ m : ℕ, m ≠ 0 ∧ m • y = 0) : ∃ l : AdelicTorsion E D.Index, f l = y := by
-  -- `f` embeds the `m`-torsion of `AdelicTorsion E D.Index` into the `m`-torsion `T` of
+  -- `f` embeds the `m`-torsion of `AdelicTorsion E D.Index` into the `m`-torsion of
   -- `x.groupScheme`; both have `m ^ (2 * abelianDim E D.Index)` elements.
   obtain ⟨m, hm, hy⟩ := hy_torsion
-  let T : Type _ := {z : 𝟙_ _ ⟶ x.groupScheme // m • z = 0}
-  have h_card : Nat.card T = m ^ (finrank ℂ (Fin (abelianDim E D.Index) → ℂ) * 2) :=
-    (x.isProjEmbedding.nonempty_uniformisation x.smoothOfRelativeDimension).some.card_torsion hm
-  have h_finite : Finite T := finite_of_card_ne_zero (h_card.trans_ne (pow_ne_zero _ hm))
-  let I : Ideal (𝓞 E) := span {↑m}
-  have h_maps (l : AdelicTorsion E D.Index)
-      (hl : l ∈ torsionBySet (𝓞 E) (AdelicTorsion E D.Index) I) : m • f l = 0 := by
-    simp_all [I, ← map_nsmul, cast_smul_eq_nsmul]
-  have h_eq : Nat.card T = Nat.card (torsionBySet (𝓞 E) (AdelicTorsion E D.Index) I) := by
-    -- the norm of `m` is `m ^ [E : ℚ]`, and `[E : ℚ]` is twice the number of infinite places
-    rw [h_card, card_torsionBySet_adelicTorsion (by simpa [I]), absNorm_span_natCast,
-      finrank_fin_fun, RingOfIntegers.rank, finrank_eq_two_mul_card_infinitePlace, abelianDim]
-    ring
-  have h_bij := (Subtype.map_injective h_maps hf).bijective_of_nat_card_le h_eq.le
-  obtain ⟨l, hl⟩ := h_bij.surjective ⟨y, hy⟩
-  exact ⟨l, congrArg Subtype.val hl⟩
+  obtain ⟨u⟩ := x.isProjEmbedding.nonempty_uniformisation x.smoothOfRelativeDimension
+  have := finite_of_card_ne_zero ((u.card_torsion hm).trans_ne (pow_ne_zero _ hm))
+  exact (((Subtype.map_injective (q := (m • · = 0))
+    (p := (· ∈ torsionBySet (𝓞 E) _ (span {(m : 𝓞 E)} : Ideal (𝓞 E))))
+    (fun l hl => by simp_all [← map_nsmul, cast_smul_eq_nsmul]) hf).bijective_of_nat_card_le <|
+    le_of_eq <| by
+      rw [u.card_torsion hm, card_torsionBySet_adelicTorsion (by simpa), absNorm_span_natCast,
+        finrank_fin_fun, RingOfIntegers.rank, finrank_eq_two_mul_card_infinitePlace, abelianDim]
+      ring).surjective ⟨y, hy⟩).elim fun l hl => ⟨l, congrArg Subtype.val hl⟩
 
 end New
 
@@ -893,23 +853,15 @@ lemma exists_level_conj_mem (h𝔑 : 𝔑 ≠ 0) (s : Finset ((𝓞 E)⁰ × GUP
       (x.2 : GL n (𝔸f E))⁻¹ * k * x.2 ∈ levelGU n 𝔑 ⊓ levelGU n x.1 := by
   -- Each condition on `k` is open and holds at `k = 1`, so the finitely many of them hold on a
   -- congruence subgroup of some non-zero integer level `M`.
-  let C (a : 𝓞 E) : Subgroup (GL n (𝔸f E)) := congruenceGL (Ô E ∙ algebraMap _ _ a) id
-  have h_near : ∀ᶠ k : GL n (𝔸f E) in nhds 1,
-      ∀ x ∈ insert 1 s, (x.2 : GL n (𝔸f E))⁻¹ * k * x.2 ∈ C 𝔑 ⊓ C x.1 := by
-    refine (insert 1 s).eventually_all.mpr fun x _ ↦ ContinuousAt.preimage_mem_nhds (by fun_prop) ?_
-    exact ((isOpen_congruenceGL_span h𝔑).inter (isOpen_congruenceGL_span (by simp))).mem_nhds
-      (by simp)
-  obtain ⟨M, hM, h_level⟩ := exists_congruenceGL_subset h_near
-  have h_conj : ∀ x ∈ insert 1 s, ∀ k ∈ levelGU n (M : 𝓞 E),
-      (x.2 : GL n (𝔸f E))⁻¹ * k * x.2 ∈ levelGU n 𝔑 ⊓ levelGU n x.1 := by
-    rintro x hx k ⟨hk_GU, hk_cong⟩
-    -- the similitude `x.2` lies in `GU E n`, and so does the conjugate of `k` by it
-    have hx_GU : (x.2 : GL n (𝔸f E)) ∈ GU E n := x.2.prop.left
-    refine and_and_left.mp ⟨?_, h_level k (by simpa using hk_cong) x hx⟩
-    exact (GU E n).mul_mem (mul_mem (inv_mem hx_GU) hk_GU) hx_GU
-  refine ⟨⟨M, by simpa⟩, (Finset.forall_mem_insert ..).mpr ⟨fun k hk ↦ ?_, h_conj⟩⟩
-  -- The pair `(M, 1)` asks only for `levelGU n M ≤ levelGU n 𝔑`, the case of the pair `1`.
-  simpa [hk] using (Subgroup.mem_inf.mp (h_conj 1 (Finset.mem_insert_self 1 s) k hk)).left
+  obtain ⟨M, hM, hL⟩ := exists_congruenceGL_subset <| (insert 1 s).eventually_all.mpr fun x _ ↦
+    ContinuousAt.preimage_mem_nhds (f := fun k : GL n (𝔸f E) ↦ (x.2 : GL n (𝔸f E))⁻¹ * k * x.2)
+      (by fun_prop) <| ((isOpen_congruenceGL_span h𝔑).inter
+        (isOpen_congruenceGL_span (show (x.1 : 𝓞 E) ≠ 0 by simp))).mem_nhds (by simp)
+  refine ⟨⟨M, by simpa⟩, (Finset.forall_mem_insert ..).mpr ⟨fun k hk ↦ ?_, fun x hx k hk ↦ ?_⟩⟩
+  · exact ⟨⟨by simpa using hk.1, by simpa using (hL k (by simpa using hk.2) 1 (by simp)).1⟩,
+      by simpa using hk⟩
+  · exact and_and_left.mp ⟨(GU E n).mul_mem (mul_mem (inv_mem x.2.2.1) hk.1) x.2.2.1,
+      hL k (by simpa using hk.2) x hx⟩
 
 /-- For a non-zero element 𝔪 of O_E, the set of non-zero elements of (𝔸_f / Ô)ⁿ ≅ (E / O_E)ⁿ
 killed by 𝔪. -/

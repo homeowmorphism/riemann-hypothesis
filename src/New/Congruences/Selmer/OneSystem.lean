@@ -189,13 +189,13 @@ lemma mapRel_image_cocycleRelations [Mul Γ] (ev : Λ →+* O) (ρ : Γ → Matr
       .single (g * g') 1 - .single g 1 - .single g' ((ρ g).map ev) := by
     simp [mapRel, Finsupp.mapRange_sub']
   simp only [Set.ext_iff, Set.mem_image, cocycleRelations, Set.mem_ofPred_eq]
-  grind
+  aesop
 
 /-- The linear equations that a set `R` of relations imposes on the functions on `Γ` that factor
 through `π : Γ → 𝒢`. The unknowns are the coordinates of the values on `𝒢`, and there is one
 equation for each relation and each coordinate. -/
 def relationMatrix (π : Γ → 𝒢) (R : Set (Γ →₀ Matrix n n Λ)) : Matrix (R × n) (𝒢 × n) Λ :=
-  .of fun (f, i) (c, j) ↦ f.1.mapDomain π c i j
+  .of fun (f, i) (c, j) ↦ f.val.mapDomain π c i j
 
 lemma relationMatrix_apply {Γ 𝒢 n Λ : Type} [CommRing Λ] (π : Γ → 𝒢)
     (R : Set (Γ →₀ Matrix n n Λ)) (f : R) (i : n) (c : 𝒢 × n) :

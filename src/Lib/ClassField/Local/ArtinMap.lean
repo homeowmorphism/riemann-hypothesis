@@ -486,22 +486,22 @@ lemma localArtin_localNorm_eq_of_isCompletionEmb {p : ℕ} [Fact p.Prime]
   refine abelianization_ext fun χ ↦ Multiplicative.ext (inj_u ?_)
   let Φ : D →ₜ* D' := ⟨φ, φ_cont⟩
   obtain ⟨r, hr⟩ := emb_u.exists_resH2_classOfInvariant_eq U
-    (cyclicClass _ (comap (subgroupIncl U.1) χ) (DiscreteUnits.ofBase _ _ (.ofMul y)))
+    (cyclicClass _ (comap (subgroupIncl U.toSubgroup) χ) (DiscreteUnits.ofBase _ _ (.ofMul y)))
   have cor : cyclicClass _ χ (DiscreteUnits.ofBase _ _ (.ofMul (y.map (Algebra.norm V)))) =
-      classOfInvariant D' V (intQpBar p) (U.1.index • r) :=
+      classOfInvariant D' V (intQpBar p) (U.toSubgroup.index • r) :=
     (DiscreteModule.cyclicClass_corestrictH0 U χ _ (corestrictH0_ofBase_eq_norm U y) _ hr).trans
-      (map_nsmul (classOfInvariant D' V (intQpBar p)) U.1.index r).symm
+      (map_nsmul (classOfInvariant D' V (intQpBar p)) U.toSubgroup.index r).symm
   -- `e` and `f` are the ramification index and residue degree of `K_w` over `k_u`; `e f = [D' : U]`
   obtain ⟨e, f, h_data, -⟩ := (emb_u.of_finite U W).exists_isRamificationData
   have unif_ord : ordRat (LocField (w.below k)) (intQpBar p)
       (DiscreteUnits.ofBase D' (PadicAlgCl p) (.ofMul (uniformizer (w.below k)))) = 1 :=
     (emb_u.isUniformiser_iff.mpr (v_uniformizer (w.below k))).ordRat_eq_one emb_u.toIsLocalGalois
   have res : cyclicClass _ (comap Φ χ) (DiscreteUnits.ofBase _ _ (.ofMul y)) =
-      classOfInvariant D W (intQpBar p) (U.1.index • r) := by
+      classOfInvariant D W (intQpBar p) (U.toSubgroup.index • r) := by
     rw [← h_data.mul_eq, ← emb_u.pairMapH2_classOfInvariant Φ (.id _) rfl hφ
       ⟨unif_ord, by simp [h_data.ordRat_eq, unif_ord]⟩ h_data.residueCard_eq r]
     -- Pulling back along `φ` is restriction to `U` followed by the isomorphism onto `U`.
-    let Φ' : D →ₜ* U.1 := ⟨φ.rangeRestrict, φ_cont.subtype_mk _⟩
+    let Φ' : D →ₜ* U.toSubgroup := ⟨φ.rangeRestrict, φ_cont.subtype_mk _⟩
     refine (congrArg (pairMapH2 (ρ' := unitsRep) Φ' .id fun g _ ↦ DiscreteUnits.ext (hφ g _))
       hr).symm.trans ?_
     obtain ⟨z, hz⟩ := Quot.exists_rep (classOfInvariant D' V (intQpBar p) r)
@@ -511,11 +511,11 @@ lemma localArtin_localNorm_eq_of_isCompletionEmb {p : ℕ} [Fact p.Prime]
   -- `k_u` and over `K_w`.
   have h_norm : classOfInvariant D' V (intQpBar p)
       (abelianLift χ (localArtin Γ' (A.comap j) (w.below k) (localNorm k w y))).toAdd =
-        -classOfInvariant D' V (intQpBar p) (U.1.index • r) := by
+        -classOfInvariant D' V (intQpBar p) (U.toSubgroup.index • r) := by
     rw [norm_eq, art_u, cor]
   have h_sym : classOfInvariant D W (intQpBar p)
     (abelianLift (comap Φ χ) (localArtin Γ A w y)).toAdd =
-      -classOfInvariant D W (intQpBar p) (U.1.index • r) := by
+      -classOfInvariant D W (intQpBar p) (U.toSubgroup.index • r) := by
     rw [art_w, res]
   rw [h_norm, ← map_neg]
   congr 1
@@ -687,8 +687,7 @@ lemma exists_localArtin_eq_of_isFrob_pow {g : Γ} {n : ℕ} (hg : IsFrob A (w.q 
   have unit_mem (u : (LocField w)ˣ) (hu : v u.val = 1) : u ∈ E := by
     obtain ⟨t, ht, t_art⟩ := h.exists_mem_inertiaGroup_localArtin_eq (Γ := Γ) hu
     have hψu : abelianLift ψ (localArtin Γ A w u) = 1 := by
-      rw [t_art]
-      exact ψ_unr t ht
+      simpa only [t_art] using! ψ_unr t ht
     have hχu : abelianLift χ (localArtin Γ A w u) = 1 :=
       hχ _ ⟨u, ⟨locIdele w u, locIdele_mem_idelesUnitOff hu, ideleAt_locIdele ..⟩, rfl⟩
     exact hψu.trans hχu.symm
@@ -890,8 +889,7 @@ lemma valuation_smul_div_sub_lt_one {G k E : Type} [Group G] [TopologicalSpace G
   have h_frob : B.valuation (φ • r - r ^ (n + 1)) < 1 := by simpa [hq] using hφ.right r hr_unit.le
   have h_eq : φ • r / r - algebraMap k E u = (φ • r - r ^ (n + 1)) / r := by
     rw [← hr_pow, sub_div, pow_succ, mul_div_cancel_right₀ _ (Units.ne_zero _)]
-  rw [h_kummer, h_eq, map_div₀, hr_unit, div_one]
-  exact h_frob
+  simpa only [h_kummer, h_eq, map_div₀, hr_unit, div_one] using h_frob
 
 /-- Let `A` lie over `w`, let `π` in `K` be a uniformiser for `A` and `y ^ (w.q - 1) = π`, where
 `w.q` is the number of residues of `w`, and let `u` be a unit of `K_w` (`v u = 1`, with `v` the

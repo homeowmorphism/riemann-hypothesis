@@ -230,11 +230,9 @@ lemma IsOpenSubfunctor.fieldLocus_le (hV : IsOpenSubfunctor V) : fieldLocus (fun
   obtain ⟨I, hI⟩ : ∃ I : Ideal A, ∀ (B : CommAlg k) (φ : A ⟶ B),
       X.map φ x ∈ V B ↔ I.map φ.hom = ⊤ := hV A x
   -- `I` generates the unit ideal in every field over `A`, so it is the unit ideal.
-  have h_top : I.map (𝟙 A : A ⟶ A).hom = ⊤ := by
-    refine (map_eq_top_iff_forall_isField I _).2 fun K ψ hK h_le ↦ ?_
-    have : Nontrivial K := hK.nontrivial
-    have h_bot : I.map ψ.hom = ⊥ := by simpa [← map_eq_bot_iff_le_ker] using h_le
-    simpa [h_bot] using (hI K ψ).1 (hx K ψ hK)
+  have h_top : I.map (𝟙 A : A ⟶ A).hom = ⊤ :=
+    (map_eq_top_iff_forall_isField I _).2 fun K ψ hK ↦ by
+      simpa using (map_eq_top_iff_forall_isField I ψ).1 ((hI K ψ).1 (hx K ψ hK)) K (𝟙 K) hK
   simpa using (hI A (𝟙 A)).2 h_top
 
 /-- If the image of `x ∈ X(A)` under a map `φ` to a field `B` lies in the open subfunctor `V` of
@@ -481,6 +479,17 @@ lemma EtaleChart.isOpenSubfunctor_of_le_locus {V : Subfunctor X} (h_le : V ≤ a
 
 /-! ### The lifting criterion for étale coordinates -/
 
+/-- A map out of a formally étale algebra lifts uniquely along a surjective algebra map with
+nilpotent kernel. -/
+lemma existsUnique_algHom_lift {S T B C : Type*} [CommRing S] [CommRing T] [CommRing B] [CommRing C]
+    [Algebra S T] [Algebra S B] [Algebra S C] [FormallyEtale S T]
+    (f : T →ₐ[S] C) (g : B →ₐ[S] C) (hg : Function.Surjective g)
+    (hker : IsNilpotent (RingHom.ker (g : B →+* C))) :
+    ∃! f' : T →ₐ[S] B, g.comp f' = f := by
+  have h_lift := FormallySmooth.comp_liftOfSurjective f g hg hker
+  exact ⟨_, h_lift, fun f' hf' ↦ FormallyUnramified.lift_unique' g hker _ _
+    (hf'.trans h_lift.symm)⟩
+
 /-- The ring homomorphism k[X_i] → R sending X_i to x_i. -/
 abbrev polyEval : MvPolynomial (Fin d) k →+* R := (aeval (R := k) x).toRingHom
 
@@ -521,16 +530,13 @@ lemma existsUnique_lift_of_etale_polyEval (h_et : (polyEval x).Etale) {π : B �
   algebraize [polyEval x, polyEval b, polyEval (ζ ∘ x)]
   let ζ' : R →ₐ[MvPolynomial (Fin d) k] A := ⟨ζ.hom, map_aeval_of_forall_eq ζ fun i ↦ rfl⟩
   let π' : B →ₐ[MvPolynomial (Fin d) k] A := ⟨π.hom, map_aeval_of_forall_eq π hb⟩
-  -- The lift `s` exists by formal smoothness.
-  have h_smooth : FormallySmooth (MvPolynomial (Fin d) k) R := h_et.instSmooth.formallySmooth
-  let s := FormallySmooth.liftOfSurjective ζ' π' h_surj ⟨2, h_sq⟩
-  have hs (r : R) : π (s r) = ζ r :=
-    FormallySmooth.liftOfSurjective_apply ζ' π' h_surj ⟨2, h_sq⟩ r
-  refine ⟨ofHom (s.restrictScalars k), ⟨hom_ext (ext hs), fun i ↦ ?_⟩, fun t ⟨ht, htb⟩ ↦ ?_⟩
+  have : FormallyEtale (MvPolynomial (Fin d) k) R := h_et.formallyEtale
+  obtain ⟨s, hs, h_unique⟩ := existsUnique_algHom_lift ζ' π' h_surj ⟨2, h_sq⟩
+  refine ⟨ofHom (s.restrictScalars k), ⟨hom_ext (ext fun r ↦ AlgHom.congr_fun hs r), fun i ↦ ?_⟩,
+    fun t ⟨ht, htb⟩ ↦ ?_⟩
   · simpa [RingHom.algebraMap_toAlgebra] using! s.commutes (X i)
-  · -- It is unique because `R` is formally unramified.
-    let t' : R →ₐ[MvPolynomial (Fin d) k] B := ⟨t.hom, map_aeval_of_forall_eq t htb⟩
-    have h_eq : t' = s := h_et.formallyUnramified.ext' π.hom.toRingHom ⟨2, h_sq⟩ t' s (by aesop)
+  · let t' : R →ₐ[MvPolynomial (Fin d) k] B := ⟨t.hom, map_aeval_of_forall_eq t htb⟩
+    have h_eq : t' = s := h_unique t' (AlgHom.ext fun r ↦ ConcreteCategory.congr_hom ht r)
     exact hom_ext (ext fun r ↦ DFunLike.congr_fun h_eq r)
 
 /-- Let x₁, …, x_d be elements of a k-algebra R of finite type, k Noetherian. If each ζ: R → A lifts
@@ -757,8 +763,7 @@ lemma EtaleChart.mem_locus_prod_iff (a : EtaleChart d X) (b : EtaleChart n Y) {x
   have h_locus : (a.prod b).locus = a.locus.preimage (SemiCartesianMonoidalCategory.fst X Y) ⊓
       b.locus.preimage (SemiCartesianMonoidalCategory.snd X Y) :=
     range_pointMap_prod a b
-  rw [h_locus]
-  exact Iff.rfl
+  exact h_locus.symm ▸ Iff.rfl
 
 /-- If `X` has an atlas of dimension d, charts of dimension d cover the field-valued points of
 `X`. -/

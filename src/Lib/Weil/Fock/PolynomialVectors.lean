@@ -109,24 +109,27 @@ private lemma fockMatrixCoeff_heisenbergDeriv_single (u : USign ε) (P Q : MvPol
   simpa only [ContinuousLinearMap.comp_apply, h_move] using
     ((hasDerivAt_realHeisenbergOp ..).map_clm (fockInner (realWeil u P))).star
 
+private lemma fockMatrixCoeff_raise_lower (u : USign ε) (P Q : MvPolynomial ι ℂ) (j : ι) :
+    fockMatrixCoeff u Q (raiseOp ε j P) =
+      ∑ i : ι, u.val i j * ε i * fockMatrixCoeff u (lowerOp ε i Q) P ∧
+    ε j * fockMatrixCoeff u Q (lowerOp ε j P) =
+      ∑ i : ι, conj (u.val i j) * fockMatrixCoeff u (raiseOp ε i Q) P := by
+  -- Evaluating the derivative at 1 and I separates the raising and lowering coefficients.
+  have h_deriv := fockMatrixCoeff_heisenbergDeriv_single u P Q j
+  simp_all [heisenbergDeriv, conj_modelInner, apply_ite, mul_assoc, ← mul_sum, Pi.single_apply,
+    sum_add_distrib]
+  have separate {a b x y : ℂ} (h : ∀ c : ℂ, c * a - conj c * b = -(conj c * y) + c * x) :
+      a = x ∧ b = y := by grind [I_sq, h 1, conj_I]
+  exact separate h_deriv
+
 /-- For u in U(ε) with entries u_ij, an index j and polynomials P, Q, the operator
 A_j = `New.Fock.raiseOp` ε j (X_j if ε_j = 1, else −∂_j) on the right of the matrix coefficient
 ⟨v_Q, ω₀(u) ·⟩ becomes Σ_i u_ij ε_i B_i on the left, where B_i = `New.Fock.lowerOp` ε i
 (∂_i if ε_i = 1, else X_i): ⟨v_Q, ω₀(u) v_{A_j P}⟩ = Σ_i u_ij ε_i ⟨v_{B_i Q}, ω₀(u) v_P⟩. -/
 lemma fockMatrixCoeff_raiseOp (u : USign ε) (P Q : MvPolynomial ι ℂ) (j : ι) :
     fockMatrixCoeff u Q (raiseOp ε j P) =
-      ∑ i : ι, u.val i j * ε i * fockMatrixCoeff u (lowerOp ε i Q) P := by
-  have h_deriv (c : ℂ) : fockMatrixCoeff u Q (heisenbergDeriv ε (Pi.single j c) P) =
-      star (fockInner (realWeil u P) (polyVector ε (heisenbergDeriv ε (-c • col u j) Q))) :=
-    fockMatrixCoeff_heisenbergDeriv_single u P Q j c
-  -- By the definition of `heisenbergDeriv`, `h_deriv c` reads `c * a - c̄ * b = c * a' - c̄ * b'`,
-  -- where `a = a'` is the claim and `b = b'` the relation of `fockMatrixCoeff_lowerOp`; the cases
-  -- `c = 1` and `c = I` give both.
-  -- (`simp_all` simplifies the goal and `h_deriv` together: simplifying `h_deriv c` alone, for a
-  -- general `c`, sends `simp` into a loop.)
-  simp_all [heisenbergDeriv, conj_modelInner, apply_ite, mul_assoc, ← mul_sum, Pi.single_apply,
-    sum_add_distrib]
-  grind [I_sq, h_deriv 1, conj_I]
+      ∑ i : ι, u.val i j * ε i * fockMatrixCoeff u (lowerOp ε i Q) P :=
+  (fockMatrixCoeff_raise_lower u P Q j).1
 
 /-- For u in U(ε) with entries u_ij, an index j and polynomials P, Q, the operator
 B_j = `New.Fock.lowerOp` ε j (∂_j if ε_j = 1, else X_j), times ε_j, on the right of the matrix
@@ -135,14 +138,8 @@ A_i = `New.Fock.raiseOp` ε i (X_i if ε_i = 1, else −∂_i):
 ε_j ⟨v_Q, ω₀(u) v_{B_j P}⟩ = Σ_i conj(u_ij) ⟨v_{A_i Q}, ω₀(u) v_P⟩. -/
 lemma fockMatrixCoeff_lowerOp (u : USign ε) (P Q : MvPolynomial ι ℂ) (j : ι) :
     ε j * fockMatrixCoeff u Q (lowerOp ε j P) =
-      ∑ i : ι, conj (u.val i j) * fockMatrixCoeff u (raiseOp ε i Q) P := by
-  have h_deriv (c : ℂ) : fockMatrixCoeff u Q (heisenbergDeriv ε (Pi.single j c) P) =
-      star (fockInner (realWeil u P) (polyVector ε (heisenbergDeriv ε (-c • col u j) Q))) :=
-    fockMatrixCoeff_heisenbergDeriv_single u P Q j c
-  -- As in `fockMatrixCoeff_raiseOp`, with `b = b'` the claim.
-  simp_all [heisenbergDeriv, conj_modelInner, apply_ite, mul_assoc, ← mul_sum, Pi.single_apply,
-    sum_add_distrib]
-  grind [I_sq, h_deriv 1, conj_I]
+      ∑ i : ι, conj (u.val i j) * fockMatrixCoeff u (raiseOp ε i Q) P :=
+  (fockMatrixCoeff_raise_lower u P Q j).2
 
 /-- Multiplication by X_i is adjoint to the derivative ∂_i for the inner product
 `New.Fock.fockInner` of polynomial vectors: ⟨v_{X_i P}, v_Q⟩ = ⟨v_P, v_{∂_i Q}⟩. -/

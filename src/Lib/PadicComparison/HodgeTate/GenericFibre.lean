@@ -166,8 +166,7 @@ lemma ker_thickeningProj_sq : ker c.thickeningProj ^ 2 = ⊥ := by
 lemma existsUnique_lift_thickening :
     ∃! ρ : PadicAlgCl p →ₐ[ℤ_[p]] c.Thickening,
       ∀ z : PadicAlgCl p, c.thickeningProj (ρ z) = c.genericStructureMap z := by
-  -- `thickeningProj` is onto with square-zero kernel, and `ℤ_p → ℚ_p → ℚ̄_p` is formally étale:
-  -- a lift exists by formal smoothness and is unique by formal unramifiedness.
+  -- `thickeningProj` is onto with square-zero kernel, and `ℤ_p → ℚ_p → ℚ̄_p` is formally étale.
   let : Algebra ℤ_[p] c.GenericRing := restrictScalars ℤ_[p] ℂ_[p] c.GenericRing
   have h_nil : IsNilpotent (ker c.thickeningProj) := ⟨2, c.ker_thickeningProj_sq⟩
   have : FormallyEtale ℤ_[p] ℚ_[p] := .of_isLocalization (nonZeroDivisors ℤ_[p])
@@ -184,9 +183,9 @@ lemma existsUnique_lift_thickening :
       (congrArg c.genericStructureMap ((OC.toPadicIntAlgHom _).commutes a))
   let π : c.Thickening →ₐ[ℤ_[p]] c.GenericRing := ⟨c.thickeningProj, h_linear⟩
   have h_surj : Surjective π := c.thickeningProj_surjective_and_ker_thetaGeneric.left
-  exact existsUnique_of_exists_of_unique
-    ⟨liftOfSurjective s π h_surj h_nil, liftOfSurjective_apply s π h_surj h_nil⟩
-    fun ρ ρ' hρ hρ' ↦ ext' c.thickeningProj h_nil ρ ρ' fun z ↦ by rw [hρ, hρ']
+  change ∃! ρ : PadicAlgCl p →ₐ[ℤ_[p]] c.Thickening, ∀ z, π (ρ z) = s z
+  simpa only [AlgHom.ext_iff, AlgHom.comp_apply] using
+    New.Variety.existsUnique_algHom_lift s π h_surj h_nil
 
 /-- The unique `ℤ_p`-algebra map from `ℚ̄_p` to the thickening that lifts the structure map
 `ℚ̄_p → ℂ_p → R[1/p]` along `thickeningProj`. -/
@@ -308,9 +307,10 @@ lemma exists_periodAlg_iso_genericAlg :
         ((isLocalization_iff_isPushout _ ℂ_[p]).1
           (c.isLocalization_genericRing _)).symm.out.equiv.toModuleIso)
       fun f ↦ ModuleCat.hom_ext <| tmul_ext fun a x ↦ by
-        -- `erw` rewrites through the composite module maps and the pushout equivalence.
-        erw [map_smul (mapGeneric f), mapGeneric_algebraMap]
-        rfl
+        -- Both sides unfold to `a • algebraMap _ _ (f x)`, through the composite module maps and
+        -- the pushout equivalence.
+        exact .symm ((map_smul (mapGeneric f) a _).trans
+          (congrArg (a • ·) (mapGeneric_algebraMap f x)))
   refine ⟨isoWhiskerRight θ (asModules (𝟭 _) ⋙ tensorWith ℂ_[p] ℂ_[p]) ≪≫ invert, fun c a w ↦ ?_⟩
   -- `invert` sends `a ⊗ x` to `a • x`, and `θ` sends `1 ⊗ w` to `θ(w)`.
   exact (congrArg (a • algebraMap c.ProdRing c.GenericRing ·) (hθ c w)).trans
@@ -401,10 +401,11 @@ lemma proj_mulMu : ∀ t : genericOver.obj c, proj c (mulMu c t) = 0 := by
 lemma mulMu_proj_mul (b : thickeningOver.obj c) :
     ∀ t : genericOver.obj c, mulMu c (proj c b * t) = b * mulMu c t := by
   refine c.thickeningProj_surjective_and_ker_thetaGeneric.left.forall.mpr fun b' ↦ ?_
-  -- `erw`: `b` lives in `thickeningOver.obj c`, and `proj c b` is `c.thickeningProj b` only up to
-  -- unfolding.
-  erw [← map_mul, mulMu_thickeningProj, mulMu_thickeningProj, mul_left_comm]
-  rfl
+  -- `b` lives in `thickeningOver.obj c`, and `proj c b` is `c.thickeningProj b` up to unfolding.
+  refine (congrArg (mulMu c) (map_mul c.thickeningProj b b').symm).trans <|
+    (mulMu_thickeningProj ..).trans ?_
+  rw [mulMu_thickeningProj]
+  exact mul_left_comm ..
 
 /-- `mulMu` commutes with the maps induced by a morphism `f` of tests. -/
 lemma map_mulMu (d : PadicTest) (f : c ⟶ d) :

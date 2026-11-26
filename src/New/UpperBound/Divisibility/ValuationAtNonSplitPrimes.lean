@@ -198,7 +198,7 @@ lemma IsMarked.exists_eq_mul_neighborDiagonal_mul (hΛ : D.IsMarked Λ) {ι : Ty
         (localIntGL ι l.val) := by
     have h_unif : Valued.v (Units.mk0 (p : LocField l.val) NeZero.out).val = WithZero.exp (-1) := by
       simp [← v_algebraMap_eq_valuation, ← hΛ.valuation_natCast_eq_exp_neg_one l.2]
-    rw [neighborDiagonal, ← basicDoubleCoset_eq (diagGL_mem_basicDoubleCoset h_unif (J l)).1,
+    rw [neighborDiagonal, ← basicDoubleCoset_eq (diagGL_ite_mem_basicDoubleCoset h_unif (J l)),
       hJ l l.2]
     exact hg l
   have h_decomp (l : Λ) :
@@ -994,22 +994,8 @@ theorem IsWeakChainDatum.gaugeLe_scaledHeckeOperator_pow (H : IsWeakChainDatum �
   -- Move one of the `m` copies of `Y` into the datum of each lift, then bound the chain by the
   -- bounds for the new data.
   let Y : Module.End embValRing D.SourceForm := (Λ.attach.toList.map hΛ.scaledHeckeOperator).prod
-  have h_move (j : ℕ) : ∃ t : Module.End ℂ (D.homX j).finitePart, ∀ x ∈ Ψ.support,
-      (∀ a : Gf D.E (D.X j), ∀ b ∈ stdLevel D.E (D.X (j + 1)),
-        (D.liftKernel ϑ j).ω (a, b) (t (D.translateDatum x j)) =
-          t ((D.liftKernel ϑ j).ω (a, b) (D.translateDatum x j))) ∧
-      (∀ y : D.SourceForm,
-        (D.liftKernel ϑ j).lift (t (D.translateDatum x j))
-            (chain (D.liftKernel ϑ) (D.translateDatum x) j y.val) =
-          chain (D.liftKernel ϑ) (D.translateDatum x) (j + 1) (Y y)) ∧
-      (j < D.m → t (D.translateDatum x j) ∈
-        (D.liftKernel ϑ j).raises 1 1 (p ^ (#Λ * D.transferExponent p + liftLoss Λ j))) := by
-    obtain ⟨t, ht⟩ := H.exists_lift_eq_chain_scaledHeckeOperator hQ hΛ j Λ.attach.nodup_toList
-    refine ⟨t, fun x hx ↦ ?_⟩
-    obtain ⟨ht_comm, ht_lift, ht_raises⟩ := ht x hx
-    refine ⟨ht_comm, ht_lift, fun hj ↦ ?_⟩
-    simpa [← Nat.cast_sum, sum_attach, -List.map_subtype, Prod.mk_one_one] using ht_raises 1 hj
-  choose t t_comm t_lift t_raises using h_move
+  choose t ht using fun j ↦
+    H.exists_lift_eq_chain_scaledHeckeOperator hQ hΛ j Λ.attach.nodup_toList
 
   have h_chain (x : D.Translations) (hx : x ∈ Ψ.support) (j : ℕ) :
       chain (D.liftKernel ϑ) (fun j ↦ t j (D.translateDatum x j)) j v =
@@ -1017,7 +1003,7 @@ theorem IsWeakChainDatum.gaugeLe_scaledHeckeOperator_pow (H : IsWeakChainDatum �
     induction j with
     | zero => rfl
     | succ j ih =>
-      rw [pow_succ', mul_apply_eq_comp, ← t_lift j x hx, ← ih]
+      rw [pow_succ', mul_apply_eq_comp, ← (ht j x hx).2.1, ← ih]
       simp [chain, compUpTo]
   have h_comb : restrictedChain ϑ Ψ ((Y ^ D.m) v) =
       D.restrictToY (chainCombination ϑ Ψ (fun x j ↦ t j (D.translateDatum x j)) D.m v) := by
@@ -1026,7 +1012,9 @@ theorem IsWeakChainDatum.gaugeLe_scaledHeckeOperator_pow (H : IsWeakChainDatum �
   have hv_gauge : GaugeLe 1 1 v.val := hv.2
   rw [h_comb]
   refine GaugeLe.restrictToY D hp_N ?_
-  exact H.gaugeLe_chain hQ t (fun j x hx a b hb ↦ t_comm j x hx a b (D.isLevel_levelX.le hb)) 1
-    (fun x hx j hj ↦ t_raises j x hx hj) hv_gauge
+  refine H.gaugeLe_chain hQ t (fun j x hx a b hb ↦ (ht j x hx).1 a b (D.isLevel_levelX.le hb))
+    1 (fun x hx j hj ↦ ?_) hv_gauge
+  simpa [← Nat.cast_sum, sum_attach, -List.map_subtype, Prod.mk_one_one] using
+    (ht j x hx).2.2 1 hj
 
 end New.Data

@@ -123,12 +123,12 @@ structure SelmerDatum (S₀ : Finset (FinPlace E)) (g₀ : Gal(Ω/E)) (O : Type)
   /-- `T` is unramified outside `S`. -/
   unramified : ∀ g ∈ inertiaAbove placesᶜ, ρ g = 1
   /-- The module `Z_w` of maps from the decomposition group at `w ∣ ℓ` to `T`. -/
-  Z (w : placesDividing E ℓ) : Submodule O (decompGroup Gal(Ω/E) (placeOver w.1) → n → O)
+  Z (w : placesDividing E ℓ) : Submodule O (decompGroup Gal(Ω/E) (placeOver w.val) → n → O)
   /-- `Z_w` is finitely generated. -/
   finite_Z (w : placesDividing E ℓ) : Module.Finite O (Z w)
   /-- `Z_w` contains the coboundaries. -/
   coboundary_mem_Z (w : placesDividing E ℓ) (b : n → O) :
-    (fun g : decompGroup Gal(Ω/E) (placeOver w.1) ↦ ρ g • b - b) ∈ Z w
+    (fun g : decompGroup Gal(Ω/E) (placeOver w.val) ↦ ρ g • b - b) ∈ Z w
   /-- `T / ϖ` is absolutely irreducible, in Burnside's form: the matrices `ρ g` span all
   matrices. -/
   span_range_eq_top : Submodule.span O (Set.range ρ) = ⊤
@@ -197,7 +197,7 @@ decomposition group obeys all the relations that the members of `Z_w = T.Z w` ob
 lemma mem_obeying_localRelations_iff {B : Type} [AddCommGroup B] [Module O B]
     {c : Gal(Ω/E) → n → B} :
     c ∈ obeying T.localRelations B ↔ ∀ w : placesDividing E ℓ,
-      (fun g : decompGroup Gal(Ω/E) (placeOver w.1) ↦ c g) ∈ obeying (relationsOn (T.Z w)) B := by
+      (fun g : decompGroup Gal(Ω/E) (placeOver w.val) ↦ c g) ∈ obeying (relationsOn (T.Z w)) B := by
   -- A relation pushed forward by `Finsupp.mapDomain` is evaluated on the restriction of `c`.
   simp [localRelations, obeying, forall_comm (α := _ →₀ _), Function.comp_def]
 
@@ -210,7 +210,7 @@ lemma coboundary_mem_obeying_localRelations (a : O) (b : n → QuotSpan a) :
   refine T.mem_obeying_localRelations_iff.2 fun w ↦ ?_
   have h_lift (k : n) : ∃ c : O, Ideal.Quotient.mk _ c = b k := Ideal.Quotient.mk_surjective _
   choose c hc using h_lift
-  have h_red (g : decompGroup Gal(Ω/E) (placeOver w.1)) :
+  have h_red (g : decompGroup Gal(Ω/E) (placeOver w.val)) :
       T.ρ g • b - b = fun k : n ↦ (Ideal.span {a}).mkQ ((T.ρ g • c - c) k) := by
     ext k
     simp [Matrix.Module.smul_apply, hc, Algebra.smul_def]
@@ -220,7 +220,7 @@ lemma coboundary_mem_obeying_localRelations (a : O) (b : n → QuotSpan a) :
 `w` of the cocycles for `T.ρ` with values in `(O / a) ^ n` that obey the local conditions
 `T.localRelations` form a module of length at most `rk (T.Z w) · len (O / a)`. -/
 lemma length_localCocycles_le_finrank_mul (a : O) (w : placesDividing E ℓ) :
-    length O (localCocycles T.ρ T.localRelations (placeOver w.1) (QuotSpan a)) ≤
+    length O (localCocycles T.ρ T.localRelations (placeOver w.val) (QuotSpan a)) ≤
       finrank O (T.Z w) * length O (QuotSpan a) := by
   have : Module.Finite O (T.Z w) := T.finite_Z w
   have : Nonempty n := T.nonempty

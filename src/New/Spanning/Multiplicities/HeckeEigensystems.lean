@@ -63,7 +63,7 @@ lemma commute_asAlgebraHom_mapDomain_trivialOn {W : Type} [AddCommGroup W] [Modu
     (a : ℂ[trivialOn n S]) :
     Commute (ρ k) (ρ.asAlgebraHom (mapDomain (trivialOn n S).subtype a)) := by
   rw [asAlgebraHom_mapDomain]
-  exact commute_asAlgebraHom
+  exact Representation.commute_asAlgebraHom_of_forall_commute _
     (fun g : trivialOn n S ↦ (commute_supportedOn_trivialOn hk g.prop).map ρ) a
 
 /-- Let `G_f = Gf E n` be the finite adelic unitary group over the CM field `E` in the variables
@@ -393,7 +393,7 @@ operators away from `M`, which are given by elements of `G_f` that are `1` at th
 lemma commute_heckeAlgebra_principalRep (T : D.heckeAlgebra) (x : ℂ[D.chosenGL]) :
     Commute (T.val V) ((D.principalRep V).asAlgebraHom x) := by
   obtain ⟨a, -, ha⟩ := D.mem_heckeAlgebra.1 T.prop
-  refine commute_asAlgebraHom (fun g : D.chosenGL ↦ ?_) x
+  refine Representation.commute_asAlgebraHom_of_forall_commute _ (fun g : D.chosenGL ↦ ?_) x
   -- `T` acts as `A`, from `G^M`, and `g` as `ρ (liftResidue g).val`, whose lift `liftResidue g` is
   -- `1` off `M`; these commute.
   set ρ := V.formRep (typeKernel D.paramW s)

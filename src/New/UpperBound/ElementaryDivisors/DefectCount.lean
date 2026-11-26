@@ -93,15 +93,14 @@ lemma index_borel_le [Finite K] :
   -- A unit on the diagonal and `i` free entries left of it, in each row `i`, give
   -- `∏ (q - 1) q ^ i` elements of `B`. Divide `#GL = ∏ q ^ i (q ^ (i + 1) - 1)` by this number.
   set B : Subgroup (GL (Fin k) K) := parabolic (OrderDual.toDual ∘ (Fin.val : Fin k → ℕ))
-  set q : ℝ := (Nat.card K : ℝ)
   let Rows : Type := ∀ i : Fin k, Kˣ × (Set.Iio i → K)
   let low (x : Rows) : Matrix (Fin k) (Fin k) K :=
     of fun i j ↦ if i < j then 0 else if h : j < i then (x i).2 ⟨j, h⟩ else (x i).1
-  have det_low (x : Rows) : (low x).det ≠ 0 := by
-    simp +contextual [low, BlockTriangular, det_of_isLowerTriangular, univ.prod_eq_zero_iff]
-  let f (x : Rows) : B := ⟨.mkOfDetNeZero _ (det_low x), fun _ _ hij ↦ ite_eq_left hij⟩
-  have f_inj : f.Injective := by
-    intro x y hxy
+  let f (x : Rows) : B :=
+    ⟨.mkOfDetNeZero (low x) <| by
+      simp +contextual [low, BlockTriangular, det_of_isLowerTriangular, univ.prod_eq_zero_iff],
+      fun _ _ hij ↦ ite_eq_left hij⟩
+  have f_inj : f.Injective := fun x y hxy ↦ by
     have h_low : low x = low y :=
       congrArg (fun g : B ↦ ((g : GL (Fin k) K) : Matrix (Fin k) (Fin k) K)) hxy
     ext i j
@@ -109,19 +108,12 @@ lemma index_borel_le [Finite K] :
     · simpa [low, Set.mem_Iio.1 j.2, (Set.mem_Iio.1 j.2).not_gt] using congrFun₂ h_low i j
   have h_card : (B.index : ℝ) * Nat.card Rows ≤ Nat.card (GL (Fin k) K) :=
     mod_cast (mul_le_mul_right (card_le_card_of_injective f f_inj) _).trans B.index_mul_card.le
-  have hq : 1 < q := Nat.one_lt_cast.2 Finite.one_lt_card
-  have h_rows : (Nat.card Rows : ℝ) = ∏ i : Fin k, (q - 1) * q ^ i.val := by
-    simp [Rows, q, Nat.card_pi, Nat.card_units]
-  have h_GL : (Nat.card (GL (Fin k) K) : ℝ) = ∏ i : Fin k, q ^ i.val * (q ^ (i.val + 1) - 1) := by
-    simp [q, card_GL_eq_prod, prod_range]
-  have h_pos : 0 < ∏ i : Fin k, (q - 1) * q ^ i.val :=
-    prod_pos fun i _ ↦ mul_pos (sub_pos.2 hq) (pow_pos (one_pos.trans hq) _)
-  refine le_of_mul_le_mul_right ?_ h_pos
-  calc (B.index : ℝ) * ∏ i : Fin k, (q - 1) * q ^ i.val
-      ≤ ∏ i : Fin k, q ^ i.val * (q ^ (i.val + 1) - 1) := by rwa [h_rows, h_GL] at h_card
-    _ = (∏ l : Fin k, (q ^ (l.val + 1) - 1) / (q - 1)) * ∏ i : Fin k, (q - 1) * q ^ i.val := by
-      rw [← prod_mul_distrib]
-      exact prod_congr rfl fun i _ ↦ by field [(sub_pos.2 hq).ne']
+  simp [Rows, Nat.card_pi, Nat.card_units, card_GL_eq_prod, prod_range] at h_card
+  have hq : 1 < (Nat.card K : ℝ) := Nat.one_lt_cast.2 Finite.one_lt_card
+  refine le_of_mul_le_mul_right (h_card.trans_eq ?_)
+    (prod_pos fun i _ ↦ mul_pos (sub_pos.2 hq) (pow_pos (one_pos.trans hq) _))
+  rw [← prod_mul_distrib]
+  exact prod_congr rfl fun i _ ↦ by field [(sub_pos.2 hq).ne']
 
 /-- The defect of a vector `β` indexed by `(b, s) ∈ Fin k × ZMod N`, at the letter `i` along the
 root `(b, b')`, is the linear form with coefficients `T.defectWeight i b b'`, namely
@@ -313,7 +305,6 @@ lemma FrobeniusCycle.exists_eq_add_of_coeff_polyAction_powerPacking (T : Frobeni
       α = m • exponentOf δ + ε ∧
       (T.letterRep n g *ᵥ F u) δ ≠ 0 ∧
       ∀ s : ZMod N, ∑ b : Fin k, ε (b, s) ∈ Set.Icc (m * k) (m * k + m) := by
-  classical
   obtain ⟨u, δ, hδ⟩ : ∃ (u : Fin k × ZMod N → Fin m) (δ : Exponents N k n),
       (monomial (m • exponentOf δ) ((T.letterRep n g *ᵥ F u) δ) *
         T.polyAction g (monomial (residueExponent a u) 1)).coeff α ≠ 0 := by
@@ -875,29 +866,18 @@ lemma FrobeniusCycle.index_mul_relIndex_le (T : FrobeniusCycle N W K) (r : ℕ) 
         (parahoric W Fin.val).relIndex (levi W (twoBlock k r)) : ℝ) ≤
       ∏ l : Fin k, (((T.P : ℝ) ^ N) ^ (l.val + 1) - 1) / (T.P ^ N - 1) := by
   have : Finite (IsLocalRing.ResidueField W) := T.finite_residueField
-  have h_iff {τ : Fin k → ℕ} {g : GL (Fin k) W} :
-      g ∈ parahoric W τ ↔ ∀ ⦃i j : Fin k⦄, τ i < τ j → ¬IsUnit (g i j) := by
-    simp [parahoric, parabolic, BlockTriangular]
   -- The entries of the Levi subgroup between the blocks vanish, and
   -- `twoBlock k r i < twoBlock k r j` implies `i < j`.
-  have h_levi : levi W (twoBlock k r) ≤ parahoric W (twoBlock k r) :=
-    fun g hg ↦ h_iff.2 fun i j h_lt ↦ by simp [show g i j = 0 from hg i j h_lt.ne]
-  have h_iwahori_le : parahoric W Fin.val ≤ parahoric W (twoBlock k r) := fun g hg ↦
-    h_iff.2 fun i j h_lt ↦ h_iff.1 hg (by grind [twoBlock] : i.val < j.val)
-  calc ((parahoric W (twoBlock k r)).index *
-          (parahoric W Fin.val).relIndex (levi W (twoBlock k r)) : ℝ)
-      ≤ (parahoric W (twoBlock k r)).index *
-          (parahoric W Fin.val).relIndex (parahoric W (twoBlock k r)) := by
-        gcongr
-        exact relIndex_le_of_le_right h_levi index_ne_zero_of_finite
-    _ = (parahoric (k := k) W Fin.val).index := by
-        rw [mul_comm, ← cast_mul, relIndex_mul_index h_iwahori_le]
-    _ ≤ (parabolic (R := IsLocalRing.ResidueField W)
-          (OrderDual.toDual ∘ (Fin.val : Fin k → ℕ))).index := by
-        grw [parahoric, index_comap, relIndex_le_of_le_right le_top index_ne_zero_of_finite,
-          relIndex_top_right]
-    _ ≤ ∏ l : Fin k, (((T.P : ℝ) ^ N) ^ (l.val + 1) - 1) / (T.P ^ N - 1) := by
-        grw [index_borel_le, T.card_residueField, cast_pow]
+  have h_levi : levi W (twoBlock k r) ≤ parahoric W (twoBlock k r) := fun g hg ↦ by
+    simp [parahoric, parabolic, BlockTriangular]
+    exact fun i j h ↦ by simp [hg i j h.ne]
+  have h_iwahori_le : parahoric W Fin.val ≤ parahoric W (twoBlock k r) := fun g hg ↦ by
+    simp [parahoric, parabolic, BlockTriangular] at hg ⊢
+    exact fun i j h ↦ hg (by grind [twoBlock])
+  grw [relIndex_le_of_le_right h_levi index_ne_zero_of_finite, mul_comm, ← cast_mul,
+    relIndex_mul_index h_iwahori_le, parahoric, index_comap,
+    relIndex_le_of_le_right le_top index_ne_zero_of_finite, relIndex_top_right,
+    index_borel_le, T.card_residueField, cast_pow]
 
 /-- The image of `ν` under `New.permStep` with trivial permutations, that is, the vector
 `± (P ν (b, s + 1) - ν (b, s))` with the sign `+` at even letters, has defect at most `0` along all

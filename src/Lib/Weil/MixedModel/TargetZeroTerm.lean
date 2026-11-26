@@ -81,7 +81,7 @@ lemma frameAt_homTarget :
   have h_inv : (adaptedTargetBasis W)⁻¹.val = 1 ⊗ₖ W.dualFrame.valᵀ := rfl
   have h_dual : W.x.valᵀ * W.dualFrame.valᵀᴴ = stdForm E s := by
     have h_pair : W.dualFrame.valᴴ * W.x.val = stdForm E s := by
-      simp [dualFrame, Matrix.mul_assoc]
+      simp [dualFrame]
     rw [conjTranspose_transpose_eq_transpose_conjTranspose, ← transpose_mul, h_pair, stdForm,
       diagonal_transpose]
   rw [Splitting.frameAt, h_l, homTarget_kAdelic, homTarget_iAdelic, h_basis, h_inv,

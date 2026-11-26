@@ -658,8 +658,8 @@ theorem isRepOfType_of_hasProductLabel {O : DescentPair D.E r n} {ϑ : D.Twist}
     [Nonempty m] :
     IsRepOfType O (card m) (jumps κ (card m))
       (fun i : O.ChosenIndex ↦ c i * (X - 1) ^ (card m - card r)) S R := by
-  -- At the places over `O.chosenPlace i`: finite type, jumps, and the action of inertia through the
-  -- label.
+  -- At chosen places use the label to obtain finite type, jumps and annihilators on inertia.
+  -- The annihilator records the label without identifying the characteristic polynomial.
   have h_lab (i : O.ChosenIndex) {A : ClosurePlace} (hA : IsPlaceOver A (O.chosenPlace i)) :
       IsFiniteTypeAt R A ∧ HasJumpsAt R A (jumps κ (card m)) ∧
         IsLabelledAt A (faithfulChar (ResField (O.chosenPlace i))) (card r).factorial
@@ -687,8 +687,8 @@ theorem isRepOfType_of_hasProductLabel {O : DescentPair D.E r n} {ϑ : D.Twist}
       have h_above : v ∈ placesAboveM D := by
         simpa [hi] using (h_setting.isChosen_chosenPlace i).mem_placesAboveM
       exact ⟨h_fin', h_jump' κ h_jump, fun hg ↦ (hg h_above).elim⟩
-    · -- Elsewhere the form is spherical, and local-global compatibility `sphericalCompat_std`
-      -- applies.
+    · -- Elsewhere the form is spherical. Only goodness and jumps are needed from
+      -- `sphericalCompat_std`; the Frobenius annihilator is not used in this branch.
       obtain ⟨h_unr, h_jump, -⟩ :=
         (sphericalCompat_std v hf h_eigen).2 hR (h_spherical v hv hv') A hA
       exact ⟨(isGoodAt_iff.1 h_unr).1, h_jump, fun _ ↦ h_unr⟩

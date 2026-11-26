@@ -1,6 +1,5 @@
 module
 
-public import Lib.SiegelWeil.Formula.LagrangianZeroTerms
 public import Lib.SiegelWeil.SingularForms.UnimodularCoefficients
 
 /-!
@@ -75,7 +74,7 @@ lemma New.Exchange.exists_torus_mul_quasiReflection_fixes {D : G E s → ℂ}
         = D g := by
   -- A product of three radical points has such a Levi component.
   let ρ : U W₀.J := quasiReflection W₀.conjTranspose_J hJ v σ hσ
-  let c : Matrix m Unit (𝔸 E) := W₀.x⁻¹.1 * (replicateCol Unit v).map toAdele
+  let c : Matrix m Unit (𝔸 E) := W₀.x⁻¹.val * (replicateCol Unit v).map toAdele
   have hc : cᴴ * (stdForm E s₀ * c) = toAdele (σ + star ↑σ : E) • 1 := by
     ext1
     simp [hσ, ← stdForm_vecAtPoint]; rfl
@@ -142,7 +141,7 @@ lemma New.Exchange.exists_torus_mul_rational_fixes {D : G E s → ℂ}
   obtain ⟨γ', hγ'Γ, hγ⟩ :=
     witt_of_quasiReflection_mem exists_isUnit_sub_star W₀.conjTranspose_J (by simp)
       (X := (1 : Matrix m m E)) (Y := γ.val.val) ⟨1, one_mul 1⟩ ⟨γ.val.inv, γ.val.inv_val⟩
-      (by simp [show γ.val.valᴴ * _ * _ = _ from mem_unitaryGroupOf_iff.1 γ.2]) Γ hΓ
+      (by simp [show γ.val.valᴴ * _ * _ = _ from mem_unitaryGroupOf_iff.1 γ.property]) Γ hΓ
   obtain rfl : γ = γ' := Subtype.ext (Units.ext (by simp [← hγ]))
   exact (mem_Γ γ).1 hγ'Γ
 
@@ -222,7 +221,7 @@ lemma New.Exchange.IsAutFunction.apply_eq_apply_one {S : Set (FinPlace E)}
   -- It is `a * b` with `a` supported on `S ∪ S̄` and `b` integral and trivial on `S`.
   obtain ⟨a, ha, b, hb, hab, h_ab⟩ :=
     exists_supportedOn_mul_trivialOn S (k⁻¹ * componentOn n Tᶜ (k * κ.2))
-  calc D (γ.1 * (1, k)) = D (1, k) := hD.2 _ γ.2 _
+  calc D (γ.val * (1, k)) = D (1, k) := hD.2 _ γ.property _
     _ = D ((1, k) * (1, a) * (1, b)) := by rw [hK b ⟨(h_ab h_int).2, hb⟩, h_on a ha]
     _ = D (closurePart Tᶜ ((1, k) * κ)) := by simp [closurePart, mul_assoc, ← hab, Prod.map]
     _ = D (closurePart Tᶜ (H.levi (t, x))) := by

@@ -185,7 +185,7 @@ noncomputable def integralFormsAt (S : Submodule ℂ (AlgForm n κ e)) (d : Gf E
         simpa [weylGauge, mulVec_add] using (norm_add_le_max _ _).trans (max_le (hφ g) (hψ g))
       zero_mem' := by simp [GaugeLe, weylGauge]
       smul_mem' a φ hφ g := (weylGauge_smul (g * d) a).trans_le
-        ((mul_le_of_le_one_left (norm_nonneg _) a.2).trans (hφ g)) }
+        ((mul_le_of_le_one_left (norm_nonneg _) a.property).trans (hφ g)) }
 
 /-- The stabiliser of the standard lattice is integral at every set `S` of finite places. -/
 lemma stdLevel_le_localLevel {S : Set (FinPlace E)} : stdLevel E n ≤ localLevel n S := fun _ hk ↦
@@ -493,7 +493,7 @@ that neither `w` nor `w̄` is a place of `S`. -/
 lemma LevelForm.mem_sphericalAt {w : FinPlace E} (hS : w ∉ S.places.conjClosure) :
     φ.val ∈ sphericalAt (algFormRep κ e) w := by
   intro k
-  simp [φ.algFormRep_eq_self_of_mem (maxCompactAt_le_levelOf hS k.2)]
+  simp [φ.algFormRep_eq_self_of_mem (maxCompactAt_le_levelOf hS k.property)]
 
 /-- Evaluation at g, as a complex-linear map on the forms of the level. -/
 def _root_.New.Rows.evalForm (g : Gf E n) : S.LevelForm H χ κ e →ₗ[ℂ] WeylIndex n κ → ℂ where
@@ -527,7 +527,7 @@ def LevelForm.innerAt :
 /-- An element `k` of the level acts on a form, by right translation, through the character `χ`. -/
 lemma LevelForm.apply_mul_eq_smul {k : Gf E n} (hk : k ∈ levelOf S.placeAt H) (g : Gf E n) :
     φ (g * k) = χ (levelOf.reduction S.placeAt H ⟨k, hk⟩) • φ g :=
-  congrFun (congrArg Subtype.val (φ.2 ⟨k, hk⟩)) g
+  congrFun (congrArg Subtype.val (φ.property ⟨k, hk⟩)) g
 
 /-- For a CM field `E`, level places `S`, a subgroup `H` of the product of the groups `GL n` over
 the residue fields at the places of `S`, a character `χ` and weight `(κ, e)`, let `φ φ'` be level
@@ -549,7 +549,7 @@ lemma LevelForm.innerAt_eq_stdClassSum :
   have h_left : stdRatPoints.FixesLeft f := by
     rintro _ ⟨γ, rfl⟩ g
     have h_equivariant (ψ : S.LevelForm H χ κ e) :
-        ψ (stdEmbFin γ * g) = (stdSpace E n).weightRep κ e γ (ψ g) := ψ.val.2.2 γ g
+        ψ (stdEmbFin γ * g) = (stdSpace E n).weightRep κ e γ (ψ g) := ψ.val.property.2 γ g
     simp only [f, h_equivariant]
     exact congrArg ⇑σ⁻¹ (gramForm_map_weightRep σ γ _ _)
   -- An element `k` of the level multiplies both forms by the root of unity `χ k`.
@@ -679,7 +679,7 @@ lemma norm_map_inner_le :
 
 /-- Let `ρ` be the representation `New.weylRep κ e` and `G` the Gram matrix of weight `κ`. Then
 `G ρ(a) = ρ(aᵀ)ᵀ G`: the matrices of `a` and of its transpose are adjoint for `G`. -/
-lemma _root_.New.weylGramOver_mul_weylRep {Φ R : Type} [CommRing R] [IsDomain R] [CharZero R]
+lemma _root_.New.weylGramOver_mul_weylRep {Φ R : Type} [CommRing R]
     [Fintype Φ] [DecidableEq Φ] {κ : Φ → ℕ → ℕ} (e : Φ → ℤ) (a : Φ → GL n R) :
     (weylGramOver : Matrix (WeylIndex n κ) (WeylIndex n κ) R) * weylRep κ e a =
       (weylRep κ e fun τ : Φ ↦ transposeGL (a τ))ᵀ * weylGramOver := by

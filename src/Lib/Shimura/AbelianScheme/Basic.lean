@@ -1,7 +1,6 @@
 module
 
 public import Lib.General.Geometry.LineBundles
-public import Lib.General.Groups.CongruenceSubgroups
 
 /-!
 # Abelian schemes: base change, finite kernels and constant functions

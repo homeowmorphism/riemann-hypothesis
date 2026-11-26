@@ -642,8 +642,7 @@ lemma Variety.UniversalFamily.exists_isPointOf (U : UniversalFamily D R) (𝔪 :
   -- The point a is the member at the parameter 0 of some analytic family f, and the universal
   -- family carries a model of the fibre at (f, 0).
   obtain ⟨f, hf⟩ := exists_isBallFamily a
-  rw [← hf.ballPoint_zero]
-  exact ⟨homMk _, U.model (f, 0), rfl⟩
+  exact hf.ballPoint_zero ▸ ⟨homMk _, U.model (f, 0), rfl⟩
 
 /-- For a point a = (x, ℓ, P) at infinite level, a chosen complex point over R of the fibre power of
 the family that is the point of a with its 𝔪-torsion (`New.ThetaFamily.IsPointOf`): an object
@@ -693,10 +692,11 @@ lemma ThetaFamily.IsPointOf.of_generic (h_generic : IsPointOf 𝔪 a (genericPt 
 /-- A matrix over the finite adeles that sends every vector with entries in Ô to a vector with
 entries in Ô has its entries in Ô. Vectors with entries in Ô are those whose class in the torsion
 module (𝔸f / Ô)ⁿ is zero. -/
-lemma mem_Ô_of_torsionClass_mulVec_eq_zero {n : Type} [Fintype n] [DecidableEq n]
+lemma mem_Ô_of_torsionClass_mulVec_eq_zero {n : Type} [Fintype n]
     {l : Matrix n n (𝔸f E)}
     (h_zero : ∀ y : n → 𝔸f E, torsionClass y = 0 → torsionClass (l *ᵥ y) = 0) (i j : n) :
     l i j ∈ Ô E := by
+  classical
   -- Apply `l` to the `j`-th standard basis vector.
   simpa using torsionClass_eq_zero.mp (h_zero (Pi.single j 1)
     (torsionClass_eq_zero.mpr fun k ↦ by simp [Pi.single_apply, ite_mem])) i
@@ -947,8 +947,7 @@ lemma GraphClosure.exists_level_point_eq (C : U.GraphClosure γ ν) :
         (γ j).2.prop
       simpa [act] using
         realVecAction_mem_frameLattice (A := 1) (by simpa using h_int) (h_iso.sub_mem_lattice i)
-  rw [C.point_comp_proj, C.point_comp_proj]
-  exact datumPoint_eq_iff.mpr ⟨z, h_iso_γ⟩
+  simpa only [C.point_comp_proj] using! datumPoint_eq_iff.mpr ⟨z, h_iso_γ⟩
 
 /-- For κ with m elements, the κ-fold fibre power of the abelian scheme 𝒜 over the base S is smooth
 over S of relative dimension m times the dimension of 𝒜 (`New.Variety.abelianDim`). -/

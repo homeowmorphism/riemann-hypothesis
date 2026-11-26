@@ -55,24 +55,24 @@ namespace New
 /-- Let `f` be an increasing sequence of `k` of the numbers below `M` (an `IncreasingMap`). The
 numbers below `p`, followed by `p + f 0, p + f 1, …`, form an increasing sequence. -/
 lemma strictMono_append_natAdd {p M k : ℕ} (f : IncreasingMap M k) :
-    StrictMono (Fin.append (Fin.castAdd M) (Fin.natAdd p ∘ f.1)) := by
+    StrictMono (Fin.append (Fin.castAdd M) (Fin.natAdd p ∘ f.val)) := by
   intro s t hst
   induction s using Fin.addCases with
   | left a =>
     induction t using Fin.addCases with
     | left b => simpa only [Fin.lt_def, Fin.append_left, Fin.val_castAdd] using hst
-    | right b => simpa [Fin.lt_def] using a.isLt.trans_le (Nat.le_add_right p (f.1 b))
+    | right b => simpa [Fin.lt_def] using a.isLt.trans_le (Nat.le_add_right p (f.val b))
   | right a =>
     induction t using Fin.addCases with
     | left b =>
       simp only [Fin.lt_def, Fin.val_castAdd, Fin.val_natAdd] at hst
       omega
-    | right b => simpa using f.2 ((Fin.natAdd_lt_natAdd_iff p).1 hst)
+    | right b => simpa using f.property ((Fin.natAdd_lt_natAdd_iff p).1 hst)
 
 /-- In an increasing sequence of numbers below `N` (an `IncreasingMap`), the term of index `a` is at
 least `a`. -/
 lemma le_val_of_increasingMap {N h : ℕ} (f : IncreasingMap N h) (a : ℕ) (ha : a < h) :
-    a ≤ (f.1 ⟨a, ha⟩ : ℕ) := by
+    a ≤ (f.val ⟨a, ha⟩ : ℕ) := by
   induction a with
   | zero => exact Nat.zero_le _
   | succ a ih => exact (ih (Nat.lt_of_succ_lt ha)).trans_lt (f.2 (Fin.mk_lt_mk.2 a.lt_succ_self))
@@ -80,15 +80,15 @@ lemma le_val_of_increasingMap {N h : ℕ} (f : IncreasingMap N h) (a : ℕ) (ha 
 /-- Let `f` be an increasing sequence of `h` numbers below `N` (an `IncreasingMap`) that takes each
 value less than both `p` and `h`. Then each term of index less than `p` is equal to its index. -/
 lemma val_eq_of_forall_exists_val_eq {N h p : ℕ} (f : IncreasingMap N h)
-    (h_onto : ∀ s : Fin h, (s : ℕ) < p → ∃ t : Fin h, (f.1 t : ℕ) = s)
-    (a : ℕ) (ha : a < h) (hap : a < p) : (f.1 ⟨a, ha⟩ : ℕ) = a := by
+    (h_onto : ∀ s : Fin h, (s : ℕ) < p → ∃ t : Fin h, (f.val t : ℕ) = s)
+    (a : ℕ) (ha : a < h) (hap : a < p) : (f.val ⟨a, ha⟩ : ℕ) = a := by
   induction a using Nat.strong_induction_on with
   | _ a ih =>
-    obtain ⟨⟨t, ht⟩, h_val⟩ : ∃ t : Fin h, (f.1 t : ℕ) = a := h_onto ⟨a, ha⟩ hap
+    obtain ⟨⟨t, ht⟩, h_val⟩ : ∃ t : Fin h, (f.val t : ℕ) = a := h_onto ⟨a, ha⟩ hap
     have h_le : t ≤ a := (le_val_of_increasingMap f t ht).trans_eq h_val
     rcases h_le.eq_or_lt with rfl | h_lt
     · exact h_val
-    · have h_self : (f.1 ⟨t, ht⟩ : ℕ) = t := ih t h_lt ht (h_lt.trans hap)
+    · have h_self : (f.val ⟨t, ht⟩ : ℕ) = t := ih t h_lt ht (h_lt.trans hap)
       omega
 
 /-! ### Putting the leading rows on top -/
@@ -117,7 +117,7 @@ def leadingWedge (h_rank : ∀ τ : Φ, q τ + rankAt m τ = rankAt n τ)
           Fin.strictMono_castLE _⟩)
       (fun (k : Fin (rankAt m τ)) (j : Fin (κ τ (q τ + k))) ↦
         ⟨Fin.cast (h_rank τ) ∘
-            Fin.append (Fin.castAdd (rankAt m τ)) (Fin.natAdd (q τ) ∘ (T τ k j).1),
+            Fin.append (Fin.castAdd (rankAt m τ)) (Fin.natAdd (q τ) ∘ (T τ k j).val),
           (Fin.cast_strictMono (h_rank τ)).comp (strictMono_append_natAdd (T τ k j))⟩)
       (Fin.cast (h_rank τ).symm h)
 
@@ -126,7 +126,7 @@ def leadingWedge (h_rank : ∀ τ : Φ, q τ + rankAt m τ = rankAt n τ)
 `h < q τ` is filled with the first `h` rows: its entry of index `s` is `s`. -/
 lemma leadingWedge_castAdd (h_rank : ∀ τ : Φ, q τ + rankAt m τ = rankAt n τ)
     (T : ColumnFilling m (flatColumns q κ)) (τ : Φ) (h : Fin (q τ)) (j : Fin (κ τ h)) (s : Fin h) :
-    ((leadingWedge h_rank T τ (Fin.cast (h_rank τ) (Fin.castAdd (rankAt m τ) h)) j).1 s : ℕ) =
+    ((leadingWedge h_rank T τ (Fin.cast (h_rank τ) (Fin.castAdd (rankAt m τ) h)) j).val s : ℕ) =
       s := by
   simp [leadingWedge]
 
@@ -136,9 +136,9 @@ lemma leadingWedge_castAdd (h_rank : ∀ τ : Φ, q τ + rankAt m τ = rankAt n 
 lemma leadingWedge_natAdd (h_rank : ∀ τ : Φ, q τ + rankAt m τ = rankAt n τ)
     (T : ColumnFilling m (flatColumns q κ)) (τ : Φ) (k : Fin (rankAt m τ))
     (j : Fin (κ τ (q τ + k))) :
-    (leadingWedge h_rank T τ (Fin.cast (h_rank τ) (Fin.natAdd (q τ) k)) j).1 =
+    (leadingWedge h_rank T τ (Fin.cast (h_rank τ) (Fin.natAdd (q τ) k)) j).val =
       Fin.cast (h_rank τ) ∘
-        Fin.append (Fin.castAdd (rankAt m τ)) (Fin.natAdd (q τ) ∘ (T τ k j).1) := by
+        Fin.append (Fin.castAdd (rankAt m τ)) (Fin.natAdd (q τ) ∘ (T τ k j).val) := by
   simp [leadingWedge]
 
 /-- The map `leadingWedge h_rank`, which puts the first `q τ` rows on top of a filling of the later
@@ -149,7 +149,7 @@ lemma leadingWedge_injective (h_rank : ∀ τ : Φ, q τ + rankAt m τ = rankAt 
   funext τ k j
   refine Subtype.ext (funext fun s : Fin k ↦ ?_)
   have h_rows := congrArg (fun U : ColumnFilling n κ ↦
-    (U τ (Fin.cast (h_rank τ) (Fin.natAdd (q τ) k)) j).1 (Fin.natAdd (q τ) s)) hT
+    (U τ (Fin.cast (h_rank τ) (Fin.natAdd (q τ) k)) j).val (Fin.natAdd (q τ) s)) hT
   simpa [leadingWedge_natAdd, Fin.ext_iff] using h_rows
 
 /-- A filling `U` is in the range of `leadingWedge h_rank`, which puts the first `q τ` rows on top
@@ -158,14 +158,14 @@ of a filling of the later rows, if in every column of `U` the entry of index `a 
 lemma mem_range_leadingWedge (h_rank : ∀ τ : Φ, q τ + rankAt m τ = rankAt n τ)
     {U : ColumnFilling n κ}
     (h_fixed : ∀ (τ : Φ) (h : Fin (rankAt n τ)) (j : Fin (κ τ h)) (a : ℕ) (ha : a < h),
-      a < q τ → ((U τ h j).1 ⟨a, ha⟩ : ℕ) = a) :
+      a < q τ → ((U τ h j).val ⟨a, ha⟩ : ℕ) = a) :
     U ∈ Set.range (leadingWedge h_rank) := by
   -- In a column of height `q τ + k` take the last `k` entries and subtract `q τ`.
   let column (τ : Φ) (k : Fin (rankAt m τ)) (j : Fin (κ τ (q τ + k))) :
       IncreasingMap (rankAt n τ) (q τ + k) :=
     U τ (Fin.cast (h_rank τ) (Fin.natAdd (q τ) k)) j
   let later (τ : Φ) (k : Fin (rankAt m τ)) (j : Fin (κ τ (q τ + k))) (s : Fin k) :
-      Fin (rankAt n τ) := (column τ k j).1 (Fin.natAdd (q τ) s)
+      Fin (rankAt n τ) := (column τ k j).val (Fin.natAdd (q τ) s)
   have h_le (τ : Φ) (k : Fin (rankAt m τ)) (j : Fin (κ τ (q τ + k))) (s : Fin k) :
       q τ ≤ (later τ k j s : ℕ) :=
     (Nat.le_add_right (q τ) s).trans
@@ -176,7 +176,7 @@ lemma mem_range_leadingWedge (h_rank : ∀ τ : Φ, q τ + rankAt m τ = rankAt 
   have h_mono (τ : Φ) (k : Fin (rankAt m τ)) (j : Fin (κ τ (q τ + k))) :
       StrictMono fun s : Fin k ↦ (⟨later τ k j s - q τ, h_lt τ k j s⟩ : Fin (rankAt m τ)) :=
     fun s t hst ↦ Nat.sub_lt_sub_right (h_le τ k j s)
-      ((column τ k j).2 ((Fin.natAdd_lt_natAdd_iff (q τ)).2 hst))
+      ((column τ k j).property ((Fin.natAdd_lt_natAdd_iff (q τ)).2 hst))
   let T : ColumnFilling m (flatColumns q κ) := fun τ k j ↦
     ⟨fun s : Fin k ↦ ⟨later τ k j s - q τ, h_lt τ k j s⟩, h_mono τ k j⟩
   refine ⟨T, ?_⟩
@@ -313,7 +313,7 @@ lemma aeval_fillingPoly_leadingWedge [Fintype Φ]
         (of fun s t : Fin h ↦ positionEntry h_rank y τ
           (Fin.castAdd (rankAt m τ) (Fin.castLE h.is_le' s)) t).det := by
     have h_row (s : Fin h) :
-        (leadingWedge h_rank T τ (Fin.cast (h_rank τ) (Fin.castAdd (rankAt m τ) h)) j).1 s =
+        (leadingWedge h_rank T τ (Fin.cast (h_rank τ) (Fin.castAdd (rankAt m τ) h)) j).val s =
           Fin.cast (h_rank τ) (Fin.castAdd (rankAt m τ) (Fin.castLE h.is_le' s)) :=
       Fin.ext (leadingWedge_castAdd h_rank T τ h j s)
     simp [minor, AlgHom.map_det, fillingRows, h_row, Matrix.map]
@@ -324,7 +324,7 @@ lemma aeval_fillingPoly_leadingWedge [Fintype Φ]
         (topBlock h_rank y τ).det *
           aeval (schurComplementArray h_rank y) (minor ℤ (Sigma.mk τ ∘ fillingRows T τ k j)) := by
     simpa [minor, AlgHom.map_det, fillingRows, Matrix.map, leadingWedge_natAdd] using
-      det_positionEntry_append h_rank y (hy τ) (T τ k j).1
+      det_positionEntry_append h_rank y (hy τ) (T τ k j).val
   simp only [fillingPoly, tableauPoly, leadingFactor, map_prod, ← Finset.prod_mul_distrib]
   refine Finset.prod_congr rfl fun τ _ ↦ ?_
   -- Split the heights of the columns into those below `q τ` and the others.
@@ -366,7 +366,7 @@ lemma exists_row_eq_of_aeval_blockArray_ne_zero (h_rank : ∀ τ : Φ, q τ + ra
     {y : (Σ τ : Φ, m τ) × ℕ → ℤ} {U : ColumnFilling n κ}
     (h_ne : aeval (blockArray h_rank y) (fillingPoly ℤ U) ≠ 0) (τ : Φ)
     (h : Fin (rankAt n τ)) (j : Fin (κ τ h)) (s : Fin h) (hs : (s : ℕ) < q τ) :
-    ∃ t : Fin h, ((U τ h j).1 t : ℕ) = s := by
+    ∃ t : Fin h, ((U τ h j).val t : ℕ) = s := by
   -- At `τ`, column `s` of `diag(1, y)` vanishes outside row `s`, so a minor without it is zero.
   by_contra! h_miss
   have h_zero (p : Fin (q τ + rankAt m τ)) (hp : (p : ℕ) ≠ s) :
@@ -378,7 +378,7 @@ lemma exists_row_eq_of_aeval_blockArray_ne_zero (h_rank : ∀ τ : Φ, q τ + ra
     rw [minor, AlgHom.map_det]
     refine det_eq_zero_of_column_eq_zero s fun t ↦ ?_
     simpa [fillingRows, positionEntry] using
-      h_zero (Fin.cast (h_rank τ).symm ((U τ h j).1 t)) (h_miss t)
+      h_zero (Fin.cast (h_rank τ).symm ((U τ h j).val t)) (h_miss t)
   apply h_ne
   simp only [fillingPoly, tableauPoly, map_prod, Finset.prod_eq_zero_iff]
   exact ⟨τ, by simp, h, by simp, j, by simp, h_minor⟩

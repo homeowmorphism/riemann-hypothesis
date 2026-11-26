@@ -75,26 +75,15 @@ lemma filling_fits :
         (Unitary.toUnits (D.latticeScale 0) •
             (toBesselH D.shape (D.N : 𝔸f D.E) (scalarFin D.shape.κ (D.latticeScale 0))⁻¹).1 *
           D.filling.latticeBasis).1 := by
-    let u : 𝔸f D.E := (D.latticeScale 0).1
-    -- `u⁻¹ = star u` multiplies only the `X₀` rows of the lattice basis.
-    have h_prod :
-        (toBesselH D.shape (D.N : 𝔸f D.E) (scalarFin D.shape.κ (D.latticeScale 0))⁻¹).1.1 *
-            D.filling.latticeBasis.1 =
-          fromBlocks 1 0 0 (fromBlocks
-            (fromBlocks (star u • Filling.scaleAt (star D.piNIdele⁻¹.1) D.shape.k₀) 0
-              (of fun (_ : Unit) (j : D.shape.κ) ↦
-                if j = D.shape.k₀ then (D.piNIdele * star D.piNIdele)⁻¹.1 else 0) 1)
-            0 0 1) := by
-      have h_embed (a : Gf D.E D.shape.κ) : (toBesselH D.shape (D.N : 𝔸f D.E) a).1.1 =
-          fromBlocks 1 0 0 (fromBlocks (fromBlocks a.1.1 0 0 1) 0 0 1) := rfl
-      rw [h_embed, ← map_inv]
-      simp [u, filling, besselLatticeBasis, fromBlocks_multiply, scalarFin,
-        ← Unitary.star_eq_inv, smul_eq_diagonal_mul]
-    have h_unit (c : 𝔸f D.E) : u * (star u * c) = c := by simp [u, ← mul_assoc]
-    rw [Units.val_mul, Units.val_smul, smul_mul_assoc, h_prod]
+    have h_embed (a : Gf D.E D.shape.κ) : (toBesselH D.shape (D.N : 𝔸f D.E) a).1.1 =
+        fromBlocks 1 0 0 (fromBlocks (fromBlocks a.1.1 0 0 1) 0 0 1) := rfl
+    have h_unit (c : 𝔸f D.E) : (D.latticeScale 0).1 * (star (D.latticeScale 0).1 * c) = c := by
+      simp [← mul_assoc]
+    rw [Units.val_mul, Units.val_smul, smul_mul_assoc, h_embed, ← map_inv]
     -- Compare the entries: equal indices give the scalars, by `h_unit`. Otherwise both are 0, as
     -- the string indices `a`, `ϱ`, `2 ϱ - b` for `a, b < ϱ` are different.
-    simp [u, h_unit, ← ext_iff, besselIndexEquiv, gradedLatticeBasis, diagonal_apply, smul_def,
+    simp [h_unit, ← ext_iff, filling, besselLatticeBasis, fromBlocks_multiply, scalarFin,
+      ← Unitary.star_eq_inv, besselIndexEquiv, gradedLatticeBasis, diagonal_apply, smul_def,
       fromBlocks_smul, Matrix.one_apply, Fin.ext_iff, Fin.val_rev]
     and_intros <;> grind
   rw [h_lat] at hγ
@@ -226,31 +215,21 @@ lemma filling_besselDegree_eq_exp_sum :
     D.filling.besselDegree = exp (∑ v : D.Φ, ∑ l ∈ Ico (D.k - 1) D.r,
       (∑ i ∈ range l, log (D.targetParameter v i - D.targetParameter v l) - Real.log l !)) := by
   push_cast [Filling.besselDegree, (D.filling_fits.isDiscreteSeriesBessel _).deg_eq, ↓card_rowIndex,
-    exp_sum,
-    exp_sub, weylDimensionPoly, ↓paramW_lt_iff, paramW]
+    exp_sum, exp_sub, weylDimensionPoly, ↓paramW_lt_iff, paramW]
   congr! with v
   -- Index the pairs by their numbers under `basisNumber`.
-  suffices h_ranges : ∏ l ∈ range D.r, (∏ i ∈ range (min D.r l),
-        (2 * (D.targetParameter v i : ℝ) - 2 * D.targetParameter v l) / 2) / l ! =
-      ∏ l ∈ Ico (D.k - 1) D.r,
-        (∏ i ∈ range l, exp (log (D.targetParameter v i - D.targetParameter v l : ℝ))) /
-          exp (log (l ! : ℝ)) by
-    simpa [prod_comm, prod_filter, reindex_equiv D.basisNumber.symm, prod_fin_eq_prod_range,
-      ← mem_range, ← prod_div_distrib] using h_ranges
-  apply prod_congr_of_eq_on_inter
-  · -- `l < k - 1`: the differences are `l - i`, with product `l!`.
-    intro l hl hl'
-    field_simp
+  simp [prod_comm, prod_filter, reindex_equiv D.basisNumber.symm, prod_fin_eq_prod_range,
+    ← mem_range, ← prod_div_distrib]
+  refine prod_congr_of_eq_on_inter (fun l hl hl' ↦ ?_)
+    (fun l hl hl' ↦ absurd (mem_range.2 (mem_Ico.1 hl).2) hl') (fun l hl _ ↦ ?_)
+  -- `l < k - 1`: the differences are `l - i`, with product `l!`.
+  · field_simp
     norm_cast
-    have h_diff (i : ℕ) (hi : i ∈ range l) :
-        D.targetParameter v i - D.targetParameter v l = (l - 1 - i : ℕ) + 1 := by
-          grind [targetParameter_eq]
-    simp [min_eq_right (mem_range.1 hl).le, prod_congr rfl h_diff,
-      prod_range_reflect (fun i : ℕ ↦ (i : ℤ) + 1), ← prod_range_add_one_eq_factorial]
-  · exact fun l hl hl' ↦ absurd (mem_range.2 (mem_Ico.1 hl).2) hl' -- the left range is larger
-  · -- `k - 1 ≤ l < r`: the numbers under `log` are positive by `targetParameter_sub_mem_Icc`.
-    intro l hl _
-    rw [min_eq_right (mem_range.1 hl).le, exp_log (mod_cast l.factorial_pos)]
+    rw [min_eq_right (mem_range.1 hl).le, prod_congr rfl (g := fun i ↦ ((l - 1 - i : ℕ) : ℤ) + 1)
+      fun i hi ↦ by grind [targetParameter_eq]]
+    simp [prod_range_reflect (fun i : ℕ ↦ (i : ℤ) + 1), ← prod_range_add_one_eq_factorial]
+  -- `k - 1 ≤ l < r`: the numbers under `log` are positive by `targetParameter_sub_mem_Icc`.
+  · rw [min_eq_right (mem_range.1 hl).le, exp_log (mod_cast l.factorial_pos)]
     refine congrArg (· / (l ! : ℝ)) (prod_congr rfl fun i hi ↦ ?_)
     rw [exp_log (one_pos.trans_le (D.targetParameter_sub_mem_Icc v (mem_range.1 hi)).1)]
     ring
@@ -344,7 +323,8 @@ lemma relIndex_latticeStabilizer :
         algebraMap (RingOfIntegers D.E) (Ô D.E) D.piN ∣ r j := by
       by_cases hj : j = D.shape.k₀ <;>
         simp [hj, Ne.symm, r, Submodule.mem_span_singleton, dvd_def, Subtype.ext_iff,
-          Subring.smul_def, piNIdele, mul_comm, eq_comm]
+          Subring.smul_def, piNIdele] <;>
+        exact exists_congr fun _ ↦ and_congr_right' (by rw [mul_comm, eq_comm])
     have h_fix (w : D.piNPlaces) : stdLevel.reduceFamily Subtype.val ⟨x, hx⟩ w ∈ H w ↔
         ∀ j : D.shape.κ, reduceAt w.1 (r j) = 0 := by
       -- The inverse transpose fixes the unit vector iff row `k₀` of the reduction is that vector.
@@ -372,19 +352,13 @@ lemma card_classes_eq_card_mul_pow_mul_mass :
   -- The classes have trivial automorphism groups, so their number is the index of `D.levelX 0`
   -- in `stdLevel` times the mass; the index splits along
   -- `D.levelX 0 ≤ (preimage of latticeStabilizer) ≤ stdLevel`.
-  have h_card : (card D.filling.Classes : ℝ) =
-      (D.levelX 0).relIndex (stdLevel D.E D.shape.κ) * mass D.E D.k := by
-    erw [card_eq_nat_card, card_classes_eq_classSum D.classAut_levelX_zero_eq_bot,
-      classSum_one_of_le IsLevel.le, classSum_stdRatPoints_eq_mass, card_X₀]
-  -- `D.levelX 0` is the preimage of the principal congruence subgroup.
-  have relIndex_levelX_eq_card_image :
-      (D.levelX 0).relIndex (D.filling.latticeStabilizer.comap D.filling.inclHFin) =
-        Nat.card (D.filling.reducedImage besselH) := by
-    rw [levelX_zero_eq_comap]
-    exact D.filling.relIndex_comap_principalLevel
-  rw [h_card, ← relIndex_mul_relIndex _ _ _
-    (D.levelX_zero_eq_comap.trans_le (comap_mono (map_subtype_le _)))
-    fun x hx ↦ (D.filling.inclHFin_mem_latticeStabilizer_iff.1 hx).1, relIndex_levelX_eq_card_image]
+  rw [card_eq_nat_card]
+  refine (card_classes_eq_classSum D.classAut_levelX_zero_eq_bot).trans ?_
+  rw [classSum_one_of_le IsLevel.le, classSum_stdRatPoints_eq_mass, card_X₀,
+    ← relIndex_mul_relIndex _ (D.filling.latticeStabilizer.comap D.filling.inclHFin) _
+      (D.levelX_zero_eq_comap.trans_le (comap_mono (map_subtype_le _)))
+      fun x hx ↦ (D.filling.inclHFin_mem_latticeStabilizer_iff.1 hx).1,
+    levelX_zero_eq_comap, D.filling.relIndex_comap_principalLevel]
   simp [D.relIndex_latticeStabilizer]
 
 /-- With `fr_v` the frame mass, and `d_v`, `deg_v` the dimension and the degree of the Bessel system
@@ -528,7 +502,7 @@ lemma scaledSiegelConst_le : D.filling.scaledSiegelConst ≤
     have h_order : ((D.filling.M : ℝ) ^ (2 * (D.ϱ * (D.ϱ + D.k)) + D.ϱ)) ^ D.f =
         D.filling.unipotentOrder := by
       rw [← pow_mul, unipotentOrder, Shape.k, card_X₀, Nat.cast_pow]
-      ring_nf
+      ring
     -- The factor `frameScaleProd` cancels from the definition of the covolume.
     rw [Filling.unipotentCovolume, div_mul_cancel₀ _ D.filling.frameScaleProd_pos.ne', Shape.k,
       card_X₀, h_rank, div_pow]
@@ -546,8 +520,7 @@ lemma scaledSiegelConst_le : D.filling.scaledSiegelConst ≤
       rw [prod_frameMass_mul_div_eq, scaledSiegelConst, card_reducedImage_besselS, h_siegel]
       simp only [scale, h_covolume, Shape.n]
       push_cast
-      field_simp
-      ring
+      field
     _ ≤ (1 + D.b⁻¹ ^ 9) * D.filling.mainSecondMoment * scale :=
       mul_le_mul_of_nonneg_right D.card_mul_card_classes_mul_prod_le (by positivity)
     _ = _ := by ring

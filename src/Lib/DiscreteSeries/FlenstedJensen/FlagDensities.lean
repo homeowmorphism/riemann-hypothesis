@@ -242,7 +242,7 @@ lemma exists_mul_isBorelMatrix_of_mem_openOrbit (ho : o.Injective) (ε : n → �
   -- Move the phases of the diagonal of `b` into `g`.
   let t : USign ε := diagTorus ε fun i : n ↦
     ⟨‖b i i‖ / b i i, by simp [Submonoid.unitSphere, hb.diag_ne_zero ho]⟩
-  have ht : IsBorelMatrix o t := ⟨blockTriangular_diagonal _, GeneralLinearGroup.det_ne_zero t.1⟩
+  have ht : IsBorelMatrix o t := ⟨blockTriangular_diagonal _, GeneralLinearGroup.det_ne_zero t.val⟩
   refine ⟨g * t⁻¹, t * b, ht.mul hb, fun i ↦ ?_, by simp [mul_assoc]⟩
   simp [t, diagTorus, hb.diag_ne_zero ho]
 
@@ -668,8 +668,8 @@ noncomputable def signBlocksHom (ε : n → ℤˣ) :
   MonoidHom.mk'
     (fun u ↦ ⟨U.of IsHermitianInvolution.isUnit (signBlocks ε u.1 u.2)
         (signBlocks_preserves_form
-          (by simpa [star_eq_conjTranspose] using mem_unitaryGroupOf_iff.1 u.1.2)
-          (by simpa [star_eq_conjTranspose] using mem_unitaryGroupOf_iff.1 u.2.2)),
+          (by simpa [star_eq_conjTranspose] using mem_unitaryGroupOf_iff.1 u.1.property)
+          (by simpa [star_eq_conjTranspose] using mem_unitaryGroupOf_iff.1 u.2.property)),
       mem_maxCompactU.2 signBlocks_mem_blockDiagAlg⟩)
     fun u v ↦ Subtype.ext <| Subtype.ext <| Units.ext (by simp [signBlocks_mul])
 

@@ -91,7 +91,7 @@ lemma integrable_algFormCoeff_mul_theta_tripleWeil {κ : NumberField.InfinitePla
     fun_prop
   · -- both factors are invariant under rational points
     rintro ⟨γ, δ⟩ ⟨hγ, hδ⟩ ⟨x, r⟩
-    simp only [Prod.mk_mul_mk, h_rat γ hγ x, theta_tripleWeil_rat_mul a b f γ hγ δ hδ x r g]
+    simp only [Prod.mk_mul_mk, h_rat γ hγ x, theta_tripleWeil_rat_mul a b f hγ hδ x r g]
 
 /-- Write `P ⊗ Φ` for `integrated` applied to the Fock vector `polyVector P` and the finite datum
 `Φ`. Combining with `arrowProduct` the data `P ⊗ Φ` on `Hom(X, X')` and `Q ⊗ Φ'` on `Hom(X', X'')`,
@@ -112,7 +112,7 @@ lemma arrowProduct_integrated_polyVector (P : MvPolynomial (NumberField.Infinite
           (rename (fun (v, j, i) ↦ (v, Sum.inl i, j)) P *
             rename (fun (v, i, j) ↦ (v, Sum.inr i, j)) Q))
         (arrowTensor (Φ ⊗ₜ Φ')) := by
-  simp [arrowProduct, flipPoly, pairSign, rename_eq_aeval, aeval_bind₁, map_integrated,
+  simp [arrowProduct, flipPoly, pairSign, rename_eq_aeval, comp_aeval_apply, map_integrated,
     realMap_flipCoords_polyVector, boxProd_integrated, realBoxProd_polyVector]
   -- the two descriptions of the renamed variables of `P` and `Q` agree by definition
   rfl
@@ -267,7 +267,7 @@ lemma DoubleLiftData.constTerm_mul_constTerm_eq_inv_mul_zeroTerm (D : DoubleLift
     simp [continuous_pi_iff, φ, Y.formAdjoint_apply Y', -continuous_prodMk, vecToMatrix,
       matrixToVec, mul_assoc]
     exact ⟨by fun_prop, by fun_prop⟩
-  have h_rat : ∀ᵉ (a ∈ ratVectors E (ι' × ι)) (a' ∈ ratVectors E (ι'' × ι')),
+  have h_rat : ∀ a ∈ ratVectors E (ι' × ι), ∀ a' ∈ ratVectors E (ι'' × ι'),
       φ (a, a') ∈ ratVectors E _ := by
     rintro _ ⟨a, rfl⟩ _ ⟨a', rfl⟩
     simp [mem_ratVectors, φ, Y.formAdjoint_apply Y', ← map_mul, ratAdeles, vecToMatrix, matrixToVec]
@@ -361,8 +361,8 @@ lemma formAdjoint_stackedStringMap_mul_stackedStringMap (D : DoubleLiftData X'' 
     V'.formAdjoint (flipSum V V'') (stackedStringMap Y Y' Y'') * stackedStringMap Y Y' Y'' = 0 := by
   obtain rfl : s' = s - 1 := D.length_middle
   obtain rfl : s'' = s - 1 - 1 := D.length_last
-  rw [stackedStringMap, formAdjoint_fromRows]
-  simp [formAdjoint_stringMap_mul_stringMap, D.c_eq, formAdjoint_formAdjoint, fromCols_mul_fromRows]
+  simp [stackedStringMap, formAdjoint_fromRows, formAdjoint_stringMap_mul_stringMap, D.c_eq,
+    formAdjoint_formAdjoint, fromCols_mul_fromRows]
 
 /-- In the second argument `h` of `constTermAtStringMap`, a unipotent `n` in `Y'.unipotent` moves
 into the map at which `constTerm` is taken: `Y.stringMap Y'` is multiplied on the left by the matrix
@@ -393,8 +393,8 @@ lemma mul_constTermAtStringMap_unipotent_mul {Y' : Grading V' N X' (s - 1)} (h_o
     (a : AutChar E) (f : 𝒮 (V.hom V')) {W : Y.besselGroup → ℂ} (hW : Y.IsEquivariant W) {n : G E ε}
     (hn : n ∈ Y.unipotent) (g : Y.besselGroup) (r : G E ε') :
     W (⟨n, Y.unipotent_le_besselGroup hn⟩ * g) *
-        Y.constTermAtStringMap Y' (rankTwist a) f (n * g.1) r =
-      W g * Y.constTermAtStringMap Y' (rankTwist a) f g.1 r := by
+        Y.constTermAtStringMap Y' (rankTwist a) f (n * g.val) r =
+      W g * Y.constTermAtStringMap Y' (rankTwist a) f g.val r := by
   have h_deg : HasDegreeGe Y.gradeOf Y.gradeOf 2 (V.ratCoordMatrix n - 1) :=
     Y.hasDegreeGe_two_of_odd h_odd hn
   simp [constTermAtStringMap, homBicharacter_eq, hW.unipotent_mul_constTerm
@@ -493,11 +493,11 @@ lemma DoubleLiftData.exists_integral_constTermAtStringMap_mul_eq
     fun_prop
   have h_fix_left (r : Y'.besselGroup) :
       (Y.ratBessel.subgroupOf Y.besselGroup).FixesLeft (fun g ↦ F g r) := fun γ hγ g ↦ by
-    simp [F, hW.rat_mul γ hγ.1, ← constTermAtStringMap_rat_mul ⟨γ.1, hγ⟩ 1 g.1]
+    simp [F, hW.rat_mul γ hγ.1, ← constTermAtStringMap_rat_mul ⟨γ.val, hγ⟩ 1 g.val]
   have h_fix_right (g : Y.besselGroup) :
       (Y'.ratBessel.subgroupOf Y'.besselGroup).FixesLeft (F g) := fun δ hδ r ↦ by
-    simp [F, ← constTermAtStringMap_rat_mul 1 ⟨δ.1, hδ⟩ g.1 r.1,
-      ← constTermAtStringMap_rat_mul ⟨δ.1, hδ⟩ 1 r.1]
+    simp [F, ← constTermAtStringMap_rat_mul 1 ⟨δ.val, hδ⟩ g.val r.val,
+      ← constTermAtStringMap_rat_mul ⟨δ.val, hδ⟩ 1 r.val]
   let ι₀ := Y.inclX.codRestrict Y.besselGroup Y.inclX_mem_besselGroup
   have ι₀_cont : Continuous ι₀ := Y.continuous_inclX.subtype_mk _
   have h_fix_levi (r : Y'.besselGroup) :
@@ -506,7 +506,7 @@ lemma DoubleLiftData.exists_integral_constTermAtStringMap_mul_eq
   -- for odd `s` the characters of `W` and of the kernel cancel on unipotent elements
   have h_unip (r : Y'.besselGroup) (n : G E ε) (hn : n ∈ Y.unipotent) (x : G E 1) :
       F (⟨n, Y.unipotent_le_besselGroup hn⟩ * ι₀ x) r = F (ι₀ x) r := by
-    simp [F, mul_constTermAtStringMap_unipotent_mul h_odd a f hW hn (ι₀ x) r.1]
+    simp [F, mul_constTermAtStringMap_unipotent_mul h_odd a f hW hn (ι₀ x) r.val]
   have h_inner (r : Y'.besselGroup) :
       ∫ g, F g r ∂Y.besselMeasure = κ * ∫ x, F (ι₀ x) r ∂(stdSpace E X).quotMeasure :=
     hκ (f := fun x _ ↦ F (ι₀ x) r) (h_fix_left r) h_cont.along_fst (h_unip r)
@@ -549,7 +549,7 @@ lemma DoubleLiftData.exists_integral_constTermAtStringMap_mul_eq
     fun_prop
   · -- and invariant under its rational points
     congr 2
-    simpa only [one_mul] using theta_tripleWeil_rat_mul a b _ 1 (one_mem _) γ hγ x g _
+    simpa only [one_mul] using theta_tripleWeil_rat_mul a b _ (γ := 1) (one_mem _) hγ x g _
 
 end New.Seesaw
 
@@ -599,7 +599,7 @@ lemma twistedPairWeil_movedDatum (k : ℕ) (g : New.G D.E (D.signsY k))
 /-- In the constant term `constTermAtStringMap` of the moved datum at `(g, g' * a)`, the point `a`
 may be moved into the datum: it is the constant term at `(g, g')` of `datumY` acted on by
 `(g_k, a)`, where `g_k = (ξ k, y k)`. -/
-lemma constTermAtStringMap_movedDatum {k : ℕ} {hk : k ≤ 2 * D.ϱ + 1} {X : Type} {s : ℕ} [Fintype X]
+lemma constTermAtStringMap_movedDatum {k : ℕ} {hk : k ≤ 2 * D.ϱ + 1} {X : Type} {s : ℕ}
     [DecidableEq X] (Y' : Grading (D.spaceY (k + 1)) D.N X s) (g : New.G D.E (D.signsY k))
     (g' a : New.G D.E (D.signsY (k + 1))) :
     (D.gradingY k hk).constTermAtStringMap Y' (rankTwist (D.chainChar ϑ (k + 1)))
@@ -613,10 +613,10 @@ lemma constTermAtStringMap_movedDatum {k : ℕ} {hk : k ≤ 2 * D.ϱ + 1} {X : T
 `γ ↦ 𝒲_k (γ g_k)` with `g_k = (ξ k, y k)` for `k > 0`. -/
 noncomputable def unfoldStageOn :
     ∀ (k : ℕ) (hk : k ≤ 2 * D.ϱ + 1), (D.gradingY k hk).besselGroup → ℂ
-  | 0, _ => (D.gradingY 0).sourceFn t φ.1
+  | 0, _ => (D.gradingY 0).sourceFn t φ.val
   | k + 1, hk => fun γ ↦
     (D.gradingY k).unfoldStep (D.gradingY (k + 1) hk) (rankTwist (D.chainChar ϑ (k + 1)))
-      (movedDatum ϑ ξ y k) (unfoldStageOn k (by omega)) (γ.1 * (ξ (k + 1), y (k + 1)))
+      (movedDatum ϑ ξ y k) (unfoldStageOn k (by omega)) (γ.val * (ξ (k + 1), y (k + 1)))
 
 /-- The function `𝒲_{k+1}` on `U(Y_{k+1})` that the first `k + 1` unfolding steps leave. -/
 noncomputable def unfoldStage (k : ℕ) (hk : k ≤ 2 * D.ϱ + 1) {X : Type} {s : ℕ} [Fintype X]
@@ -631,7 +631,7 @@ unfolding is `γ ↦ 𝒲_{k+1} (γ g_{k+1})`, where `𝒲_{k+1}` is `unfoldStag
 lemma unfoldStageOn_succ (k : ℕ) (hk : k + 1 ≤ 2 * D.ϱ + 1)
     (γ : (D.gradingY (k + 1) hk).besselGroup) :
     unfoldStageOn ϑ t φ ξ y (k + 1) hk γ =
-      unfoldStage ϑ t φ ξ y k (by omega) (D.gradingY (k + 1) hk) (γ.1 * (ξ (k + 1), y (k + 1))) :=
+      unfoldStage ϑ t φ ξ y k (by omega) (D.gradingY (k + 1) hk) (γ.val * (ξ (k + 1), y (k + 1))) :=
   rfl
 
 /-- For `k < l`, the function `unfoldStageOn` on `R_k` does not change when the points `ξ l` and
@@ -659,7 +659,7 @@ the unipotent character and invariant under the rational points (`New.Grading.Is
 lemma isEquivariant_unfoldStageOn (k : ℕ) (hk : k ≤ 2 * D.ϱ + 1) :
     (D.gradingY k hk).IsEquivariant (unfoldStageOn ϑ t φ ξ y k hk) := by
   induction k with
-  | zero => exact (D.gradingY 0).isEquivariant_sourceFn (by simp) t φ.1
+  | zero => exact (D.gradingY 0).isEquivariant_sourceFn (by simp) t φ.val
   | succ k ih => exact isEquivariant_unfoldStep (ih (by omega)) rfl (ξ (k + 1), y (k + 1))
 
 section
@@ -884,7 +884,7 @@ lemma doubleLiftEvalY_inclXFin (i : ℕ) (hi : 2 * i + 1 + 1 ≤ 2 * D.ϱ + 1) (
     D.doubleLiftEvalY i
         (arrowProduct Φ.1 (liftWeilFin b (1, (D.gradingY (2 * i + 1 + 1) hi).inclXFin u) Φ').1) =
       TensorProduct.map .id (liftWeilFin b (1, u))
-        (D.doubleLiftEvalY i (arrowProduct Φ.1 Φ'.1)) := by
+        (D.doubleLiftEvalY i (arrowProduct Φ.val Φ'.val)) := by
   -- Before the last pair, `doubleLiftEvalY i` is by definition the evaluation of a double lift
   -- datum `R`.
   obtain ⟨q, _, _, R, hR, h_emb⟩ : ∃ (q : Type) (_ : Fintype q) (_ : DecidableEq q)
@@ -893,7 +893,7 @@ lemma doubleLiftEvalY_inclXFin (i : ℕ) (hi : 2 * i + 1 + 1 ≤ 2 * D.ϱ + 1) (
       D.doubleLiftEvalY i = R.finEval ∧ R.embX (1, u) = (1, u) :=
     ⟨_, _, _, _, dite_eq_left (by omega), rfl⟩
   -- `using!`: the two index types `2 * i + 1 + 1` and `2 * i + 2` agree only after unfolding.
-  simpa only [hR, MonoidHom.map_one, Prod.mk_one_one, Module.End.one_apply] using!
+  simpa only [hR, MonoidHom.map_one, Prod.mk_one_one, one_apply_eq_self] using!
     R.finEval_arrowProduct_equivariant 1 b (g := 1) (g' := 1) h_emb Φ Φ'
 
 /-- If `z`, conjugated by `y (j + 1)`, lies in the level `levelY ϑ (j + 1)`, then `(1, z)` fixes the
@@ -905,8 +905,8 @@ lemma liftWeilFin_translatedPointDatumY (j : ℕ) {z : Gf D.E (D.Y (j + 1))}
       translatedPointDatumY ϑ y j := by
   have h_conj : (1, z) * (y j, y (j + 1)) =
       (y j, y (j + 1)) * (1, (y (j + 1))⁻¹ * (z * y (j + 1))) := by simp
-  rw [translatedPointDatumY, ← Module.End.mul_apply, ← map_mul, h_conj, map_mul,
-    Module.End.mul_apply,
+  rw [translatedPointDatumY, ← mul_apply_eq_comp, ← map_mul, h_conj, map_mul,
+    mul_apply_eq_comp,
     liftWeilFin_pointDatumY ϑ _ (one_mem _) hz]
 
 /-- Let `ϑ` be a tame character and `y k` finite points of U(Y_k). The tensor
@@ -929,10 +929,10 @@ lemma map_evaluatedDatum_of_conj_mem (ϑ : D.TameChar) (y : ∀ k : ℕ, Gf D.E 
       liftWeilFin (D.chainChar ϑ (2 * i + 1 + 1)) (1, z) (Φ (2 * i + 1)) = Φ (2 * i + 1) :=
     liftWeilFin_translatedPointDatumY ϑ y (2 * i + 1) hu
   have equivariant :
-      D.doubleLiftEvalY i (arrowProduct (Φ (2 * i)).1
-          (liftWeilFin (D.chainChar ϑ (2 * i + 1 + 1)) (1, z) (Φ (2 * i + 1))).1) =
+      D.doubleLiftEvalY i (arrowProduct (Φ (2 * i)).val
+          (liftWeilFin (D.chainChar ϑ (2 * i + 1 + 1)) (1, z) (Φ (2 * i + 1))).val) =
         TensorProduct.map .id (liftWeilFin (D.chainChar ϑ (2 * i + 1 + 1)) (1, u))
-          (D.doubleLiftEvalY i (arrowProduct (Φ (2 * i)).1 (Φ (2 * i + 1)).1)) :=
+          (D.doubleLiftEvalY i (arrowProduct (Φ (2 * i)).val (Φ (2 * i + 1)).val)) :=
     doubleLiftEvalY_inclXFin i hi (D.chainChar ϑ (2 * i + 1 + 1)) u (Φ (2 * i)) (Φ (2 * i + 1))
   rw [fix_lower] at equivariant
   exact equivariant.symm
@@ -945,7 +945,7 @@ lemma evaluatedDatum_out :
   -- Each representative is `y k * u k` with `u k ∈ levelY ϑ k`, and such elements fix the data.
   choose u out_eq using fun k : ℕ ↦ QuotientGroup.mk_out_eq_mul (levelY ϑ k) (y k)
   simp [funext_iff, evaluatedDatum, translatedPointDatumY, out_eq, ← mk_mul_mk,
-    liftWeilFin_pointDatumY ϑ _ (u _).2 (u _).2]
+    liftWeilFin_pointDatumY ϑ _ (u _).property (u _).property]
 
 /-- An idele that generates the ideal `Q`: the generator of `π_M Q` divided by that of `π_M`. -/
 noncomputable def twistIdele : (𝔸f D.E)ˣ := (D.twistModulus ϑ 1).generator / D.chosenIdele
@@ -1033,17 +1033,17 @@ lemma unfoldStage_eq_zero_of_scalingGenerator (ϑ : D.TameChar)
   let ξ' : ∀ k : ℕ, GInf D.E (D.signsY k) := update ξ (2 * j + 1 + 1) a
   choose l hl using exists_unfoldStageOn_even_eq_sourceFn t ξ' (j + 1) hj
   have h_succ : unfoldStageOn ϑ t φ ξ' y' (2 * j + 1 + 1) hj γ =
-      unfoldStage ϑ t φ ξ' y' (2 * j + 1) (by omega) (D.gradingY _ hj) (γ.1 * (a, x)) := by
+      unfoldStage ϑ t φ ξ' y' (2 * j + 1) (by omega) (D.gradingY _ hj) (γ.val * (a, x)) := by
     simp only [unfoldStageOn_succ, ξ', y', update_self]
-  have value : unfoldStage ϑ t φ ξ y (2 * j + 1) (by omega) (D.gradingY _ hj) (γ.1 * (a, x)) =
+  have value : unfoldStage ϑ t φ ξ y (2 * j + 1) (by omega) (D.gradingY _ hj) (γ.val * (a, x)) =
       (D.gradingY _ hj).sourceFn l
-        (doubleLiftChain (D.liftKernel ϑ) (evaluatedDatum ϑ y') (j + 1) φ.1) γ := by
+        (doubleLiftChain (D.liftKernel ϑ) (evaluatedDatum ϑ y') (j + 1) φ.val) γ := by
     rw [← unfoldStage_update ϑ t φ ξ y a x _ _ (Nat.lt_add_one _), ← h_succ]
     exact congrFun (hl ϑ φ y') γ
   -- `ω(1, z_w)`, acting on the last lift alone, fixes the data, so the chain annihilates `φ`.
   have h_fix := map_evaluatedDatum_of_conj_mem ϑ y' j hj (by simpa only [y', update_self] using hx)
-  rw [value, D.doubleLiftChain_eq_zero_of_ramified ϑ w j.lt_succ_self h_fix hφ]
-  simp [sourceFn, algFormCoeff_apply]
+  simp [value, D.doubleLiftChain_eq_zero_of_ramified ϑ w j.lt_succ_self h_fix hφ,
+    sourceFn, algFormCoeff_apply]
 
 /-- For consecutive gradings `D.gradingY k` and `D.gradingY (k + 1)`, the finite string map
 `stringMapFin` between them sends `latticePlus 1` of `Y_k` (the projection `Λ_k⁺` of the standard
@@ -1085,15 +1085,15 @@ lemma unfoldStage_eq_zero_of_latticeSplitsAt (ϑ : D.TameChar)
     unfoldStage ϑ t φ ξ y (2 * j + 1) (by omega) (D.gradingY (2 * j + 1 + 1) hj) (γ.val * (a, x)) =
       0 := by
   obtain ⟨hz_int, hz_off⟩ := D.isScalingAt_scalingGenerator w
-  have hw_ne : star w.1 ≠ w.1 := fun h ↦
-    D.isSplitSquarefree_piNIdele.star_notMem w w.2 (by simp [h])
+  have hw_ne : star w.val ≠ w.val := fun h ↦
+    D.isSplitSquarefree_piNIdele.star_notMem w w.property (by simp [h])
   -- The level is maximal above `w`.
-  have w_notMem : w.1 ∉ (Set.range (D.levelPlaces ϑ).placeAt).conjClosure := by
-    suffices (¬D.IsChosen w.1 ∧ w.1 ∉ ϑ.Q) ∧ ¬D.IsChosen (star w.1) ∧ star w.1 ∉ ϑ.Q by
+  have w_notMem : w.val ∉ (Set.range (D.levelPlaces ϑ).placeAt).conjClosure := by
+    suffices (¬D.IsChosen w.val ∧ w.val ∉ ϑ.Q) ∧ ¬D.IsChosen (star w.val) ∧ star w.val ∉ ϑ.Q by
       simpa [levelPlaces, range_chosenPlace]
     obtain ⟨h_chosen, h_chosen_star⟩ :=
-      D.not_isChosen_of_N_mem (D.isSplitLevel_piNPlaces.natCast_level_mem w.1 w.2)
-    exact ⟨⟨h_chosen, notMem_Q_of_mem_piNPlaces ϑ (.inl w.2)⟩, h_chosen_star,
+      D.not_isChosen_of_N_mem (D.isSplitLevel_piNPlaces.natCast_level_mem w.val w.property)
+    exact ⟨⟨h_chosen, notMem_Q_of_mem_piNPlaces ϑ (.inl w.property)⟩, h_chosen_star,
       notMem_Q_of_mem_piNPlaces ϑ (.inr (by simp))⟩
   exact unfoldStage_eq_zero_of_scalingGenerator ϑ t φ ξ y hφ j hj w γ a
     (maxCompactAt_le_levelOf w_notMem (hx.conj_scalarFin_mem hw_ne hz_int hz_off))
@@ -1125,29 +1125,29 @@ lemma hasLatticeBounds_of_unfoldStage_ne_zero (ϑ : D.TameChar)
   obtain ⟨γ, hγ⟩ : ∃ γ : (D.gradingY k).besselGroup,
       unfoldStageOn ϑ t φ ξ y k (by omega) γ *
         (D.gradingY k).constTermAtStringMap (D.gradingY (k + 1) hk)
-          (rankTwist (D.chainChar ϑ (k + 1))) (movedDatum ϑ ξ y k) γ.1 (a, x) ≠ 0 :=
+          (rankTwist (D.chainChar ϑ (k + 1))) (movedDatum ϑ ξ y k) γ.val (a, x) ≠ 0 :=
     exists_ne_zero_of_integral_ne_zero h_ne
   obtain ⟨r, hr, h_graded, h_bounds⟩ :
-      (D.gradingY k).HasBoundedOrbit (twistIdele ϑ).val k (γ.1 * (ξ k, y k)).2 := by
+      (D.gradingY k).HasBoundedOrbit (twistIdele ϑ).val k (γ.val * (ξ k, y k)).2 := by
     cases k with
     | zero =>
-      exact (D.spansLattice_gradingY 0 _).hasBoundedOrbit_zero _ (snd_mem_besselFin _ γ⁻¹.2)
+      exact (D.spansLattice_gradingY 0 _).hasBoundedOrbit_zero _ (snd_mem_besselFin _ γ⁻¹.property)
         (by simpa using levelOf_le_stdLevel hy₀)
     | succ k =>
       -- `unfoldStageOn` at stage `k + 1` is a value of `𝒲_{k+1}`, so the induction hypothesis
       -- applies to every graded lattice in the orbit.
-      let g : New.G D.E (D.signsY (k + 1)) := γ.1 * (ξ (k + 1), y (k + 1))
+      let g : New.G D.E (D.signsY (k + 1)) := γ.val * (ξ (k + 1), y (k + 1))
       have h_prev : unfoldStage ϑ t φ ξ y k (by omega) (D.gradingY (k + 1) (by omega)) g ≠ 0 :=
         left_ne_zero_of_mul hγ
       exact .of_forall fun r ↦ ih k .refl _ g.1 g.2 h_prev
   have term_ne : (D.gradingY k).constTermAtStringMap (D.gradingY (k + 1) hk)
-      (rankTwist (D.chainChar ϑ (k + 1))) (datumY ϑ k) (γ.1 * (ξ k, y k)) (a, x) ≠ 0 := by
+      (rankTwist (D.chainChar ϑ (k + 1))) (datumY ϑ k) (γ.val * (ξ k, y k)) (a, x) ≠ 0 := by
     simpa only [constTermAtStringMap, twistedPairWeil_movedDatum] using right_ne_zero_of_mul hγ
   -- Frequency: a non-zero term forces the shifted projection `Λ⁺`, scaled by
   -- `star (twistIdele ϑ) / D.ideleA`, of the lattice at stage `k` into `latticeMinus` at stage
   -- `k + 1`.
   have h_freq : (star (twistIdele ϑ) / D.ideleA).val •
-      ((D.gradingY k).latticePlus (r * (γ.1 * (ξ k, y k)).2)).map
+      ((D.gradingY k).latticePlus (r * (γ.val * (ξ k, y k)).2)).map
         (((D.gradingY k).stringMapFin (D.gradingY (k + 1) hk)).restrictScalars (Ô D.E)) ≤
       (D.gradingY (k + 1) hk).latticeMinus (r' * x) := by
     rw [ideleA, twistIdele, star_div, div_div_div_cancel_right]

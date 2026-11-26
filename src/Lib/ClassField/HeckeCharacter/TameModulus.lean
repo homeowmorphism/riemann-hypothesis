@@ -311,7 +311,7 @@ residue fields. -/
 def Modulus.charOfTamePart (𝔪 : Modulus E) (ψ : ∀ w : FinPlace E, MulChar (ResField w) ℂ) :
     MulChar 𝔪.ResidueRing ℂ :=
   MulChar.mk
-    { toFun x := ∏ᶠ w : places 𝔪, ψ w (modulusResidue 𝔪 w.2 x)
+    { toFun x := ∏ᶠ w : places 𝔪, ψ w (modulusResidue 𝔪 w.property x)
       map_one' := by simp
       map_mul' := by simp [finprod_eq_prod_of_fintype, Finset.prod_mul_distrib] }
     (by

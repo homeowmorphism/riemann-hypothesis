@@ -144,7 +144,7 @@ cutoff) as `F ∘ T` under `m`. -/
 lemma identDistrib_orbitMeasure_of_unfold [SMul H X] [MeasurableSMul₂ H X] {ν : Measure H}
     {μ : Measure X} {Z L : Type*} [MeasurableSpace Z] [MeasurableSpace L] {ρ : Measure L}
     [SFinite ρ] [c : HasCutoff ν X] {σ : L → H} (hσ_pres : MeasurePreserving σ ρ ν) {T : Z → X}
-    {m : Measure Z} [SFinite m]
+    {m : Measure Z}
     (h_unfold : MeasurePreserving (fun p : Z × L ↦ σ p.2 • T p.1) (m.prod ρ) μ) (hF : Measurable F)
     (hT : Measurable T) (h_inv : ∀ (h : H) (x : X), F (h • x) = F x) :
     IdentDistrib F (F ∘ T) (orbitMeasure ν μ) m := by
@@ -319,7 +319,7 @@ number `z` is `z`. -/
 lemma tsum_toReal_smul_of_tsum_eq_one {I : Type*} {f : I → ℝ≥0∞} (h : ∑' x : I, f x = 1) (z : ℂ) :
     ∑' x : I, (f x).toReal • z = z := by
   -- Each `f x` is finite, so `toReal` and the cast to `ℂ` commute with the sum.
-  have h_fin (x : I) : f x ≠ ∞ := ENNReal.ne_top_of_tsum_ne_top (by simp [h]) x
+  have h_fin (x : I) : f x ≠ ∞ := ne_top_of_tsum_ne_top (by simp [h]) x
   have h_real : ∑' x : I, (f x).toReal = 1 := by
     rw [← tsum_toReal_eq h_fin, h, toReal_one]
   simp [tsum_mul_right, ← Complex.ofReal_tsum, h_real]
@@ -604,7 +604,7 @@ lemma isFiniteMeasure_quotMeasure_of_cocompact :
   have h_one_le (x : G) : 1 ≤ count (Prod.mk x ⁻¹' E) := by
     obtain ⟨γ, hγ, hγC⟩ := h_meets x
     have h_mem : (⟨γ, hγ⟩ : Γ) ∈ Prod.mk x ⁻¹' E := hγC
-    exact (ENNReal.le_tsum ⟨⟨γ, hγ⟩, h_mem⟩).trans le_count_apply
+    exact (le_tsum _ ⟨⟨γ, hγ⟩, h_mem⟩).trans le_count_apply
   constructor
   calc σ univ = ∫⁻ _, 1 ∂σ := lintegral_one.symm
     _ ≤ ∫⁻ x, count (Prod.mk x ⁻¹' E) ∂σ := lintegral_mono h_one_le
@@ -700,7 +700,7 @@ the same value as at `x`. -/
 lemma IsContPeriodic.apply_out_mk (h : IsContPeriodic B₀ F) (x : B) :
     F (mk x : B ⧸ B₀).out = F x := by
   obtain ⟨γ, hγ⟩ : ∃ γ : B₀, (mk x : B ⧸ B₀).out = x + γ := mk_out_eq_add B₀ x
-  rw [hγ, add_comm, h.2 γ γ.2 x]
+  rw [hγ, add_comm, h.2 γ γ.property x]
 
 omit [IsTopologicalAddGroup B] [CompactSpace (B ⧸ B₀)] in
 /-- A continuous `B₀`-periodic function, read at coset representatives, is continuous on

@@ -175,7 +175,7 @@ variable (S : Type) [CommRing S] (I : ColouredTableau c τ h)
 
 /-- For a coloured column filling I, the polynomial over S that is the product over columns j of
 the minor with rows I_j on the first h_j columns. -/
-def minorProduct : MatrixPoly m S := ∏ j : J, minor S fun s ↦ (I j s).1
+def minorProduct : MatrixPoly m S := ∏ j : J, minor S fun s ↦ (I j s).val
 
 /-- The weight `New.diagramWeight N κ` equals the weight `New.GL.columnWeight` of the family having
 `κ τ h` columns of colour `τ` and height `h`, for every `τ` and `h < N τ`: its columns are the
@@ -741,7 +741,7 @@ lemma nabla_le_span_of_hasLeadingTerm {c : m → Φ} {l : Φ × ℕ →₀ ℕ}
       rw [map_sub]
       exact degree_sub_le.trans (sup_le le_rfl hg_lead.degree_le)
     have h_coeff : (rowExpansion y (f - g)).coeff γ = 0 := by
-      rw [map_sub, MvPolynomial.coeff_sub, hg_lead.coeff_eq]
+      rw [map_sub, AddMonoidAlgebra.coeff_sub_apply, hg_lead.coeff_eq]
       exact sub_self _
     refine (sub_mem_iff_left _ hg_span).mp ?_
     rcases h_le.lt_or_eq with h_lt | h_eq

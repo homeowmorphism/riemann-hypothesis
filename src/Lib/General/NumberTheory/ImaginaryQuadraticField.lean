@@ -295,7 +295,7 @@ lemma exists_natCast_mem : ∃ w : FinPlace F, (p : 𝓞 F) ∈ w.asIdeal := by
 variable {F p} (w : FinPlace F)
 
 lemma charP_quotient (hw : (p : 𝓞 F) ∈ w.asIdeal) : CharP (𝓞 F ⧸ w.asIdeal) p :=
-  (CharP.charP_iff_prime_eq_zero hp.1).2 (eq_zero_iff_mem.2 hw)
+  (CharP.charP_iff_prime_eq_zero hp.out).2 (eq_zero_iff_mem.2 hw)
 
 protected lemma natCast_mem_iff_dvd (hw : (p : 𝓞 F) ∈ w.asIdeal) {n : ℕ} :
     (n : 𝓞 F) ∈ w.asIdeal ↔ p ∣ n := by
@@ -306,7 +306,7 @@ protected lemma natCast_mem_iff_dvd (hw : (p : 𝓞 F) ∈ w.asIdeal) {n : ℕ} 
 `f = w.asIdeal.inertiaDeg ℤ` is the residue degree of `w`. -/
 lemma q_eq_pow_inertiaDeg (hw : (p : 𝓞 F) ∈ w.asIdeal) : w.q = p ^ w.asIdeal.inertiaDeg ℤ := by
   have : w.asIdeal.LiesOver (span {(p : ℤ)}) :=
-    (liesOver_span_iff w.isPrime.ne_top (Nat.prime_iff_prime_int.1 hp.1)).2 (by simpa using hw)
+    (liesOver_span_iff w.isPrime.ne_top (Nat.prime_iff_prime_int.1 hp.out)).2 (by simpa using hw)
   exact (pow_inertiaDeg p w.asIdeal).symm
 
 /-- The residue degree is the order of Frobenius: if the finite place `w` lies above the prime `p`,
@@ -320,7 +320,7 @@ lemma inertiaDeg_dvd_iff_forall_pow_eq (hw : (p : 𝓞 F) ∈ w.asIdeal) (n : �
   have h_norm : w.q = p ^ Module.finrank (ZMod p) (𝓞 F ⧸ w.asIdeal) := by
     rw [pow_finrank_eq_natCard p, FinPlace.q, absNorm_apply, Submodule.cardQuot_apply]
   have h_degree : w.asIdeal.inertiaDeg ℤ = Module.finrank (ZMod p) (𝓞 F ⧸ w.asIdeal) :=
-    Nat.pow_right_injective hp.1.two_le ((w.q_eq_pow_inertiaDeg hw).symm.trans h_norm)
+    Nat.pow_right_injective hp.out.two_le ((w.q_eq_pow_inertiaDeg hw).symm.trans h_norm)
   calc
     w.asIdeal.inertiaDeg ℤ ∣ n ↔ frobeniusAlgHom (ZMod p) (𝓞 F ⧸ w.asIdeal) ^ n = 1 := by
       rw [h_degree, ← orderOf_frobeniusAlgHom, orderOf_dvd_iff_pow_eq_one]
@@ -380,7 +380,7 @@ lemma chiK_eq_pow_of_sq_eq_neg (hp_ne_two : p ≠ 2) {x : R} (hx : x ^ 2 = -d) :
     chiK d p = x ^ (p - 1) := by
   -- Quadratic reciprocity and Euler's criterion give `(-d) ^ (p / 2)`, which is `x ^ (p - 1)`.
   have hd_half : Odd (d / 2) := by grind [PrimeSevenModEight]
-  have hp_half : p - 1 = 2 * (p / 2) := by grind [hp.1.odd_of_ne_two hp_ne_two]
+  have hp_half : p - 1 = 2 * (p / 2) := by grind [hp.out.odd_of_ne_two hp_ne_two]
   -- The sign `(-1) ^ (p / 2 * (d / 2))` is `(-1) ^ (p / 2)` because `d / 2` is odd.
   have h_recip : chiK d p = (-1) ^ (p / 2) * legendreSym p d := by
     simp [chiK_eq_legendreSym,
@@ -399,17 +399,11 @@ lemma eq_map_betaK_pow_iff (hp_ne_two : p ≠ 2) (φ : 𝓞 (QuadField d) →+* 
     x = φ (betaK d) ^ p ^ n ↔ 2 * x - 1 = chiK d p ^ n * φ (sqrtNegDInt d) := by
   -- Frobenius multiplies the square root `φ (sqrtNegDInt d)` of `-d` by `chiK d p`.
   have h_frob : φ (sqrtNegDInt d) ^ p = chiK d p * φ (sqrtNegDInt d) := by
-    rw [chiK_eq_pow_of_sq_eq_neg hp_ne_two (map_sqrtNegDInt_sq φ), pow_sub_one_mul hp.1.ne_zero]
+    rw [chiK_eq_pow_of_sq_eq_neg hp_ne_two (map_sqrtNegDInt_sq φ), pow_sub_one_mul hp.out.ne_zero]
   have h_iter : φ (sqrtNegDInt d) ^ p ^ n = chiK d p ^ n * φ (sqrtNegDInt d) := by
-    induction n with
-    | zero => simp
-    | succ n ih =>
-      calc
-        φ (sqrtNegDInt d) ^ p ^ (n + 1)
-        _ = (chiK d p ^ n * φ (sqrtNegDInt d) : R) ^ p := by rw [pow_succ, pow_mul, ih]
-        _ = frobenius R p (chiK d p ^ n) * φ (sqrtNegDInt d) ^ p := by rw [mul_pow, frobenius_def]
-        _ = chiK d p ^ (n + 1) * φ (sqrtNegDInt d) := by
-          rw [map_pow, map_intCast, h_frob, ← mul_assoc, ← pow_succ]
+    have h_comm : Function.Commute (· ^ p) ((chiK d p : R) * ·) := fun y ↦ by
+      simp [← frobenius_def]
+    simpa [pow_iterate, mul_left_iterate] using h_comm.iterate_eq_of_map_eq n h_frob
   -- Frobenius is a ring map, and `2` is a unit as `p` is odd.
   have h_add : φ (sqrtNegDInt d) ^ p ^ n = 2 * φ (betaK d) ^ p ^ n - 1 := by
     simp [← iterateFrobenius_def, map_ofNat]
@@ -506,18 +500,15 @@ lemma q_eq_iff_chiK_ne_neg_one (hw : (p : 𝓞 (QuadField d)) ∈ w.asIdeal) [Pr
   -- `w.q = p ^ f`, and the residue degree `f` is the order of Frobenius on the residue field.
   have q_iff_frob : w.q = p ↔ ∀ x : 𝓞 (QuadField d), π x ^ p ^ 1 = π x := by
     rw [w.q_eq_pow_inertiaDeg hw, ← w.inertiaDeg_dvd_iff_forall_pow_eq hw 1]
-    simp [hp.1.pow_eq_iff]
+    simp [hp.out.pow_eq_iff]
   -- Frobenius is a ring map and `betaK d` generates the ring of integers.
   have frob_iff :
       (∀ x : 𝓞 (QuadField d), π x ^ p ^ 1 = π x) ↔ π (betaK d) ^ p ^ 1 = π (betaK d) := by
     refine ⟨fun h_all ↦ h_all (betaK d), fun h_gen x ↦ ?_⟩
-    have hx : x ∈ Algebra.adjoin ℤ {betaK d} := by
-      simp [(different_eq_span_and_adjoin_betaK d).right]
-    induction hx using Algebra.adjoin_induction with
-    | mem y hy => rwa [Set.mem_singleton_iff.1 hy]
-    | algebraMap r => simp [← frobenius_def]
-    | add a b _ _ ha hb => rw [map_add, add_pow_char_pow, ha, hb]
-    | mul a b _ _ ha hb => rw [map_mul, mul_pow, ha, hb]
+    have h_eq : ((frobenius _ p).comp π).toIntAlgHom = π.toIntAlgHom :=
+      AlgHom.ext_of_adjoin_eq_top (different_eq_span_and_adjoin_betaK d).right
+        (Set.eqOn_singleton.2 (by simpa [frobenius_def] using h_gen))
+    simpa [frobenius_def] using DFunLike.congr_fun h_eq x
   rw [q_iff_frob, frob_iff]
   obtain rfl | hp2 := eq_or_ne p 2
   · -- Both sides hold: `betaK d * (1 - betaK d) = (d + 1) / 4` is even, and `2` is a square mod
@@ -536,7 +527,7 @@ lemma q_eq_iff_chiK_ne_neg_one (hw : (p : 𝓞 (QuadField d)) ∈ w.asIdeal) [Pr
       rw [eq_comm, eq_map_betaK_pow_iff hp2 π, h_sqrt, eq_comm, mul_left_eq_self₀, pow_one]
     have h_ramified : π (sqrtNegDInt d) = 0 ↔ p = d := by
       rw [← sq_eq_zero_iff, map_sqrtNegDInt_sq π, neg_eq_zero, CharP.cast_eq_zero_iff _ p,
-        Nat.prime_dvd_prime_iff_eq hp.1 Fact.out]
+        Nat.prime_dvd_prime_iff_eq hp.out Fact.out]
     have h_neg : (-1 : 𝓞 (QuadField d) ⧸ w.asIdeal) ≠ 1 :=
       Ring.neg_one_ne_one_of_char_ne_two (by rwa [ringChar.eq _ p])
     rw [h_fixed, h_ramified]
@@ -563,9 +554,9 @@ lemma span_eq_or_exists_span_eq_mul (hw : (p : 𝓞 (QuadField d)) ∈ w.asIdeal
     exact .inl ⟨by simpa using hJ, by simpa using norm_mul⟩
   · -- Both norms are `p`, so `J` is prime.
     obtain ⟨norm_w, norm_J⟩ : absNorm w.asIdeal = p ∧ absNorm J = p := by
-      simpa [hJ_top, hp.1.mul_eq_prime_sq_iff, w.isPrime.ne_top] using norm_mul
+      simpa [hJ_top, hp.out.mul_eq_prime_sq_iff, w.isPrime.ne_top] using norm_mul
     have norm_irreducible : Irreducible (absNorm J) := by
-      simpa [norm_J, Nat.irreducible_iff_prime, Nat.prime_iff] using hp.1
+      simpa [norm_J, Nat.irreducible_iff_prime, Nat.prime_iff] using hp.out
     have J_prime : Prime J := (irreducible_of_irreducible_absNorm norm_irreducible).prime
     exact .inr ⟨ofPrime J_prime, hJ, norm_w, norm_J⟩
 

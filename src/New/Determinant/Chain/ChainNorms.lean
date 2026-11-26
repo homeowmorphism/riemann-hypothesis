@@ -186,10 +186,14 @@ lemma exists_squareLaw_triangleTransposedLift {P : Parameters} (D : Data P) (z :
     (D.t - z.toNat) ?rank ?range (fun τ ↦ ?weight) h_tame ?chars
   case signs => rw [negCount_sumElim, negCount_gridSigns_add]
   case rank => simp +arith [card_gridIndex, add_mul]
-  case range => grind [negCount_sumElim, card_sum, D.negCount_gridSigns_add_lt z (i := i) (n := n)]
+  case range =>
+    rw [negCount_sumElim, card_sum]
+    have := D.negCount_gridSigns_add_lt z (i := i) (n := n)
+    lia
   case weight =>
-    grind [card_sum, D.card_gridIndex_le_quotientPair_negWeight z ⟨n + 1, hn⟩ τ,
-      D.card_gridIndex_add_card_gridIndex z n]
+    rw [card_sum]
+    have := D.card_gridIndex_le_quotientPair_negWeight z ⟨n + 1, hn⟩ τ
+    lia
   case chars =>
     intro ϑ p q _ _ h_card
     rw [inv_inv]
@@ -227,20 +231,9 @@ theorem exists_triangleLift_triangleTransposedLift_comm {P : Parameters} (D : Da
       fun ϑ : D.MFoldTwist ↦ ν.isTameFor_inv_mul_pow (isRamified_quotientPair dist)
         (D.triangleExponent z) dist (triangleTwist ϑ z)
   refine ⟨fun ϑ ↦ conj (c ϑ / κ), fun ϑ Ψ y x ↦ ?_, ?_⟩
-  · let R : Type := (triangleModulus z ϑ).ResidueRing
-    have h_points :
-        triangleGLCard z ϑ n * ∑ η : Matrix (D.GridIndex z 0 (n + 1)) (D.GridIndex z 0 n) R,
-            Ψ η * ⟪x, D.triangleLift z ϑ (i + 1) n
-              (D.triangleTransposedLift z ϑ i n Φ₀ (Pi.single η 1) y)⟫ =
-          κ / c ϑ * triangleGLCard z ϑ (n + 2) *
-            ∑ ξ : Matrix (D.GridIndex z 0 (n + 1 + 1)) (D.GridIndex z 0 (n + 1)) R, nextDatum Ψ ξ *
-              ⟪x, D.triangleTransposedLift z ϑ i (n + 1) Φ₁ (Pi.single ξ 1)
-                (D.triangleLift z ϑ i (n + 1) y)⟫ := by
-      -- the index types of the nodes unfold to the sum types of `sum_eq_nextDatum`
-      simpa [triangleLift_eq_triangleDatumLift] using! (h_law ϑ y (innerₛₗ ℂ x)).sum_eq_nextDatum Ψ
-    rw [D.triangleTransposedLift_eq_sum z ϑ Φ₀, D.triangleTransposedLift_eq_sum z ϑ Φ₁]
+  · rw [D.triangleTransposedLift_eq_sum z ϑ Φ₀, D.triangleTransposedLift_eq_sum z ϑ Φ₁]
     simp only [map_sum, map_smul, inner_sum, inner_smul_right, map_inv₀, conj_conj, inv_div]
-    exact h_points
+    simpa [triangleLift_eq_triangleDatumLift] using! (h_law ϑ y (innerₛₗ ℂ x)).sum_eq_nextDatum Ψ
   · rintro rfl
     have h_ratio : D.quotientRatio (i + 1) (i + 1 + n + 1) =
         fun ϑ ↦ D.lRatioProd ν.character ν.z (ϑ.pow dist) :=
@@ -293,7 +286,7 @@ lemma exists_squareLaw_triangleReversedLift {P : Parameters} (D : Data P) {i n :
   case signs => rw [negCount_sumElim, add_comm, ← negCount_gridSigns_add, add_comm]
   case range =>
     rw [h_ranks, negCount_sumElim, add_comm (negCount _), ← negCount_gridSigns_add]
-    linarith [D.negCount_gridSigns_add_lt false (i := i) (n := n)]
+    linarith only [D.negCount_gridSigns_add_lt false (i := i) (n := n)]
   case weight => grind [D.card_gridIndex_le_quotientPair_negWeight false ⟨n + 1, hn⟩ τ]
   case chars =>
     intro ϑ p q _ _ h_card
@@ -354,22 +347,9 @@ theorem exists_triangleLift_triangleReversedLift_comm {P : Parameters} (D : Data
     have h_exchange : D.HasAbsUpToNormPower (fun ϑ ↦ κ / c ϑ) 1 :=
       .of_norm_sq_eq_mul_card_zpow 1 (‖κ‖ ^ 2 / C) 0 (by simp [hc_norm, div_pow])
     simpa using h_gauss.mul h_exchange
-  · let R : Type := (triangleModulus false ϑ).ResidueRing
-    have h_points :
-        ∑ η : Matrix (D.GridIndex false 0 n) (D.GridIndex false 0 (n + 1)) R,
-            D.fourierDatum false ϑ Ψ η *
-              ⟪x, D.triangleLift false ϑ i (n + 1)
-                (D.triangleReversedLift false ϑ i n Φ₀ (Pi.single η 1) y)⟫ =
-          γ ϑ * (κ / c ϑ) *
-            ∑ ξ : Matrix (D.GridIndex false 0 (n + 1)) (D.GridIndex false 0 (n + 1 + 1)) R,
-              D.fourierDatum false ϑ (n := n + 1) (n' := n + 1 + 1) (nextDatum Ψ) ξ *
-                ⟪x, D.triangleReversedLift false ϑ i (n + 1) Φ₁ (Pi.single ξ 1)
-                  (D.triangleLift false ϑ (i + 1) n y)⟫ := by
-      -- the index types of the nodes unfold to the sum types of
-      -- `exists_sum_matrixFourier_eq_sum_nextDatum`
-      simpa [triangleLift_eq_triangleDatumLift] using! h_fourier ϑ Ψ (h_law ϑ y (innerₛₗ ℂ x))
-    rw [D.triangleReversedLift_eq_sum false ϑ Φ₀, D.triangleReversedLift_eq_sum false ϑ Φ₁]
-    simpa [inner_sum, inner_smul_right] using h_points
+  · rw [D.triangleReversedLift_eq_sum false ϑ Φ₀, D.triangleReversedLift_eq_sum false ϑ Φ₁]
+    simpa [inner_sum, inner_smul_right, triangleLift_eq_triangleDatumLift] using!
+      h_fourier ϑ Ψ (h_law ϑ y (innerₛₗ ℂ x))
 
 /-! ### Adjoints of descents and the triangle conditions -/
 
@@ -562,7 +542,8 @@ theorem exists_triangleTransposedLift_adjoint_comm {P : Parameters} (D : Data P)
   obtain ⟨c₁, hc₁, h_ascent⟩ := D.exists_inner_triangleReversedLift_eq h_pair₁ h_rev₁
   obtain ⟨γ, hγ, h_comm⟩ := D.exists_triangleLift_triangleReversedLift_comm h_lt h_rev₀ h_rev₁
   choose η hη h_shift using fun ϑ : D.MFoldTwist ↦
-    D.exists_triangleLift_reversalScalar_eq (i := i + 1) (n := n) false ϑ (by lia)
+    D.exists_triangleLift_reversalScalar_eq (i := i + 1) (n := n) false ϑ
+      (lt_of_eq_of_lt (Nat.add_right_comm i 1 n) h_lt)
   have hη' : D.HasAbsUpToNormPower η 1 := ⟨1, 0, by simp [hη]⟩
   refine ⟨c₀ * γ * η * c₁, by simpa using ((hc₀.mul hγ).mul hη').mul hc₁,
     fun ϑ Ψ x x' h_adj y ↦ ?_⟩
@@ -682,7 +663,8 @@ lemma index_rangeParabolic_inl_eq {P : Parameters} (D : Data P) (R : Type) [Comm
   rw [index_rangeParabolic]
   congr 1
   -- both groups consist of the matrices with the same vanishing block
-  exact ext fun _ ↦ forall₂_congr (by simp! [lt_iff_le_and_ne])
+  exact ext fun _ ↦ forall₂_congr fun a b ↦
+    imp_congr_left (by cases a <;> cases b <;> simp! [lt_iff_le_and_ne])
 
 /-- The index of the level `New.Data.lastLevel` ϑ in K₀ is the product of the orders of the full
 `GL (D.Y D.m)` over the residue fields at the chosen places and of the indices of the block upper

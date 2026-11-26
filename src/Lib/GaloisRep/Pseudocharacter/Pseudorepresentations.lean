@@ -64,11 +64,6 @@ section ResidualIrreducibility
 
 open Matrix IsLocalRing Fintype Module Submodule Set End
 
-/-- The coordinates of a matrix in the standard basis are its entries. -/
-private lemma Matrix.stdBasis_repr_apply {R m : Type*} [CommRing R] [Fintype m]
-    (M : Matrix m m R) (i j : m) : (stdBasis R m m).repr M (i, j) = M i j :=
-  rfl
-
 /-- In a group, if `x ^ q = y⁻¹ * x * y`, then `x * y ^ k = y ^ k * x ^ q ^ k` for every `k`. -/
 private lemma mul_pow_eq_pow_mul_pow_pow_of_pow_eq_inv_mul_mul {M : Type*} [Group M] {x y : M}
     {q : ℕ} (h : x ^ q = y⁻¹ * x * y) (k : ℕ) : x * y ^ k = y ^ k * x ^ q ^ k := by
@@ -167,7 +162,7 @@ lemma New.Selmer.IsLatticeIn.span_range_eq_top_of_map_pow_eq_map_conj {G n : Typ
         ∑ a : Fin (card n), (∑ k, c (a, k) * μ l ^ (k : ℕ)) • (τ φ ^ (a : ℕ)) v = 0 := by
       apply hφ_inj l
       simpa [w, sum_prod_type, Finset.sum_smul, mul_smul, (h_eig l).pow_apply,
-        ← Module.End.mul_apply (_ ^ (l : ℕ)), pow_mul_comm _ l] using
+        ← mul_apply_eq_comp (_ ^ (l : ℕ)), pow_mul_comm _ l] using
         LinearMap.congr_fun hc ((τ φ ^ (l : ℕ)) v)
     -- The eigenvectors are independent, so a polynomial of degree `< card n` vanishes at all `μ l`.
     have h_poly (l : Fin (card n)) : ∑ k, c (a, k) * μ l ^ (k : ℕ) = 0 := linearIndependent_iff.mp
@@ -180,7 +175,7 @@ lemma New.Selmer.IsLatticeIn.span_range_eq_top_of_map_pow_eq_map_conj {G n : Typ
     have h_col : LinearIndependent (ResidueField O) ((e.toMatrix (u ∘ w)).map (residue O)).col := by
       refine linearIndependent_iff.mpr fun c hc (a, b) ↦ h_indep c ?_ a b
       ext i j
-      simpa [τ, e, Basis.toMatrix_apply, Matrix.stdBasis_repr_apply] using
+      simpa [τ, e, Basis.toMatrix_apply] using!
         congrFun hc (equivFin n j, equivFin n i)
     rw [← isUnit_map_iff (residue O), Basis.det_apply, RingHom.map_det]
     exact (linearIndependent_col_iff_isUnit.mp h_col).map detMonoidHom
@@ -196,100 +191,6 @@ lemma New.Selmer.IsLatticeIn.span_range_eq_top_of_map_pow_eq_map_conj {G n : Typ
       simpa only [w, map_mul] using (commute_map_pow_mul_pow_map_inv_pow R h_comm_φ _ _).eq
     simpa only [map_mul, commute_iff_eq] using u_congr h_R
   exact Matrix.exists_eq_smul_one_of_commute_of_span_eq_top h_span h_comm
-
-/-- If the matrices `T g` span all of `M_n(O)` over a commutative ring `O`, then for every ring map
-`f` from `O` to a field `k`, the only subspaces of `kⁿ` stable under all `f (T g)` are `0` and `kⁿ`.
-For a local ring `O` this says that the reduction of `T` is absolutely irreducible. -/
-theorem New.Selmer.eq_bot_or_eq_top_of_span_eq_top {X n O k : Type} [Fintype n] [DecidableEq n]
-    [CommRing O] [Field k] (f : O →+* k) {T : X → Matrix n n O}
-    (h_span : span O (range T) = ⊤) (U : Submodule k (n → k))
-    (h_stable : ∀ g : X, ∀ v ∈ U, (T g).map f *ᵥ v ∈ U) :
-    U = ⊥ ∨ U = ⊤ := by
-  -- Every matrix over `O` is a combination of the `T g`, so its image under `f` also preserves `U`.
-  have h_all (x : Matrix n n O) : ∀ v ∈ U, x.map f *ᵥ v ∈ U := by
-    induction eq_top_iff'.1 h_span x using span_induction with
-    | mem x hx =>
-      obtain ⟨g, rfl⟩ := hx
-      exact h_stable g
-    | zero => simp
-    | add x y _ _ hx hy =>
-      intro v hv
-      simpa [Matrix.map_add, add_mulVec] using U.add_mem (hx v hv) (hy v hv)
-    | smul c x _ hx =>
-      intro v hv
-      simpa [Matrix.map_smul', smul_mulVec] using U.smul_mem (f c) (hx v hv)
-  -- If `v ∈ U` has `v j ≠ 0`, the matrix units move `v` to multiples of all basis vectors.
-  refine or_iff_not_imp_left.2 fun h_ne ↦ eq_top_iff'.2 fun w ↦ ?_
-  obtain ⟨v, hv, hv_ne⟩ := U.ne_bot_iff.1 h_ne
-  obtain ⟨j, hj⟩ : ∃ j : n, v j ≠ 0 := Function.ne_iff.1 hv_ne
-  have h_single (i : n) : Pi.single i (w i) =
-      (w i / v j) • ((Matrix.single i j 1 : Matrix n n O).map f *ᵥ v) := by
-    ext l
-    simp [single_mulVec, Pi.single_apply, Function.update_apply, hj]
-  rw [← Finset.univ_sum_single w]
-  simp only [h_single]
-  exact sum_mem fun i _ ↦ U.smul_mem _ (h_all _ v hv)
-
-/-- Let the matrices `T g` span all of `M_n(O)` over a coefficient ring `O`, and let `a` in
-`GL_n(ℚ̄_ℓ)` conjugate each `T g` to a matrix `T' g` over `O`. Then `a` is a scalar times an element
-of `GL_n(O)`. So the lattice `a Oⁿ` is a multiple of `Oⁿ`. -/
-theorem New.Selmer.exists_eq_smul_of_conj_eq {X n : Type} [Fintype n] [DecidableEq n] {ℓ : ℕ}
-    [ThePrime ℓ] {O : CoeffRing ℓ} {T T' : X → Matrix n n O} (h_span : span O (range T) = ⊤)
-    (a : GL n (PadicAlgCl ℓ))
-    (h_conj : ∀ g : X, a⁻¹.val * (T g).map O.val.val * a.val = (T' g).map O.val.val) :
-    ∃ (α : (PadicAlgCl ℓ)ˣ) (k : GL n O), a.val = α.val • k.val.map O.val.val := by
-  -- All products of an entry of `a⁻¹` with an entry of `a` lie in `O`. For an entry `α` of `a` of
-  -- largest norm, both `α⁻¹ a` and its inverse `α a⁻¹` then have entries in `O`.
-  rcases isEmpty_or_nonempty n with h_empty | h_nonempty
-  · exact ⟨1, 1, Subsingleton.elim _ _⟩
-  -- Conjugation by `a` preserves `M_n(O)`, which is spanned by the `T g`.
-  have h_int (x : Matrix n n O) :
-      ∃ y : Matrix n n O, a⁻¹.val * x.map O.val.val * a.val = y.map O.val.val := by
-    induction eq_top_iff'.1 h_span x using span_induction with
-    | mem x hx =>
-      obtain ⟨g, rfl⟩ := hx
-      exact ⟨T' g, h_conj g⟩
-    | zero => exact ⟨0, by simp⟩
-    | add x x' _ _ hx hx' =>
-      obtain ⟨y, hy⟩ := hx
-      obtain ⟨y', hy'⟩ := hx'
-      exact ⟨y + y', by rw [Matrix.map_add _ (map_add _), Matrix.map_add _ (map_add _), mul_add,
-        add_mul, hy, hy']⟩
-    | smul c x _ hx =>
-      obtain ⟨y, hy⟩ := hx
-      have h_map (z : Matrix n n O) : (c • z).map O.val.val = c.val • z.map O.val.val := rfl
-      exact ⟨c • y, by rw [h_map, h_map, Matrix.mul_smul, Matrix.smul_mul, hy]⟩
-  -- The product `a⁻¹ p i * a j q` is an entry of the conjugate of a matrix unit.
-  have h_prod (p i j q : n) : a⁻¹.val p i * a.val j q ∈ O.val := by
-    obtain ⟨y, hy⟩ := h_int (Matrix.single i j 1)
-    convert (y p q).prop
-    simpa [Matrix.mul_apply, Matrix.single_apply, ite_and, apply_ite Subtype.val] using
-      congrFun (congrFun hy p) q
-  obtain ⟨⟨j, q⟩, h_max⟩ := Finite.exists_max fun x : n × n ↦ ‖a.val x.1 x.2‖
-  have h_ne : a.val j q ≠ 0 := fun h_zero ↦
-    a.ne_zero (Matrix.ext fun u v ↦ by simpa [h_zero] using h_max (u, v))
-  obtain ⟨p, i, h_inv_ne⟩ : ∃ p i : n, a⁻¹.val p i ≠ 0 := by
-    by_contra! h_zero
-    exact a⁻¹.ne_zero (Matrix.ext h_zero)
-  -- In `O`, the product with the largest entry divides the products with the other entries.
-  have h_quot (u v : n) : (a.val j q)⁻¹ * a.val u v ∈ O.val := by
-    have h_le : ‖a⁻¹.val p i * a.val u v‖ ≤ ‖a⁻¹.val p i * a.val j q‖ := by
-      simpa only [norm_mul] using mul_le_mul_of_nonneg_left (h_max (u, v)) (norm_nonneg _)
-    obtain ⟨c, hc⟩ := (O.dvd_iff_norm_le ⟨_, h_prod p i j q⟩ ⟨_, h_prod p i u v⟩).2 h_le
-    have h_mul : a.val u v = a.val j q * c :=
-      mul_left_cancel₀ h_inv_ne ((congrArg Subtype.val hc).trans (mul_assoc _ _ _))
-    simp [h_mul, h_ne]
-  let k : Matrix n n O := .of fun u v ↦ ⟨(a.val j q)⁻¹ * a.val u v, h_quot u v⟩
-  let k' : Matrix n n O := .of fun u v ↦ ⟨a⁻¹.val u v * a.val j q, h_prod u v j q⟩
-  have hk : k.map O.val.val = (a.val j q)⁻¹ • a.val := rfl
-  have hk' : k'.map O.val.val = a.val j q • a⁻¹.val := Matrix.ext fun _ _ ↦ mul_comm _ _
-  have h_inv : k * k' = 1 := by
-    refine Matrix.map_injective (f := O.val.val) Subtype.val_injective ?_
-    change (k * k').map O.val.val = (1 : Matrix n n O).map O.val.val
-    rw [Matrix.map_mul, hk, hk', Matrix.map_one _ (map_zero _) (map_one _), smul_mul_smul_comm,
-      inv_mul_cancel₀ h_ne, one_smul, a.mul_inv]
-  refine ⟨Units.mk0 (a.val j q) h_ne, ⟨k, k', h_inv, mul_eq_one_comm.1 h_inv⟩, ?_⟩
-  rw [hk, Units.val_mk0, smul_inv_smul₀ h_ne]
 
 end ResidualIrreducibility
 
@@ -539,7 +440,8 @@ private lemma eval_linearExtension_eq_zero {T : G → k}
     (hB : ∀ ρ : k[G] →ₐ[k] Matrix n n k, eval (fun x : k[G] ↦ (ρ x).trace) B = 0) :
     eval (linearExtension T) B = 0 := by
   -- Apply `h_identities` to `B` with each variable `X (∑ c g • g)` replaced by `∑ c g • X g`.
-  refine (B.aeval_bind₁ T _).symm.trans (h_identities _ fun ρ ↦ (aeval_bind₁ ..).trans ?_)
+  refine (comp_aeval_apply _ (aeval T) B).symm.trans
+    (h_identities _ fun ρ ↦ (comp_aeval_apply _ (aeval fun g : G ↦ (ρ g).val.trace) B).trans ?_)
   simpa [Finsupp.sum, lift_apply] using
     hB (MonoidAlgebra.lift k (Matrix n n k) G ((Units.coeHom (Matrix n n k)).comp ρ))
 

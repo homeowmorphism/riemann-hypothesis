@@ -177,7 +177,7 @@ lemma rightRegular_deltaFun (x : G) (v : W) (k : K) :
     rightRegular ℂ G W k (deltaFun e ρ χ x v) = χ k • deltaFun e ρ χ x v := by
   ext y
   have h_mem (γ : Γ) : x⁻¹ * e γ * (y * k) ∈ K ↔ x⁻¹ * e γ * y ∈ K := by
-    rw [← mul_assoc, K.mul_mem_cancel_right k.2]
+    rw [← mul_assoc, K.mul_mem_cancel_right k.property]
   have h_set : transporter K e x (y * k) = transporter K e x y := by
     simp [Finset.ext_iff, mem_transporter, h_mem]
   rw [rightRegular_apply_apply, Pi.smul_apply, deltaFun_apply, deltaFun_apply, h_set, smul_sum]
@@ -320,10 +320,10 @@ lemma exists_isUnitary_formTranslation :
   refine ⟨smoothPairing _ fun _ ↦ gramForm_conjWeylRep _, fun φ hφ ↦ ?_,
     smoothPairing_formTranslation _⟩
   -- Positivity: `f g = ⟨φ g, φ g⟩` is nonnegative and positive at some `g`.
-  let f : Gf E n → ℂ := fun g ↦ gramForm (φ.1 g) (φ.1 g)
+  let f : Gf E n → ℂ := fun g ↦ gramForm (φ.val g) (φ.val g)
   obtain ⟨hf_left, hf_open⟩ : f ∈ smoothInvariants V.Γf :=
     pairing_mem_smoothInvariants (fun _ ↦ gramForm_conjWeylRep _) φ φ
-  obtain ⟨g, hg⟩ : ∃ g : Gf E n, φ.1 g ≠ 0 := Function.ne_iff.1 fun h ↦ hφ (Subtype.ext h)
+  obtain ⟨g, hg⟩ : ∃ g : Gf E n, φ.val g ≠ 0 := Function.ne_iff.1 fun h ↦ hφ (Subtype.ext h)
   have hf_nonneg : ∀ g : Gf E n, 0 ≤ f g := by simp [f, gramForm, weylGramOver_posDef.posSemidef]
   have hf_pos : 0 < f g := by simp [f, gramForm, weylGramOver_posDef.dotProduct_mulVec_pos hg]
   -- The mean is a positive multiple of the class sum at the level `rightStabilizer f ⊓ stdLevel`

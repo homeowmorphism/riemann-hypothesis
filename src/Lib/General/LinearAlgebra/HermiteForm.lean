@@ -133,7 +133,7 @@ Then an `n × k` matrix `y` over `A` is `U_ι * D` with `U ∈ GL_n(R)` and `U_�
 Here `D` is the rows at `ι` of `U⁻¹ * y`, and it is block upper triangular for the weight `wt`. -/
 lemma IsValuationPair.hermite (hR : IsValuationPair R) (ι : k ↪ n) (y : Matrix n k A)
     (wt : k → ℕ := 0) :
-    ∃ᵉ (U ∈ intGL n R) (D : Matrix k k A),
+    ∃ U ∈ intGL n R, ∃ D : Matrix k k A,
       -- (a) `D` is block triangular for the weight
       D.BlockTriangular wt ∧
       -- (b) `y` is the product of the columns `ι` of `U` with `D`
@@ -166,7 +166,7 @@ lemma IsValuationPair.hermite (hR : IsValuationPair R) (ι : k ↪ n) (y : Matri
     fun i j hij ↦ hzero j (mem_univ j) (ι i) (by simpa), ?_, rfl⟩
   -- only the rows at `ι` of `U * y` contribute to the product `y = U⁻¹ * (U * y)`
   have hrows (i : n) (hi : i ∉ Set.range ι) (j : k) : (U.1 * y) i j = 0 :=
-    hzero j (mem_univ j) i (by grind)
+    hzero j (mem_univ j) i (by tauto)
   calc y = U⁻¹.1 * (U.1 * y) := by simp [← Matrix.mul_assoc]
     _ = U⁻¹.1.submatrix id ι * (U.1 * y).submatrix ι id := ext fun i j ↦
       (Fintype.sum_of_injective ι ι.injective _ _ (by simp +contextual [hrows]) fun _ ↦ rfl).symm
@@ -204,7 +204,7 @@ A weaker form of the Hermite normal form, without triangular shape, normalised p
 uniqueness. -/
 lemma IsValuationPair.exists_mul_clear_cols (hR : IsValuationPair R) (M : Matrix k n A)
     (ι : k ↪ n) :
-    ∃ V ∈ intGL n R, ∀ᵉ (a : k) (j ∉ Set.range ι), (M * V.val) a j = 0 := by
+    ∃ V ∈ intGL n R, ∀ a : k, ∀ j ∉ Set.range ι, (M * V.val) a j = 0 := by
   -- The Hermite form of `Mᵀ` gives `U` such that `U⁻¹ * Mᵀ` vanishes off the rows `ι`; transpose.
   obtain ⟨U, hU, D, -, (h_form : Mᵀ = U.val.submatrix id ι * D), -⟩ := hR.hermite ι Mᵀ
   have h_rows : U⁻¹.1 * Mᵀ = (1 : Matrix n n A).submatrix id ι * D := by

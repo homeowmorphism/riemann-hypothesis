@@ -190,7 +190,7 @@ strict derivative `(v, w) ↦ v + w` at `0`. If `x` is an exponential limit of a
 lies in the chart and `φ x = v` up to a relative error `ε`. -/
 private lemma New.eventually_norm_sub_le_of_isExpLimit {G V : Type*} [AddCommGroup G]
     [TopologicalSpace G]
-    [IsTopologicalAddGroup G] [FinComplexSpace V] {φ : G → V} {ψ : V → G} (h0 : φ 0 = 0)
+    [FinComplexSpace V] {φ : G → V} {ψ : V → G} (h0 : φ 0 = 0)
     (ψ_zero : ψ 0 = 0) {C : Set G} (zero_mem : (0 : G) ∈ C) (C_closed : IsClosed C)
     (hC_inv : ∀ x ∈ C, ψ (φ x) = x) (hC_cont : ∀ x ∈ C, ContinuousAt φ x)
     (add_mem_C : ∀ᶠ p : V × V in 𝓝 0, ψ p.1 + ψ p.2 ∈ C)
@@ -379,28 +379,16 @@ every open `U` containing `γ t₀` and every function `f` regular on `U`, the p
 in `U` for `t` near `t₀` and `t ↦ f (γ t)` is continuous at `t₀`. -/
 lemma continuousAt_complexPoint_iff :
     ContinuousAt γ t₀ ↔ HasGermAt (fun g : T → ℂ ↦ ContinuousAt g t₀) (fun t : T ↦ (γ t).1) t₀ := by
-  -- Unfold the induced topology: `γ` is continuous at `t₀` iff, for `f` regular on `U` and `O`
-  -- open, the condition "`γ t ∈ U` and `f (γ t) ∈ O`" spreads from `t₀` to a neighbourhood.
-  have h_unfold : ContinuousAt γ t₀ ↔ ∀ (U : A.left.Opens) (f : PointFn A.left) (O : Set ℂ),
-      f.IsRegularOn U → IsOpen O → LandsIn (γ t₀).left U → f (CommRingCat.of ℂ) (γ t₀).left ∈ O →
-        f.IsRegularOn U ∧ IsOpen O ∧ (∀ᶠ t in 𝓝 t₀, LandsIn (γ t).left U) ∧
-          ∀ᶠ t in 𝓝 t₀, f (CommRingCat.of ℂ) (γ t).left ∈ O := by
-    simp [ContinuousAt, tendsto_pi_nhds, nhds_induced, tendsto_nhds_Prop]
-  have h_germ : HasGermAt (fun g : T → ℂ ↦ ContinuousAt g t₀) (fun t : T ↦ (γ t).1) t₀ ↔
-      ∀ ⦃U : A.left.Opens⦄ ⦃f : PointFn A.left⦄, f.IsRegularOn U → LandsIn (γ t₀).left U →
-        (∀ᶠ t in 𝓝 t₀, LandsIn (γ t).left U) ∧
-          ∀ O' : Set ℂ, f (CommRingCat.of ℂ) (γ t₀).left ∈ O' → IsOpen O' →
-            ∀ᶠ t in 𝓝 t₀, f (CommRingCat.of ℂ) (γ t).left ∈ O' := by
-    simp [HasGermAt, ContinuousAt, (nhds_basis_opens (_ : ℂ)).tendsto_right_iff]
-  rw [h_unfold, h_germ]
+  -- Unfold the induced topology on `ComplexPoint A` and the germ condition on `ℂ`.
+  simp [ContinuousAt, HasGermAt, tendsto_pi_nhds, nhds_induced, tendsto_nhds_Prop,
+    (nhds_basis_opens (_ : ℂ)).tendsto_right_iff]
   constructor
   · intro h U f hf hU
-    -- The case `O = univ` says that `γ` stays in `U`.
-    obtain ⟨-, -, h_lands, -⟩ := h U f Set.univ hf isOpen_univ hU (Set.mem_univ _)
-    exact ⟨h_lands, fun O hO hO_open ↦ (h U f O hf hO_open hU hO).right.right.right⟩
+    -- Taking `O = univ` shows that `γ` stays in `U` near `t₀`.
+    exact ⟨(h U f Set.univ hf isOpen_univ hU (Set.mem_univ _)).2.2.1,
+      fun O hO hO_open ↦ (h U f O hf hO_open hU hO).2.2.2⟩
   · intro h U f O hf hO_open hU hO
-    obtain ⟨h_lands, h_mem⟩ := h hf hU
-    exact ⟨hf, hO_open, h_lands, h_mem O hO hO_open⟩
+    exact ⟨hf, hO_open, (h hf hU).1, (h hf hU).2 O hO hO_open⟩
 
 /-- The zeros of an analytic map `F : ℂ^ι → ℂ^σ` near a zero `p₀` with onto derivative have an
 analytic chart `c` to `ℂᵈ`, `d = #ι - #σ`, with analytic local inverse `g`. -/
@@ -450,7 +438,7 @@ lemma exists_zero_set_chart {ι σ : Type} [Finite ι] [Finite σ] {d : ℕ} {F 
 a complex point `y` of `U`, a polynomial `q` in the generators takes the value of the polynomial
 function of `q` (constants evaluated at the base point) at the coordinates of `y`. -/
 private lemma ofSection_aeval_eq_eval {V : (Spec (CommRingCat.of ℂ)).Opens} {U : A.left.Opens}
-    (e : U ≤ A.hom ⁻¹ᵁ V) {ι σ : Type} [Finite ι] [Finite σ]
+    (e : U ≤ A.hom ⁻¹ᵁ V) {ι σ : Type} [Finite σ]
     [Algebra Γ(Spec (CommRingCat.of ℂ), V) Γ(A.left, U)]
     (h_alg : algebraMap Γ(Spec (CommRingCat.of ℂ), V) Γ(A.left, U) = (A.hom.appLE V U e).hom)
     (P : Algebra.SubmersivePresentation Γ(Spec (CommRingCat.of ℂ), V) Γ(A.left, U) ι σ)
@@ -491,16 +479,12 @@ private lemma surjective_fderiv_relations {V : (Spec (CommRingCat.of ℂ)).Opens
   ext
   simp [h_eval, ← ofSection_eq hx, vecMul_eq_sum, Pi.single_apply, pderiv_map]
 
-private lemma concreteCategory_hom_eq_hom {R S : CommRingCat} (f : R ⟶ S) :
-    ConcreteCategory.hom f = f.hom :=
-  rfl
-
 /-- Let `P` present `Γ(A, U)` over `Γ(Spec ℂ, V)`, the algebra map being `A.hom.appLE V U e`, for
 affine opens `U` and `V`. Every zero `p` of the relations of `P`, read as polynomial functions on
 `ℂ^ι`, is the vector of coordinates of a complex point of `U`. -/
 private lemma exists_point_of_relations_eq_zero {V : (Spec (CommRingCat.of ℂ)).Opens}
     {U : A.left.Opens} (hV : IsAffineOpen V) (hU : IsAffineOpen U) (e : U ≤ A.hom ⁻¹ᵁ V)
-    {ι σ : Type} [Finite ι] [Finite σ] [Algebra Γ(Spec (CommRingCat.of ℂ), V) Γ(A.left, U)]
+    {ι σ : Type} [Finite σ] [Algebra Γ(Spec (CommRingCat.of ℂ), V) Γ(A.left, U)]
     (h_alg : algebraMap Γ(Spec (CommRingCat.of ℂ), V) Γ(A.left, U) = (A.hom.appLE V U e).hom)
     (P : Algebra.SubmersivePresentation Γ(Spec (CommRingCat.of ℂ), V) Γ(A.left, U) ι σ)
     (hV1 : LandsIn (𝟙 (Spec (CommRingCat.of ℂ))) V) (p : ι → ℂ)
@@ -524,7 +508,7 @@ private lemma exists_point_of_relations_eq_zero {V : (Spec (CommRingCat.of ℂ))
     landsIn_fromSpec hU _, funext fun i ↦ ?_⟩
   · -- The point lies over `Spec ℂ`, since the constants are evaluated as before.
     rw [← ofSection_appLE A.hom e r (landsIn_fromSpec hU _)]
-    simpa [landsIn_fromSpec hU, ofSection_eq hV1, h_alg, ev, concreteCategory_hom_eq_hom] using
+    simpa [landsIn_fromSpec hU, ofSection_eq hV1, h_alg, ev] using!
       h_lift (C r)
   · -- Its `i`-th coordinate is `p i`: the generator `X i` evaluates to `p i`.
     simpa [Algebra.Generators.algebraMap_apply, ev] using h_lift (X i)
@@ -535,7 +519,7 @@ private lemma exists_point_of_relations_eq_zero {V : (Spec (CommRingCat.of ℂ))
 `γ` through `x` the map `φ ∘ γ` is analytic, with derivative zero in each direction in which `γ`
 is constant to first order. -/
 lemma exists_holomorphic_chart (hd : SmoothOfRelativeDimension d A.hom) (x : ComplexPoint A) :
-    ∃ᵉ (φ : ComplexPoint A → Fin d → ℂ) (ψ : (Fin d → ℂ) → ComplexPoint A),
+    ∃ φ : ComplexPoint A → Fin d → ℂ, ∃ ψ : (Fin d → ℂ) → ComplexPoint A,
       φ x = 0 ∧
       -- (a) `ψ` is a left inverse of `φ` near `x`, where `φ` is continuous
       (∀ᶠ y : ComplexPoint A in 𝓝 x, ψ (φ y) = y ∧ ContinuousAt φ y) ∧
@@ -662,7 +646,7 @@ lemma LineBundle.IsProjEmbedding.compactSpace_complexPoint (hN : N.IsProjEmbeddi
   have hf : Continuous f := by
     refine continuous_iff_continuousAt.mpr fun c ↦ continuousAt_complexPoint_iff.mpr ?_
     have hv_coords (c : K) : (((hyperplaneBundle ι).pull Limits.prod.fst).pull
-        j).IsHomogeneousCoords (f c).left (c.1 : ι → ℂ) := by
+        j).IsHomogeneousCoords (f c).left (c.val : ι → ℂ) := by
       rw [IsHomogeneousCoords.pull_iff, show (f c).left ≫ j = t c from hs c]
       exact ht_lifts c
     exact .of_isHomogeneousCoords hN (continuousAt_pi.mp (by fun_prop)) (.of_forall hv_coords)

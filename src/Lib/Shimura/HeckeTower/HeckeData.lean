@@ -882,7 +882,7 @@ places, and let the `w i` be distinct finite places whose norms have product abo
 `g⁻¹ γ g` (with γ embedded in G_f) lies in the integral level `stdLevel E n`, which is
 G_f ∩ GL_n(Ô E) (hypothesis `hk`), and reduces to `1` modulo every `w i`, then `γ = 1`. -/
 lemma eq_one_of_reduceAt_eq_one {E : Type} [Field.{0} E] [CMType E] {w : ι → FinPlace E}
-    [Nontrivial (InfinitePlace E)] (hw : w.Injective)
+    (hw : w.Injective)
     (h_large : (2 * card n) ^ finrank ℚ E < ∏ i : ι, (w i).q)
     {γ : U (stdSpace E n).J} {g : Gf E n}
     (hk : g⁻¹ * (stdSpace E n).embFin γ * g ∈ stdLevel E n)
@@ -932,7 +932,7 @@ unitary group over `E` of the definite form `stdSpace E n` (identity matrix, sum
 coordinates), embedded in `Gf E n`. A case of Minkowski's lemma on integral matrices of finite
 order. -/
 lemma classAut_eq_bot {E : Type} [Field.{0} E] [CMType E] {w : ι → FinPlace E}
-    [Nontrivial (InfinitePlace E)] (hw : w.Injective)
+    (hw : w.Injective)
     (h_large : (2 * card n) ^ finrank ℚ E < ∏ i : ι, (w i).q)
     {K : Subgroup (Gf E n)} (hK : K ≤ levelOf w ⊥) (g : Gf E n) :
     classAut (stdSpace E n).Γf K g = ⊥ := by

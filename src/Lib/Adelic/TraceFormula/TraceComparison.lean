@@ -431,7 +431,7 @@ rational matrix) that carries those with polynomial `R` and signs `ε` onto thos
 on its eigenlines, of a form with orthonormal frame `u`), then `f` sends its class to the class of
 a pair `(x, y)` with signs `ε'` such that `u` and `x` conjugate the rational centraliser of `y` in
 the same way. -/
-theorem exists_perm_signedClasses [HasPrimitiveRoot5040 E] {ε ε' : InfinitePlace E → n → ℤˣ}
+theorem exists_perm_signedClasses {ε ε' : InfinitePlace E → n → ℤˣ}
     (hε : ∏ w : InfinitePlace E, ∏ i : n, ε w i = 1)
     (hε' : ∏ w : InfinitePlace E, ∏ i : n, ε' w i = 1) (R : E[X]) :
     ∃ f : Perm (FrameClass E n), f '' signedClasses R ε = signedClasses R ε' ∧

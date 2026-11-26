@@ -160,11 +160,12 @@ lemma translateByClassReps_weylElem_mul (c c' : S.Classes) (p : ℕ → Eˣ) (σ
   -- No `e*_a` has level below `ϱ`.
   have h_level (a : Fin 𝔰.ϱ) : ¬2 * 𝔰.ϱ - a < 𝔰.ϱ := by lia
   -- The Weyl element commutes with the change of basis, entry by entry.
-  simp +contextual [Subtype.ext_iff, ← mul_assoc, Units.ext_iff, ← ext_iff, Sum.forall, weylElem,
+  simp [Subtype.ext_iff, ← mul_assoc, Units.ext_iff, ← ext_iff, Sum.forall, weylElem,
     weylOn, coe_translateByClassReps, classBasis, toBesselH, besselLatticeBasis,
       fromBlocks_multiply,
     fromCols_mul_fromBlocks, Matrix.mul_apply, Matrix.one_apply, BesselIndex.level, h_level,
     apply_ite (algebraMap E (𝔸f E))]
+  simp +contextual
 
 end
 
@@ -688,7 +689,7 @@ lemma hasSum_besselOrbitalIntegral_cosetAmplitude [WeilData E]
         Subtype.ext_iff, exists_and_left, exists_and_right]
       simp
     obtain ⟨⟨v, hv, v_unique⟩, v', hv', v'_unique⟩ :=
-      h_rep _ (inv_mem u.2) _ (inv_mem u'.2) (by simpa [f] using h_over)
+      h_rep _ (inv_mem u.2) _ (inv_mem u'.2) (by simpa using h_over)
     rw [tsum_eq_single (v, v'), indicator_of_mem ((h_iff (v, v')).2 ⟨hv, hv'⟩), Pi.one_apply]
     refine fun z hz ↦ indicator_of_notMem (fun h_mem ↦ hz ?_) _
     exact Prod.ext (v_unique _ ((h_iff z).1 h_mem).1) (v'_unique _ ((h_iff z).1 h_mem).2)
@@ -742,7 +743,7 @@ the group of block upper unitriangular isometries, and put `K(M) = F.congruenceS
 `T` with the cosets of `𝖴 ∩ K(M)` in 𝖴 at `T`. This is stated by a list `r` of rational
 representatives, one for each coset at `T`. -/
 lemma IsFillingData.exists_injective_mem_besselU_and_isIntegralOff [hF : S.IsFillingData T F]
-    [hM_inv : Fact (S.ideleM⁻¹.val ∈ integralOff T)] [S.IsAdmissible] (c : S.Classes) :
+    [hM_inv : Fact (S.ideleM⁻¹.val ∈ integralOff T)] (c : S.Classes) :
     ∃ r : F.UnipotentCosets → S.G E,
       Injective r ∧
       (∀ w : F.UnipotentCosets, r w ∈ besselU) ∧
@@ -859,7 +860,6 @@ theorem IsFillingData.cosetAmplitude_eq_kloostermanSum_smul [hF : S.IsFillingDat
         besselOrbitalIntegral volume
           (fun y : InfinitePlace E → 𝔰.G₁ ↦ WithLp.toLp 2 (S.besselFn side y))
           (S.ratToInf (weylElem 𝔰.ϱ p * σ)) := by
-  classical
   set γ : S.G E := weylElem 𝔰.ϱ p * σ
   obtain ⟨r, r_inj, hr, r_off, r_level, r_rep⟩ :=
     hF.exists_injective_mem_besselU_and_isIntegralOff c

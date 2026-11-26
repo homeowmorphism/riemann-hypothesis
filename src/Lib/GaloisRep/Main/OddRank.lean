@@ -331,7 +331,7 @@ conjugate of an element of `I` lies in every `N T` and is killed by `ρ T`. If e
 Frobenius element at a place `A` of `Ω` over a place `y` of prime norm lies in some `N T`, then a
 representation of `Gal(Ω/E)` is attached to `P`. -/
 lemma New.GaloisRep.exists_attached_of_open_subgroups {ℓ : ℕ} [ThePrime ℓ] [PadicIso ℓ]
-    {E n : Type} [Field E] [EmbeddedNumberField E] [CMType E] [Fintype n] [DecidableEq n]
+    {E n : Type} [Field E] [EmbeddedNumberField E] [Fintype n] [DecidableEq n]
     {P : FinPlace E → Polynomial ℂ} {N₀ : Subgroup Gal(Ω/E)} [N₀.Normal]
     {ρ₀ : N₀ →* GL n (PadicAlgCl ℓ)} (hρ₀ : Attached P ρ₀ N₀.subtype)
     {N : ℕ → Subgroup Gal(Ω/E)} [∀ T : ℕ, (N T).Normal] (N_open : ∀ T : ℕ, (N T).IsOpen)

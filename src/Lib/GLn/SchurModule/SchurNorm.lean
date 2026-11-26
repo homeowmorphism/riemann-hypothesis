@@ -118,7 +118,7 @@ omit [Fintype Φ] [DecidableEq Φ] [∀ τ : Φ, DecidableEq (n τ)] in
 /-- The rows in one column of a column filling are distinct. -/
 lemma fillingRows_injective (T : ColumnFilling n κ) (τ : Φ) (h : Fin (rankAt n τ))
     (j : Fin (κ τ h)) : Function.Injective (fillingRows T τ h j) :=
-  (rowEquivFin n τ).symm.injective.comp (T τ h j).2.injective
+  (rowEquivFin n τ).symm.injective.comp (T τ h j).property.injective
 
 omit [DecidableEq Φ] in
 /-- Diagonal matrices act diagonally on tensors: `minorsMatrix` multiplies the basis tensor of a
@@ -135,7 +135,7 @@ lemma minorsMatrix_diagonal {R : Type} [CommRing R] (x : ∀ τ : Φ, n τ → R
     simp [submatrix_diagonal _ _ (fillingRows_injective T _ _ _)]
   · -- Two different increasing sequences have different ranges, so that minor has a zero line.
     obtain ⟨τ, h, j, h_ne⟩ : ∃ τ h j, T τ h j ≠ T' τ h j := by simpa [funext_iff] using h_eq
-    have h_range : Set.range (T τ h j).1 ≠ Set.range (T' τ h j).1 :=
+    have h_range : Set.range (T τ h j).val ≠ Set.range (T' τ h j).val :=
       mt ((T τ h j).2.range_inj_of_wellFoundedLT (T' τ h j).2).1 (Subtype.coe_ne_coe.2 h_ne)
     refine prod_eq_zero (mem_univ τ) (prod_eq_zero (mem_univ h) (prod_eq_zero (mem_univ j) ?_))
     simp only [Ne, Set.Subset.antisymm_iff, not_and_or, Set.range_subset_iff, not_forall] at h_range

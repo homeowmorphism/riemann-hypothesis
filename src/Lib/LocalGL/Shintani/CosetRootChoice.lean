@@ -160,9 +160,7 @@ lemma induceClassFn_mem_virtualChars [Finite Γ] {Z : Type*} [CommSemiring Z] [A
     congr 1
     exact finMean_equiv (MulAut.conj u) h_term
   -- a class function whose pairings with all characters come from `Z` is a `Z`-combination of them
-  obtain ⟨-, h_mem_of_pairings, -⟩ := isIrreducibleChar_and_mem_virtualChars_and_exists_mul Z
-    h_class
-  refine h_mem_of_pairings fun (χ : E → ℂ) (hχ : IsChar χ) ↦ ?_
+  refine IsClassFunction.mem_virtualChars h_class fun (χ : E → ℂ) (hχ : IsChar χ) ↦ ?_
   -- Frobenius reciprocity moves the pairing to `E'`, where `h` is a `Z`-combination of characters
   rw [classInner_induceClassFn_of_surjective h_surj hχ.isClassFunction]
   exact (hχ.comp ρ).exists_classInner_eq h_virtual
@@ -273,7 +271,7 @@ lemma IsIrreducibleChar.extend_semidirect [Finite Γ] (hY : IsIrreducibleChar Y)
     (h_self : Nat.card Γ * classInner Φ Φ = classInner (Φ ∘ inl) (Φ ∘ inl) + (Nat.card Γ - 1))
     (m : ℤ) (h_pair : classInner Y (Φ ∘ inl) = 1 + Nat.card Γ * m) :
     IsIrreducibleChar fun x : G ⋊[α] Γ ↦ if x.right = 1 then Y x.left else Φ x := by
-  -- Apply the first part of `isIrreducibleChar_and_mem_virtualChars_and_exists_mul` to the function
+  -- Apply `IsClassFunction.isIrreducibleChar_of_classInner_eq_intCast` to the function
   -- f of the statement, with the test function I equal to Y on G and to 0 off G. It asks that f and
   -- I be class functions, ⟨I, f⟩ ≠ 0, ⟨f, f⟩ = 1, 0 ≤ re f(1), and ⟨χ, f⟩ ∈ ℤ for every character χ
   -- with ⟨χ, I⟩ ≠ 0 and χ(1) ⟨χ, I(· y)⟩ = ⟨χ, I⟩ χ(y). Means over G ⋊ Γ are split by the simp
@@ -283,9 +281,9 @@ lemma IsIrreducibleChar.extend_semidirect [Finite Γ] (hY : IsIrreducibleChar Y)
     simp +contextual [hY_char.isClassFunction, isClassFunction_of_mem_virtualChars hΦ, h_stable]
   have hI_class : IsClassFunction fun x : G ⋊[α] Γ ↦ if x.right = 1 then Y x.left else 0 := by
     simp +contextual [hY_char.isClassFunction, h_stable]
-  obtain ⟨h_irr_of_test, -, -⟩ := isIrreducibleChar_and_mem_virtualChars_and_exists_mul ℤ hf_class
   have h_card_ne : (Nat.card Γ : ℂ) ≠ 0 := Nat.cast_ne_zero.mpr Nat.card_pos.ne'
-  refine h_irr_of_test _ hI_class ?_ ?_ ?_ fun χ hχ h_ne h_conv ↦ ?_
+  refine hf_class.isIrreducibleChar_of_classInner_eq_intCast hI_class ?_ ?_ ?_
+    fun χ hχ h_ne h_conv ↦ ?_
   · -- the pairing with I is ⟨Y, Y⟩ / |Γ|
     simp_all +contextual [classInner]
   · -- norm one: by `finMean_ite`, ⟨f, f⟩ = ⟨Φ, Φ⟩ + (⟨Y, Y⟩ - ⟨Φ|G, Φ|G⟩) / |Γ|; then `h_self`
@@ -313,7 +311,7 @@ lemma IsIrreducibleChar.extend_semidirect [Finite Γ] (hY : IsIrreducibleChar Y)
     have h_convY_g : Y 1 * (finMean fun t : G ↦ conj (χ (inl t)) * Y (t * g)) =
         (finMean fun t : G ↦ conj (χ (inl t)) * Y t) * Y g := by
       simp only [mul_comm (conj (χ _))]
-      simpa [← finMean_conj, ← hY_char.apply_inv, field, classInner] using h_convY
+      simpa [← finMean_conj, ← hY_char.apply_inv, classInner] using h_convY
     have h_pair_ne : (finMean fun t : G ↦ conj (χ (inl t)) * Y t) ≠ 0 := by
       simpa [← finMean_conj, ← hY_char.apply_inv, field, classInner] using h_ne
     have hY_one_ne : Y 1 ≠ 0 := fun h_zero ↦ by
@@ -415,7 +413,7 @@ lemma IsRootChoice.index_mul_finMean_eq_classInner [Finite Γ]
     sum_subtype _ mem_filter_univ, ← R.bijective_conjRoot.sum_comp, ← π.ker.index_mul_card,
     ← R.card_preimage_eq, ← Nat.card_eq_of_bijective _ R.bijective_conjRoot]
   have h_index : (π.ker.index : ℂ) ≠ 0 := mod_cast index_ne_zero_of_finite
-  simp [IsRootChoice.conjRoot, h_ker, hh_conj, hg_conj, field, Fintype.sum_prod_type, mul_sum]
+  simp [IsRootChoice.conjRoot, h_ker, hh_conj, hg_conj, field, Fintype.sum_prod_type]
   -- the values at r(γ) are those of f and f'
   grind [DescendsOnCoset]
 

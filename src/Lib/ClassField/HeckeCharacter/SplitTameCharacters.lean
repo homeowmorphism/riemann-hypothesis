@@ -255,12 +255,12 @@ structure ReadsAt {E : Type} [Field E] [NumberField E] [IsCMField E] (A : Set (F
 
 /-- The multiplicative character of ∏_{w∈P} E_w that is t ↦ ξ(t)|t|^{k/2} on invertible
 elements, t read as an idele, and 0 on the others. -/
-def localChar (ξ : HeckeChar E) (k : ℤ) : MulChar (∀ i : P, LocField i.1) ℂ :=
+def localChar (ξ : HeckeChar E) (k : ℤ) : MulChar (∀ i : P, LocField i.val) ℂ :=
   MulChar.ofUnitHom <|
     ∏ i : P,
       (ξ.finPart.comp (locIdele i) *
           MonoidHom.toHomUnits
-            { toFun (t : (LocField i.1)ˣ) := (√‖t.1‖ : ℂ)
+            { toFun (t : (LocField i.val)ˣ) := (√‖t.val‖ : ℂ)
               map_one' := by simp
               map_mul' := by simp } ^ k).comp (Units.map (evalMonoidHom _ i))
 
@@ -293,9 +293,9 @@ lemma SplitTameChar.readsAt : ReadsAt 𝔠.ramifiedPlaces (evalPlaces 𝔠.ramif
 
 /-- The ring map from the integers of ∏_{w∈P} E_w to the residue field at the place i of P. -/
 def residueAt {E : Type} [Field E] [NumberField E] {P : Finset (FinPlace E)} (i : P) :
-    O (F := LocProd P) →+* ResField i.1 :=
-  (residue (LocInt i.1)).comp
-    ((evalRingHom (fun w : P ↦ LocField w.1) i).restrict O (LocInt i.1) (by aesop (add simp
+    O (F := LocProd P) →+* ResField i.val :=
+  (residue (LocInt i.val)).comp
+    ((evalRingHom (fun w : P ↦ LocField w.val) i).restrict O (LocInt i.val) (by aesop (add simp
       mem_O_locProd)))
 
 /-- The vector of 𝒮(Hom(S,T)) obtained from the vacuum by applying the operator
@@ -396,7 +396,7 @@ lemma character_apply_of_integral (u : unitary (𝔸 E)) (hu : (u : 𝔸 E).2 �
     localChar_apply_of_isUnit 𝔠 0 ⟨evalPlaces 𝔠.ramifiedPlaces (u : 𝔸 E).2, h_mem⟩ h_unit]
   -- The reductions of `u` at each `i` by `reduceU1` and by `residueAt` agree by definition.
   have h_red : ∀ i : 𝔠.ramifiedPlaces,
-      ((reduceU1 (i : FinPlace E) ⟨u, hu, nofun⟩ : (ResField i.1)ˣ) : ResField i.1) =
+      ((reduceU1 (i : FinPlace E) ⟨u, hu, nofun⟩ : (ResField i.val)ˣ) : ResField i.val) =
         residueAt i ⟨evalPlaces 𝔠.ramifiedPlaces (u : 𝔸 E).2, h_mem⟩ :=
     fun i ↦ rfl
   simp only [h_red, Finset.univ_eq_attach]
@@ -422,7 +422,7 @@ instance tameLocalChar (k := 0) : TameLocalChar
     · -- Primitivity: if `a i ≠ 0`, solve `1 + a y = x` at `i` for a unit `x` with `ψ i x ≠ 1`.
       intro a ha
       obtain ⟨i, hi⟩ := Function.ne_iff.1 ha
-      obtain ⟨x, hx⟩ := MulChar.ne_one_iff.1 ((𝔠.ne_one_iff i).2 i.2)
+      obtain ⟨x, hx⟩ := MulChar.ne_one_iff.1 ((𝔠.ne_one_iff i).2 i.property)
       exact ⟨(mulSingle i x - 1) / a, by
         simp_all [Finset.prod_eq_single i, inv_apply_eq_inv', apply_eq_zero_iff]⟩
     · -- On units this is `localChar_apply_of_isUnit`; a non-unit has residue `0` at some place, so

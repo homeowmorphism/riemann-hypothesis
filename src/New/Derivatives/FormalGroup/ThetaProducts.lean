@@ -99,7 +99,7 @@ namespace New
 exactly when its norm is at most that of `π_p`. -/
 lemma piPrimeInt_dvd_iff {d p : ℕ} [PrimeSevenModEight d] [Fact p.Prime] [PadicPlace p]
     {x : valRingCp p} : piPrimeInt d ∣ x ↔ ‖(x : ℂ_[p])‖ ≤ ‖ιₚ (piPrime d p)‖ :=
-  dvd_iff_norm_le
+  valRingCp.dvd_iff_norm_le
 
 namespace Parameters
 
@@ -142,7 +142,6 @@ the group `Gal(E/K) = (ℤ/q₁)ˣ` of places. Then `τ(α) ^ p ^ e ≡ conj (τ
 lemma norm_pow_sub_conj_partner_le {P : Parameters} {s p : ℕ} [Fact p.Prime] [PadicPlace p] {e : ℕ}
     (he : e ∈ partnerExponents P.d p) (τ : P.Φ s) (α : 𝓞 (P.E s)) :
     ‖ιₚ (Φ τ α) ^ p ^ e - ιₚ (conj (Φ (P.partner s p e τ) α))‖ ≤ ‖ιₚ (piPrime P.d p)‖ := by
-  classical
   -- Both sides are ring maps to `𝒪 / π_p`. By `forall_map_galOfPlaceInt_eq_pow_iff` it suffices
   -- that they agree at the root of unity, which holds by the choice of the partner, and at `√-d`.
   let toValRing : 𝓞 (P.E s) →+* valRingCp p :=
@@ -310,7 +309,6 @@ lemma dvd_sum_subst_sub_couplingSum {Φ n J : Type} [Fintype Φ] [Fintype n] [Fi
     {L : J → MvPowerSeries (Φ × n) (valRingCp p)} (hL : ∀ i : J, constantCoeff (L i) = 0)
     {m : J → ℕ} (hΓ : ∀ e ∈ S, C π ∣ ∑ i : J, m i * (L i ^ p ^ e * L i) - coupling partner e) :
     C π ∣ ∑ i : J, m i • Ξ.subst (L i) - couplingSum S partner l := by
-  classical
   have h_subst (i : J) : PowerSeries.HasSubst (L i) := .of_constantCoeff_zero (hL i)
   set T : PowerSeries (valRingCp p) :=
     ∑' x : S × ℕ, l x.1 x.2 • (PowerSeries.X ^ p ^ (x.1 : ℕ) * PowerSeries.X) ^ p ^ x.2

@@ -70,7 +70,7 @@ lemma mk_eq_mk_iff_sub_mem {x x' : K} :
 /-- Chosen representatives of the quotient of `K` by `H ⊓ K` are a system of representatives. -/
 lemma out (K H : AddSubgroup A) :
     IsRepresentativeSystem (fun q : K ⧸ H.addSubgroupOf K ↦ (q.out : A)) K H := by
-  refine ⟨fun q ↦ q.out.2, fun x hx ↦ ?_⟩
+  refine ⟨fun q ↦ q.out.property, fun x hx ↦ ?_⟩
   lift x to K using hx
   simp only [← mk_eq_mk_iff_sub_mem, QuotientAddGroup.out_eq', existsUnique_eq']
 
@@ -87,7 +87,7 @@ lemma exists_mem_iff_eq (hy : IsRepresentativeSystem y K H) :
 lemma card_eq_relIndex (hy : IsRepresentativeSystem y K H) : Nat.card ι = H.relIndex K := by
   refine Nat.card_eq_of_bijective (fun i ↦ ((⟨y i, hy.mem i⟩ : K) : K ⧸ H.addSubgroupOf K))
     ⟨fun i j h ↦ hy.eq_of_sub_mem (mk_eq_mk_iff_sub_mem.1 h), fun q ↦ ?_⟩
-  obtain ⟨i, (hi : (q.out : A) - y i ∈ H), -⟩ := hy.existsUnique q.out q.out.2
+  obtain ⟨i, (hi : (q.out : A) - y i ∈ H), -⟩ := hy.existsUnique q.out q.out.property
   exact ⟨i, (mk_eq_mk_iff_sub_mem.2 hi).symm.trans q.out_eq'⟩
 
 /-- If `f` is constant on the classes of `K` modulo `H`, its sum over the representatives is

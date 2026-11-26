@@ -265,7 +265,8 @@ lemma coeff_mul_C_sub_X_mul_C_insert {J T : Type*} [DecidableEq J] [CommRing T]
     (G : MvPolynomial J T) (t r : T) {j : J} {S : Finset J} (hj : j ∉ S) :
     (G * (.C t - .X j * .C r)).coeff (∑ i ∈ insert j S, .single i 1) =
       t * G.coeff (∑ i ∈ insert j S, .single i 1) - r * G.coeff (∑ i ∈ S, .single i 1) := by
-  rw [mul_sub, mul_left_comm G, MvPolynomial.coeff_sub, sum_insert hj, MvPolynomial.coeff_X_mul]
+  rw [mul_sub, mul_left_comm G, AddMonoidAlgebra.coeff_sub_apply, sum_insert hj,
+    MvPolynomial.coeff_X_mul]
   simp [mul_comm G]
 
 /-- Let `σ : R → R'` be a ring map, write `a ≡ b` for `σ a = σ b` and `∂ j = der j`, and let the

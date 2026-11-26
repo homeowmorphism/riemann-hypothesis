@@ -710,17 +710,21 @@ lemma exists_isOperatorOfCost_and_mem_deepElements (I : Finset ((_ : ℕ) × ℤ
     let low (b : ℕ) (u : ℤ) : ℤ := if b = a ∧ o' b u = n + 1 then n else o' b u
     have cover_low (b : ℕ) (u : ℤ) (hu : u ∈ S.jumpSet (i.stepBack b)) (m : ℤ) (h_le : o b u ≤ m)
         (h_lt : m < low b u) : (⟨b, m⟩ : Σ _ : ℕ, ℤ) ∈ I := by
-      refine mem_of_mem_insert_of_ne (cover b u hu m h_le (by grind)) fun h_eq ↦ ?_
+      refine mem_of_mem_insert_of_ne (cover b u hu m h_le (h_lt.trans_le (by
+        simp only [low]; split_ifs with h; exacts [h.2 ▸ (lt_add_one n).le, le_rfl]))) fun h_eq ↦ ?_
       obtain ⟨rfl, rfl⟩ : b = a ∧ m = n := by simpa using h_eq
       -- here `m + 1 < o' b u`, so the pair `(b, m + 1)` contradicts the choice of `m`
       have succ_mem : (⟨b, m + 1⟩ : Σ _ : ℕ, ℤ) ∈ I :=
-        mem_of_mem_insert_of_ne (cover b u hu (m + 1) (by lia) (by grind)) (by simp)
+        mem_of_mem_insert_of_ne (cover b u hu (m + 1) (h_le.trans (lt_add_one m).le) (by
+          simp only [low, true_and] at h_lt; split_ifs at h_lt with h
+          exacts [(lt_irrefl m h_lt).elim, (Int.add_one_le_of_lt h_lt).lt_of_ne' h])) (by simp)
       exact (lt_add_one m).not_ge (q_max _ succ_mem)
     have deep_low : A x ∈ S.deepElements i low := A_deep hx low cover_low
     -- `B` keeps the depth `low`; it remains to raise the lowered orders
     obtain ⟨B_const, B_deep⟩ : B (A x) ∈ S.deepElements i low := B_cost.mem_deepElements deep_low
     refine ⟨B_const, fun g ↦ mem_withOrders_of_mem_hodgeFil (B_deep g) fun b u hu h_lt μ hμ ↦ ?_⟩
-    obtain ⟨rfl, eq_succ⟩ : b = a ∧ o' b u = n + 1 := by grind
+    obtain ⟨rfl, eq_succ⟩ : b = a ∧ o' b u = n + 1 := by
+      simp only [low] at h_lt; split_ifs at h_lt with h; exacts [h, absurd h_lt (lt_irrefl _)]
     rw [eq_succ]
     refine B_step (A x) μ hμ.1 (fun γ ↦ ?_) g
     obtain ⟨-, low_values⟩ := deep_low.2 γ

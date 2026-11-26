@@ -124,8 +124,8 @@ valuations. -/
 lemma norm_natCast_prod_eq_rpow_neg_sum {p : ℕ} [hp : Fact p.Prime] [PadicPlace p] {X : Type}
     [Fintype X] {n : X → ℕ} (hn : ∀ x : X, n x ≠ 0) :
     ‖(ιₚ (∏ x : X, n x : ℕ) : ℂ_[p])‖ = p ^ (-∑ x : X, (padicValNat p (n x) : ℝ)) := by
-  simp [norm_natCast_eq_inv_pow_padicValNat, hn, rpow_neg p.cast_nonneg, ← cast_sum,
-    prod_pow_eq_pow_sum]
+  rw [map_natCast, Nat.cast_prod]
+  exact New.norm_prod_natCast_eq_rpow_neg_sum (p := p) hn
 
 /-- The hermitian space `Hom(E, E¹²)` of `12 × 1` matrices over `E = D.E`, where `E` and `E¹²` carry
 the sum of the norms of the coordinates (`stdSpace`). The sign of a coordinate is the product of
@@ -426,7 +426,8 @@ theorem exists_rpow_neg_localPrimeSumTotal_le_norm_coeff {P : Parameters} (D : D
   have h_normVac : 0 < ‖(ιₚ scaledVac : ℂ_[p])‖ := by simp [h_scaledVac, NeZero.ne D.M, hy]
   have h_factor :
       intFactor * c₀ = scaledVac * (∏ τ : D.Φ, D.lossProduct (ν (τ, ())) : ℕ) ^ 2 := by
-    simp [h_scaledVac, intFactor, Finset.prod_pow, mul_right_comm]
+    push_cast [h_scaledVac, intFactor, Finset.prod_pow]
+    ring
   have h_normLoss : ‖(ιₚ (∏ τ : D.Φ, D.lossProduct (ν (τ, ())) : ℕ) : ℂ_[p])‖ = p ^ (-valLoss) :=
     norm_natCast_prod_eq_rpow_neg_sum fun τ ↦ D.lossProduct_ne_zero _
   have h_normFactorial : ‖(ιₚ (∏ τ : D.Φ, (ν (τ, ()))! : ℕ) : ℂ_[p])‖ = p ^ (-valFactorial) :=

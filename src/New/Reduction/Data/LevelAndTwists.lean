@@ -181,6 +181,11 @@ lemma targetParameter_eq (v : D.Φ) (i : ℕ) :
     push_cast
     ring
 
+/-- The entry `D.k - 1 + a` of `D.targetParameter τ` is `D.halfGap - D.liftWeight (a + 1) τ`. -/
+lemma targetParameter_sub_one_add (τ : D.Φ) (a : ℕ) :
+    D.targetParameter τ (D.k - 1 + a) = D.halfGap - D.liftWeight (a + 1) τ := by
+  grind [targetParameter_eq, D.k_pos]
+
 /-- The size of `Ω = exp (γ - Re L'/L(1, χ_K)) * (2 π / rd_E)`: one has `x⁻¹³ ≤ Ω ≤ 1` (upper bound
 for `u` true, lower for `u` false). Here `γ` is Euler's constant, `χ_K` is the quadratic character
 of `K = ℚ(√-d)` for the prime `d = P.d`, and `rd_E` is the root discriminant of the field

@@ -223,14 +223,14 @@ def kernelForm (g : Gf E Unit) : X.descentPair.FormV :=
   -- The level acts through its character, by the law `DescentPair.omega_blockDatum_eq_smul`; so the
   -- function is smooth.
   have h_level (k : X.descentPair.levelGroup) :
-      rightRegular ℂ (Gf E n) _ k.1 (X.kernelValue 1 X.descentPair.blockDatum g) =
+      rightRegular ℂ (Gf E n) _ k.val (X.kernelValue 1 X.descentPair.blockDatum g) =
         X.descentPair.residueLevelChar.comp (levelOf.reduction ..) k •
           X.kernelValue 1 X.descentPair.blockDatum g := by
     ext h' i
     have h_omega : X.descentPair.pairThetaKernel.ω ((1, 1), 1, k.val) X.descentPair.blockDatum.val =
         X.descentPair.residueLevelChar.comp (levelOf.reduction ..) k •
           X.descentPair.blockDatum.val := by
-      simpa using X.descentPair.omega_blockDatum_eq_smul 1 ⟨k, levelOf_le_stdLevel k.2⟩
+      simpa using X.descentPair.omega_blockDatum_eq_smul 1 ⟨k, levelOf_le_stdLevel k.property⟩
         (levelOf.reduction _ _ k) (by simp [levelOf.reduction]; rfl)
     -- The jets are linear in the datum, and `ω` is multiplicative.
     simpa [kernelValue, rep_apply_apply, smul_mulVec] using
@@ -287,20 +287,11 @@ lemma trivialLift_eq_stdClassSum_translate (X : LValueData E n) (z : Gf E Unit) 
   -- permutes the classes.
   obtain ⟨h_left : stdRatPoints.FixesLeft X.kernelForm,
     h_right : X.chosenLevel ≤ rightStabilizer X.kernelForm⟩ := X.kernelForm_invariant
-  have h_out (g : Gf E Unit) :
-      X.kernelForm (DoubleCoset.mk stdRatPoints X.chosenLevel (g * z)).out =
-        X.kernelForm (g * z) :=
-    apply_doubleCoset_out h_left h_right (g * z)
   have h_conj : X.chosenLevel.comap (MulAut.conj z : Gf E Unit →* Gf E Unit) = X.chosenLevel := by
     simp [SetLike.ext_iff, mul_comm' z]
-  have h_translate :
-      classSum stdRatPoints X.chosenLevel (fun g : Gf E Unit ↦ X.kernelForm (g * z)) =
-        (X.chosenLevel.relIndex X.chosenLevel : ℚ) •
-          classSum stdRatPoints X.chosenLevel X.kernelForm :=
-    classSum_eq_relIndex_smul le_rfl z h_conj h_out
-  -- The index of the level in itself is `1`.
-  rw [Subgroup.relIndex_self, Nat.cast_one, one_smul] at h_translate
-  exact h_translate.symm
+  -- Both sides are the class integral of the kernel; the index of the level in itself is `1`.
+  simpa [trivialLift, classIntegral_eq_classSum h_right] using
+    classIntegral_eq_classSum_mul h_left z (h_conj.trans_le (le_inf h_right le_rfl)) le_rfl
 
 /-! ### Adjointness of the lift and the descent -/
 
@@ -551,7 +542,12 @@ lemma DescentPair.heckePolyOnForms_liftHeckeRoot_eq_zero {O : DescentPair E r n}
   have h_zero : SiegelWeil.qPochhammer w.q O.rankDiff (O.charW.frobValue r w * O.liftHeckeRoot w) =
     0 := by
     simp [liftHeckeRoot, rankDiff, hk, Finset.prod_range_succ, add_assoc, AutChar.frobValue,
-      HeckeChar.atUniformizer, field, w.ne_bot]
+      HeckeChar.atUniformizer, field]
+    right
+    have hq : 0 < w.q := zero_lt_one.trans w.one_lt_q
+    have hsqrt : 0 < Real.sqrt (w.q : ℝ) := Real.sqrt_pos.2 (by exact_mod_cast hq)
+    rw [div_self (mul_ne_zero (pow_ne_zero _ (Nat.cast_ne_zero.mpr hq.ne'))
+      (pow_ne_zero _ (Complex.ofReal_ne_zero.mpr hsqrt.ne'))), sub_self]
   rw [O.heckePolyOnForms_eq_smul _ _ (h_lifts w hw hw_level), h_zero, zero_mul, zero_smul]
 
 end DescentPairHecke

@@ -475,8 +475,9 @@ end CocyclesAndSummands
 /-!
 ## Crystalline conditions above ℓ as relations on cocycles, and crystalline colength
 
-* `New.Selmer.localChart`: a chosen identification of the decomposition group at `v` with a subgroup
-  of `Gal(ℚ̄_ℓ / ℚ_ℓ)`.
+* `New.Selmer.localChart`: a chosen identification of the decomposition group at `v` with an open
+  subgroup of `Gal(ℚ̄_ℓ / ℚ_ℓ)`. It supplies actual local data for the universally quantified
+  conditions `IsGoodAt`, `IsFiniteTypeAt`, `HasJumpsAt` and `PolyKillsAt` at the chosen place.
 
 A relation is a finitely supported matrix-valued `f`, and `c` obeys it if `∑ γ, f γ • c γ = 0`.
 `New.relationsOn Z` is the set of relations that hold on `Z`, `New.obeying R B` the module of
@@ -493,8 +494,10 @@ variable (ℓ : ℕ) [ThePrime ℓ] {n : Type*} [Fintype n] [DecidableEq n]
 homomorphism to Gal(ℚ̄_ℓ over ℚ_ℓ) from the decomposition group of that place that goes with it in
 the sense of `New.GaloisRep.InducesPlace`. -/
 instance localChart : GaloisRep.PadicPlaceEmbedding E (placeOver v.1) ℓ :=
-  -- An embedding of `Ω` into `PadicAlgCl ℓ` induces the place, which lies above `ℓ`; it gives the
-  -- open embedding of the decomposition group. Both chosen maps are read off the type of `loc`.
+  -- Membership of `v` in `placesDividing E ℓ` implies that `ℓ` has valuation less than 1
+  -- at `placeOver v.1`. First choose an embedding inducing exactly that place, then use
+  -- `exists_inducesPlace` to choose the compatible open embedding of its decomposition group.
+  -- Both chosen maps are read off the type of `loc`.
   have loc :=
     (exists_inducesPlace E _
       (exists_comap_intQpBar_eq
@@ -543,7 +546,7 @@ lemma obeying_crysRelations (u : Gal(Ω/E) →* Matrix n n O) {a : ↑O} :
         (LinearMap.funLeft O (n → QuotSpan a) (↑)) := by
   ext c
   -- A relation pushed forward by `Finsupp.mapDomain` is evaluated on the restriction of `c`.
-  simp [crysRelations, obeying, forall_comm (α := _ →₀ _), LinearMap.funLeft, Function.comp_def]
+  simp [crysRelations, obeying, forall_comm (α := _ →₀ _), LinearMap.funLeft]
 
 end CrystallineConditions
 

@@ -173,7 +173,7 @@ lemma IsEigenform.of_mem_cyclicSpan {y : localFormRep V κ hw} {P : FinPlace E �
     have h_swap :
         V.formTranslation κ k (V.formTranslation κ (embedAtSplit hw g) x) =
           V.formTranslation κ (embedAtSplit hw g) (V.formTranslation κ k x) := by
-      rw [← Module.End.mul_apply, ← map_mul, h_comm.eq, map_mul, Module.End.mul_apply]
+      rw [← mul_apply_eq_comp, ← map_mul, h_comm.eq, map_mul, mul_apply_eq_comp]
     simpa [mem_levelSpace.mp h_fixed k] using h_swap
   · -- the Hecke operators at `u` commute with the translations at `w`, so each translate of `x`
     -- is an eigenvector with eigenvalue `t j`
@@ -262,9 +262,8 @@ private lemma surjective_reindexGL_comp_blockHom_zero {e : ρ ↪ n} {b : n → 
       ((reindexGL ((Equiv.subtypeEquivRight h_block).trans e.toEquivRange.symm)).toMonoidHom.comp
         (blockHom b 0) : parabolic b →* GL ρ (ResField w)) := by
   intro x
-  obtain ⟨h_block0, h_off⟩ := submatrix_extendGL_and_apply_of_notMem_range e x
-  refine ⟨⟨extendGL e x, fun _ ↦ ?_⟩, Units.ext h_block0⟩
-  grind [one_apply_ne]
+  refine ⟨⟨extendGL e x, fun _ ↦ ?_⟩, Units.ext (submatrix_extendGL e x)⟩
+  grind [one_apply_ne, extendGL_apply_of_notMem_range]
 
 /-- Over a perfect field, `a * ∏ l, (X - C (x l))` is separable when `a` is squarefree, the `x l`
 are distinct and none of them is a root of `a`. -/

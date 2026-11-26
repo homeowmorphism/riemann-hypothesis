@@ -219,7 +219,7 @@ elements that fix `E₁`, then the law of `g (E₁, g' E₂)` under `m × m'` is
 the convolution `m ∗ₘ m'`. -/
 theorem map_mul_joinCols_prod_eq_map_mconv {E : Matrix ι n ℂ} {E₁ : Matrix ι n₁ ℂ}
     {E₂ : Matrix ι n₂ ℂ} (e : n₁ ⊕ n₂ ≃ n) (hE : joinCols e (E₁, E₂) = E) {m m' : Measure (U J)}
-    [SFinite m] [SFinite m'] (h_fix : ∀ᵐ g : U J ∂m', g.val.val * E₁ = E₁) :
+    [SFinite m'] (h_fix : ∀ᵐ g : U J ∂m', g.val.val * E₁ = E₁) :
     (m.prod (m'.map fun g : U J ↦ g.val.val * E₂)).map
         (fun p : U J × Matrix ι n₂ ℂ ↦ p.1.val.val * joinCols e (E₁, p.2)) =
       (m ∗ₘ m').map fun g : U J ↦ g.val.val * E := by
@@ -372,7 +372,7 @@ theorem LeGramFibre.insert {p q : ι → Prop} [DecidablePred p] [DecidablePred 
     funext fun i ↦ by simp [E, inclMatrix, mulVec, dotProduct, Matrix.one_apply]
   rw [← h_join]
   refine h_first.append_vector _ ?_ (h_fix.mono fun g hg ↦
-    (mul_inclMatrix g.val.val _).trans (Matrix.ext fun i k ↦ hg i k k.2))
+    (mul_inclMatrix g.val.val _).trans (Matrix.ext fun i k ↦ hg i k k.property))
   -- `mulVec_mulVec` would merge `Eᴴ` and `J` before `h_products` applies.
   simpa [h_products, -mulVec_mulVec] using h_next
 

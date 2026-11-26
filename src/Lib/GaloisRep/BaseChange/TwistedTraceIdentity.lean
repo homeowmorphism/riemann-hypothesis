@@ -287,14 +287,18 @@ lemma New.Space.isSampleTotal_twisted_trace {K L : Subgroup (Gf E n)} (σ : Gf E
       -- `trace_eq_weighted_sum` supplies
       (by simp [j, hS, mul_assoc]) (by simp) (fun g _ ↦ ?_) σ hσ fun ψ ↦ ?_).2.trans ?_
     · -- at level `L` the weighted number of transporters is `1`
-      simpa [wt] using V.sum_inv_card_classAut_mul_card_eq_relIndex le_rfl (S L) (h_card L) g
+      simpa only [wt, Rat.cast_inv, Rat.cast_natCast, relIndex_self, Nat.cast_one] using
+        V.sum_inv_card_classAut_mul_card_eq_relIndex le_rfl (S L) (h_card L) g
     · -- `T` acts on the `L`-fixed forms through the group ring element `a`
       have h_T_val (v : levelSpace (V.formTranslation κ) L) :
           ((T v : V.forms κ) : Gf E n → WeylIndex n κ.fst → ℂ) =
             ((V.formTranslation κ).asAlgebraHom a v : V.forms κ) :=
         congrArg Subtype.val (hT v)
       -- `using!`: the twist of `ψ` is `g ↦ s (ψ (σ⁻¹ g))` only by unfolding `restrict`
-      simpa [-map_mul, asAlgebraHom_eq_sum_support] using! h_T_val _
+      simpa only [mul_apply_eq_comp, domRestrict_apply, Submodule.subtype_apply,
+        asAlgebraHom_eq_sum_support, LinearMap.coe_sum, LinearMap.coe_smul, Finset.sum_apply,
+        Pi.smul_apply, AddSubmonoidClass.coe_finsetSum, SetLike.val_smul,
+        formTranslation_apply_apply_coe] using! h_T_val _
     · -- reindex by `τ`, using `hτ` and `hs`
       have h_reindex (x : Gf E n) :
           ∑ᶠ γ : U V.J, cosetFn L a (x⁻¹ * j (τ γ) * σ x) *
@@ -302,7 +306,8 @@ lemma New.Space.isSampleTotal_twisted_trace {K L : Subgroup (Gf E n)} (σ : Gf E
             ∑ γ ∈ (h_fin x).toFinset,
               cosetFn L a (x⁻¹ * j γ * σ x) * (ρ γ * s).trace ℂ (WeylIndex n κ.fst → ℂ) :=
         (finsum_comp _ τ.bijective).trans (finsum_eq_sum _ (h_fin x))
-      simp [j, ρ, ← hτ, hs, h_reindex, mul_sum]
+      simp only [← hτ, hs, h_reindex, Function.support_mul, mul_sum, map_sum, Finsupp.lift_apply,
+        smul_eq_mul, zero_mul, Finsupp.sum_single_index, j, ρ]
   · -- sort the transporter from `x` to `y` by the second coordinate `g⁻¹ * δ * τ g`
     rintro ⟨y, δ⟩ hy
     have h_fibre (x : Gf E n) : #(S K y x) =
@@ -311,7 +316,9 @@ lemma New.Space.isSampleTotal_twisted_trace {K L : Subgroup (Gf E n)} (σ : Gf E
         (hy (x, g⁻¹ * δ * τ g) g ⟨((hS K y x g).mp hg).right, rfl⟩)
     -- `↓`: `h_fibre` must rewrite the card before `← Set.ncard_coe_finset` turns it into an ncard
     calc _ = ∑ i, wt i * (#(S K y i.out) : ℂ) := by
-          simp [j, hS, mul_sum, ← Set.ncard_coe_finset, ↓h_fibre]
+          simp only [Function.support_mul, map_sum, Finsupp.lift_apply, smul_eq_mul, zero_mul,
+            Finsupp.sum_single_index, ↓h_fibre, ← Set.ncard_coe_finset, coe_filter, hS,
+            MonoidHom.mem_range, exists_apply_eq_apply, true_and, Nat.cast_sum, mul_sum, j]
       _ = L.relIndex K := V.sum_inv_card_classAut_mul_card_eq_relIndex hL (S K) (h_card K) y
 
 end TwistedTraceSum
@@ -400,8 +407,12 @@ lemma New.exists_trace_mul_weightRep_eq_of_twistedNorm_eq [DecidableEq n] (hσ :
     refine (LinearMap.ext (stdSpace_weightRep_apply δ)).trans (congrArg _ (ext ?_))
     -- Schur matrices and determinants are products over the places, reindexed by `e`; the two
     -- sides then agree entrywise by the definitions of `e`, `A` and `κ.baseChange`.
-    simp [A.forall_congr_left, ← hi, G, weylRep, schur_apply_eq_prod (Φ := InfinitePlace _),
-      prod_smul, ← Fintype.prod_sigma', ← e.prod_comp]
+    simp only [weylRep, ← hi, GeneralLinearGroup.map_comp, GeneralLinearGroup.map_comp_apply,
+      MonoidHom.coe_mk, OneHom.coe_mk, GeneralLinearGroup.val_map_apply, coe_coe, AlgEquiv.coe_pow,
+      Matrix.map_map, Matrix.smul_apply, FitsRanks.refl, schur_apply_eq_prod (Φ := InfinitePlace _),
+      RingEquiv.toRingHom_eq_coe, AlgEquiv.toRingEquiv_toRingHom, MonoidHom.coe_comp,
+      Function.comp_apply, MonoidHom.pi_apply, prod_smul, ← Fintype.prod_sigma', ← e.prod_comp,
+      of_apply, A.forall_congr_left, apply_symm_apply, G]
     exact fun _ _ ↦ rfl
   have h_norm (m : ℕ) (δ : U (1 : Matrix n n E')) :
       twistedNorm ω (m + 1) δ = δ * twistedNorm ω m (ω δ) := by simp [twistedNorm]
@@ -535,13 +546,11 @@ lemma New.exists_isRootQuotient_of_isNormRoot {E E' n : Type} [Field E] [CMType 
   -- rational and `x` invertible at `e ν` when `P = q ν`. Put `A ν = z₀(ν) / z₀(ν)ᴴ` and
   -- `B ν = x(ν) / x(ν)ᴴ`, the roots (`IsRootQuotient`) for `z₀` and `x`; `B ν` is also a root for
   -- `b`.
-  have h_global (P : E'[X]) (hP : ∃ δ : U 1, q δ = P ∧ C (q δ)) :
-      ∃ (z₀ : E'[X]) (b : (𝔸f E')[X]), ∀ ν : U 1, q ν = P →
-        let x : (𝔸f E')[X] := z₀.map (algebraMap E' (𝔸f E')) * (b.map (adeleMap ↑σ) * z P)
-        IsUnit (aeval (e ν : Matrix n n (𝔸f E')) x) ∧
-          IsRootQuotient (e ν) x ≤ IsRootQuotient (e ν) b := by
-    obtain ⟨δ, rfl, hδ⟩ := hP
-    exact New.exists_isUnit_aeval_and_isRootQuotient_le hσ (hC _ hδ) (hz _ hδ)
+  have h_global (P : E'[X]) (hP : ∃ δ : U 1, q δ = P ∧ C (q δ)) := by
+    have h_eq : (hP.choose : Matrix n n E').charpoly = P := hP.choose_spec.1
+    have h_eval := New.exists_isUnit_aeval_and_isRootQuotient_le hσ
+      (hC _ hP.choose_spec.2) (hz _ hP.choose_spec.2)
+    rwa [h_eq] at h_eval
   choose! z₀ b hb using h_global
   replace hb {ν : U 1} (hν_C : C (q ν)) := hb (q ν) ⟨ν, rfl, hν_C⟩ ν rfl
   -- `x(e ν)` is a product of commuting matrices, so each factor is invertible.
@@ -563,8 +572,10 @@ lemma New.exists_isRootQuotient_of_isNormRoot {E E' n : Type} [Field E] [CMType 
     have hq : q ν = q ν' := by simp [q, ← mul_inv_eq_of_eq_mul hg]
     have hν'_C : C (q ν') := by rwa [← hq]
     refine ⟨hν'_C, (hA_uniq _ hν'_C _ ?_).symm, (hB_uniq _ hν'_C _ ?_).symm⟩
-    · simpa [← hq] using isRootQuotient_conj hg.symm (hA ν hν_C)
-    · simpa [← hq] using isRootQuotient_conj (hg.map e).symm (hB ν hν_C)
+    · simpa only [← hq, Subgroup.coe_mul, InvMemClass.coe_inv, Units.val_mul, coe_units_inv] using
+        isRootQuotient_conj hg.symm (hA ν hν_C)
+    · simpa only [← hq, Gf.coe_mul, Gf.coe_inv, Units.val_mul, coe_units_inv, Subgroup.coe_mul,
+        InvMemClass.coe_inv] using isRootQuotient_conj (hg.map e).symm (hB ν hν_C)
   · -- Roots multiply: the roots for the three factors of `x` have product `B ν`.
     obtain ⟨-, -, h_unit_z⟩ := h_unit hν_C
     obtain ⟨r, hr, -⟩ := existsUnique_isRootQuotient h_unit_z
@@ -911,7 +922,9 @@ private lemma New.IsMatchingRoots.exists_bijOn_of_ne_zero [IsGalois E E']
       simp [SemiconjBy, ← ha_conj, hγ, mul_assoc]
     obtain ⟨hp_good, hA, hB⟩ := R.good_and_conj_of_semiconjBy (g * j a)⁻¹ hν_good h_semi
     refine ⟨⟨?_, ?_⟩, hp_good⟩
-    · simpa [hm, hB, hy, H.map_apply_eq_baseChangeGf, mul_assoc] using inv_mem (mul_mem hk ha_mem)
+    · simpa only [hm, hB, _root_.mul_inv_rev, map_mul, map_inv, H.map_apply_eq_baseChangeGf,
+        mul_assoc, inv_inv, mul_inv_cancel_left, mul_inv_cancel, mul_one, hy] using
+        inv_mem (mul_mem hk ha_mem)
     · simp [hm, hτ, hA, hg, H.map_apply_eq_self, mul_assoc]
   · simp [H.j_injective.eq_iff]
   · -- Surjective: `a` twists `(A (j p.2))⁻¹`, of twisted norm `j p.2`, to `δ`, so it conjugates
@@ -925,7 +938,8 @@ private lemma New.IsMatchingRoots.exists_bijOn_of_ne_zero [IsGalois E E']
     obtain ⟨a', ha'_j⟩ : ∃ a' : U (1 : Matrix n n E), j a' = (a * g)⁻¹ :=
       H.exists_j_eq _ (by simp [hg, ← ha_δ, hA, mul_assoc])
     refine ⟨a', ⟨?_, H.j_injective ?_⟩, by simp [ha'_j]⟩
-    · simpa [hm, hB, hy, ← H.map_apply_eq_baseChangeGf, ha'_j, mul_assoc] using
+    · simpa only [mul_assoc, Subgroup.mem_comap, map_mul, map_inv, hy, hB, inv_inv,
+        _root_.mul_inv_rev, ← H.map_apply_eq_baseChangeGf, ha'_j, mul_inv_cancel_left, hm] using
         inv_mem (mul_mem ha_mem hk)
     · simp [ha'_j, hγ, ← h_semi, mul_assoc]
 
@@ -1017,7 +1031,9 @@ lemma New.twisted_trace_identity {E E' n : Type} [Field E] [CMType E] [Field E']
         f (p.fst⁻¹ * (stdSpace E n).embFin p.snd * p.fst) := by
       rw [h_roots.apply_inv_mul_embFin_mul_eq h_maps p.fst p.snd hp,
         ← h_roots.apply_inv_mul_mul_galoisGf _ hk ((m p).fst⁻¹ * _ * _)]
-      simp [m, ← hg, h_maps.map_apply_eq_galoisGf, τ, mul_assoc]
+      simp only [← hg, MonoidHom.toMulEquiv_apply, mul_assoc, map_mul, map_inv,
+        h_maps.map_apply_eq_galoisGf, _root_.mul_inv_rev, inv_inv, mul_inv_cancel_left,
+        inv_mul_cancel_left, τ, m]
     have h_trace :
         (ρ y.snd * s).trace ℂ _ = ((stdSpace E n).weightRep κ.1 κ.2 p.snd).trace ℂ _ := by
       simp [m, τ, ← hg, ← h_wt _ _ (h_roots.twistedNorm_inv h_maps hp), ← hs,

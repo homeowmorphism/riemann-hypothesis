@@ -183,7 +183,7 @@ lemma isRapid_modKernel {s : n → ℤˣ} {t : b → ℤˣ} {𝔪 : Modulus E} (
 /-- A matrix `y` with rows indexed by `m ⊕ k` whose top block `y.toRows₁` (the rows in `m`) has unit
 determinant has a left inverse (`HasLeftInv`), namely `(y.toRows₁⁻¹ 0)`. -/
 lemma hasLeftInv_of_isUnit_det_toRows₁ {R m k : Type} [CommRing R] [Fintype m] [DecidableEq m]
-    [Fintype k] [DecidableEq k] {y : Matrix (m ⊕ k) m R} (hy : IsUnit y.toRows₁.det) :
+    [Fintype k] {y : Matrix (m ⊕ k) m R} (hy : IsUnit y.toRows₁.det) :
     HasLeftInv y := by
   refine ⟨fromCols y.toRows₁⁻¹ 0, ?_⟩
   rw [← y.fromRows_toRows, fromCols_mul_fromRows]
@@ -297,8 +297,7 @@ lemma mul_stdClassSum_eq_integral_mul_modKernel {s : n → ℤˣ} {t : b → ℤ
       h_exchange Φ Ψ hΦΨ h'
   have h_mul (x : G E t) : F x * modKernel V' W' a β' 𝔪 Ψ' P x g =
       c₀ * stdClassSum (stdLevel E b) fun h' ↦ coef h' * θ h' x := by
-    -- `finsum_eq_sum_of_fintype` must act first, before the summand is rewritten.
-    simp [← hF, θ, classSum, ↓finsum_eq_sum_of_fintype, sum_mul, mul_assoc]
+    simp [← hF, θ, mul_assoc]
   -- The class sum is finite, so it commutes with the integral.
   have h_comm : ∫ x, stdClassSum (stdLevel E b) (fun h' ↦ coef h' * θ h' x) ∂V'.quotMeasure =
       stdClassSum (stdLevel E b) fun h' ↦ coef h' * ∫ x, θ h' x ∂V'.quotMeasure := by

@@ -852,12 +852,12 @@ lemma IsChartOf.exists_transition_matrix (hc : IsChartOf c 𝒥.toGp) {e : Basis
     have hMg : R * σ M.val = M.val := hM g
     have hNg : R * σ N.val = N.val := hN g
     have h_det : IsUnit M.val.det := isUnits_det_units M
-    calc σ (M.val⁻¹ * N.val)
-        = M.val⁻¹ * (R * σ M.val) * σ (M.val⁻¹ * N.val) := by
-          rw [hMg, nonsing_inv_mul _ h_det, one_mul]
-      _ = M.val⁻¹ * (R * σ (M.val * (M.val⁻¹ * N.val))) := by
-          rw [map_mul σ M.val, mul_assoc, mul_assoc]
-      _ = M.val⁻¹ * N.val := by rw [mul_nonsing_inv_cancel_left _ _ h_det, hNg]
+    apply M.isUnit.mul_left_cancel
+    calc
+      M.val * σ (M.val⁻¹ * N.val) = R * σ (M.val * (M.val⁻¹ * N.val)) := by
+        rw [map_mul σ M.val, ← mul_assoc, hMg]
+      _ = N.val := by rw [mul_nonsing_inv_cancel_left _ _ h_det, hNg]
+      _ = M.val * (M.val⁻¹ * N.val) := (mul_nonsing_inv_cancel_left _ _ h_det).symm
   choose X hX_mem hX using
     fun i l ↦ hc.exists_mem_bicommutant_of_fixed fun g ↦ congrFun₂ (h_fix g) i l
   exact ⟨of X, hX_mem, ext hX⟩

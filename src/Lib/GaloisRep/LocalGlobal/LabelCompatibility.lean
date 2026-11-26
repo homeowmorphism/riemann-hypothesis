@@ -205,7 +205,7 @@ lemma exists_isTameExponent (hA : IsPlaceOver A w) (f : ℕ) :
   have : NeZero (N : K) := .of_faithfulSMul (ResField w) K N
   have hN : NeZero N := hN_res.of_neZero_natCast
   have hN_val : A.valuation N = 1 := hA.valuation_natCast_eq_one_iff.2 fun hmem ↦
-    hN_res.1 (mod_cast algebraMap_ResField_eq_zero.2 hmem)
+    hN_res.out (mod_cast algebraMap_ResField_eq_zero.2 hmem)
   obtain ⟨ρ, hρ_cen, hρ_int⟩ := exists_ringHom_centrePrime_le_ker (K := K) hA
   obtain ⟨π, z, hπ, hz, hζ⟩ := hA.exists_isPrimitiveRoot_tameGenerator_smul_div hN_val
   -- `ρ ζ` is again primitive, being a root of the cyclotomic polynomial; `T` is injective
@@ -215,7 +215,7 @@ lemma exists_isTameExponent (hA : IsPlaceOver A w) (f : ℕ) :
   obtain ⟨j, -, hj, hTj⟩ :
       ∃ j < N, j.Coprime N ∧ T (ρ hζ.toInteger) ^ j = Complex.exp (2 * Real.pi * Complex.I / N) :=
     (hρζ.map_of_injective IsFaithfulMulChar.injective).isPrimitiveRoot_iff.1
-      (Complex.isPrimitiveRoot_exp N hN.1)
+      (Complex.isPrimitiveRoot_exp N hN.out)
   have hζj : IsPrimitiveRoot ((hA.tameGenerator • z / z) ^ j) N := hζ.pow_of_coprime j hj
   have tame_of_eq (s : inertiaGroup Gal(Ω/E) A) (a : ℕ)
       (hsa : ((hA.tameGenerator • z / z) ^ j) ^ a = s.val z / z) :
@@ -349,7 +349,7 @@ lemma New.GaloisRep.Attached.isLabelledAt_one {ℓ : ℕ} [ThePrime ℓ] [PadicI
       prod_univ_add, Multiset.prod_nsmul]
   rw [h_poly, ← prod_X_sub_C_eq_prod_pow_of_card_fiber h_card (h_val x hx_unit)]
   simpa [Polynomial.map_prod] using hr.local_global_of_eigencharacter h_eig
-    (he.of_mem_cyclicSpan hz h_eig.1) h_sorted hA ⟨σ, hσ.1⟩ x 0 (inv_mem hσ) hxσ hx
+    (he.of_mem_cyclicSpan hz h_eig.ne_zero) h_sorted hA ⟨σ, hσ.1⟩ x 0 (inv_mem hσ) hxσ hx
 
 /-- Let `w` be a split place of the CM field `E` with Weil data, let `A` lie above `w`, and let `p`
 be prime. There are a character `η` of `E_wˣ`, a continuous character `μ : Gal(Ω/E) → ℚ/ℤ` and a
@@ -437,7 +437,7 @@ lemma New.GaloisRep.Attached.isLabelledAt_of_root_pow_eq_one {ℓ : ℕ} [ThePri
     have : IsStep (stepField μ) (ideleChar μ) := h_step.isStep
     have hAu : IsPlaceOver A u := h_step.isPlaceOver
     -- As `u` is unramified, `σ` fixes `stepField μ`, and there it has exponent `a` at level `g`.
-    let σ' : Gal(Ω/stepField μ) := { σ with commutes' := fun x ↦ x.2 ⟨σ, h_unram hσ⟩ }
+    let σ' : Gal(Ω/stepField μ) := { σ with commutes' := fun x ↦ x.property ⟨σ, h_unram hσ⟩ }
     obtain ⟨_, _, _, h_res_rank, h_res, h_tame'⟩ := IsTameExponent.exists_tower_of_unramified T
       (σ := σ') h_tame ((h_step.below_eq_iff u).2 rfl) hAu h_ram hq
     let j : ResField w →+* ResField u := algebraMap (ResField w) (ResField u)

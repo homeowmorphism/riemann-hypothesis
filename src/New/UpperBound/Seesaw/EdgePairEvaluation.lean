@@ -164,7 +164,7 @@ lemma exists_zeroTerm_rho_integrated_eq (D : V.Splitting V₀ p) (y : n → 𝔸
   set g : G E s := (D.exists_isAdapted_and_frame_eq 1).choose with hg_def
   have hg : D.IsAdapted g 1 := (D.exists_isAdapted_and_frame_eq 1).choose_spec.1
   obtain ⟨w, hw⟩ := V.exists_rho_integrated_eq y v
-  obtain ⟨L, -, hL⟩ := hg.exists_map_vacVector_apply_zero_omega_eq D.isMixedLaw_slice
+  obtain ⟨L, hL⟩ := hg.exists_apply_zero_omega_integrated_eq D.isMixedLaw_slice
   refine ⟨L (realWeil (blockU g⁻¹.1) w), fun f ↦ ?_⟩
   have h_integrated_eq_omega (f : 𝒮 V) :
       V.integrated w f = V.ω g (V.integrated (realWeil (blockU g⁻¹.1) w) (V.ω (1, g⁻¹.2) f)) := by
@@ -428,8 +428,7 @@ lemma map_stdLattice_le_zeroTermLattice {D : V.Splitting V₀ p} {g : Gf E n₀}
   rintro _ ⟨x, hx, rfl⟩
   refine ⟨c *ᵥ x, ?_⟩
   change D.iFin *ᵥ (g : Matrix n₀ n₀ (𝔸f E)) *ᵥ x + D.isotropicBasisFin *ᵥ c *ᵥ x ∈ stdLattice E n
-  rw [mulVec_mulVec, mulVec_mulVec, ← add_mulVec, ← hB_def]
-  exact hB.mulVec hx
+  simpa only [hB_def, add_mulVec, ← mulVec_mulVec] using! hB.mulVec hx
 
 /-- Let `D` be a splitting of `V` over `V₀`, with finite parts `i = D.iFin` of the embedding of `V₀`
 and `k = D.isotropicBasisFin` of the isotropic frame. The lattice `zeroTermLattice D` consists of
@@ -443,8 +442,8 @@ lemma mem_zeroTermLattice_iff {D : V.Splitting V₀ p} {g : Gf E n₀} {c : Matr
   constructor
   · -- The integral matrix `Bᴴ` sends a lattice vector of class `w` to `g⁻¹ w`.
     rintro ⟨b, hb⟩
-    rw [← conjTranspose_mulVec_iFin_add_isotropicBasisFin hB_def w b]
-    exact hB.conjTranspose.mulVec hb
+    simpa only [conjTranspose_mulVec_iFin_add_isotropicBasisFin hB_def w b] using!
+      hB.conjTranspose.mulVec hb
   · exact fun hx ↦ map_stdLattice_le_zeroTermLattice hB_def hB ⟨_, hx, smul_inv_smul g w⟩
 
 end
@@ -931,7 +930,7 @@ lemma zeroTerm_splitting_tripleWeil (D : DoubleLiftData X'' q Y Y' Y'') (a b : A
     constructor <;> simp [P, r', kAdelic, iAdelic, Space.ratMap, removePlanes, hyperbolicSum, sum,
       blockGL, -coe_units_inv, fromRows_map, fromBlocks_mul_fromRows, fromBlocks_multiply]
   have h_planes : ∀ f, (P.homTarget (stdSpace E X')).zeroTerm (ω _ (.onHom (g', r')) f) =
-      ((WeilData.upsilonU1.1 g'.det).1 : ℂ) ^ card q •
+      ((WeilData.upsilonU1.val g'.det).val : ℂ) ^ card q •
         ω _ (.onHom (g', r)) ((P.homTarget (stdSpace E X')).zeroTerm f) := by
     simpa [pairWeil, inv_smul_eq_iff₀, r'] using P.homTarget_zeroTerm_pairWeil (stdSpace E X')
       1 1 r' r 1 (by simp [ActsOnFrame, h_k]) (by simp [h_i]) g'

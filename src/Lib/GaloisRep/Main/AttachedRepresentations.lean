@@ -15,7 +15,9 @@ complex polynomials, one for each finite place. A continuous representation `ρ`
 trace form, with an open map `j` to the Galois group, is attached to `P` when, along most Frobenius
 elements (the filter `New.mostFrobenii`), its characteristic polynomials approach `ιℓ (P w)`. The
 file shows that the characteristic polynomials are then determined by `P`, so two attached
-representations have the same traces. It also shows that the representation attached to an
+representations have the same traces. The attachment condition itself asserts coefficientwise
+approximation on the Frobenius filter, not pointwise equality at every unramified place.
+It also shows that the representation attached to an
 eigenform on the definite unitary group of rank one is the avatar of an algebraic Hecke character.
 
 ## Main definitions and results
@@ -179,11 +181,9 @@ polynomial of `M` is a root of `P`. -/
 lemma isRoot_of_isRoot_charpoly {m K : Type*} [Fintype m] [DecidableEq m] [Field K]
     {M : Matrix m m K} {P : Polynomial K} {x : K} (hP : Polynomial.aeval M P = 0)
     (hx : M.charpoly.IsRoot x) : P.IsRoot x := by
-  -- The characteristic polynomial of `aeval M P = 0` is a power of `X`, so that of `M` divides a
-  -- power of `P`.
-  have h_dvd : M.charpoly ∣ P ^ Fintype.card m := by
-    simpa [hP] using charpoly_dvd_charpoly_aeval_comp (Y := M) P
-  exact eq_zero_of_pow_eq_zero (by simpa using hx.dvd h_dvd : P.eval x ^ Fintype.card m = 0)
+  have h_mem : P.eval x ∈ spectrum K (0 : Matrix m m K) := hP ▸
+    spectrum.subset_polynomial_aeval M P ⟨x, Matrix.mem_spectrum_iff_isRoot_charpoly.2 hx, rfl⟩
+  exact (by simpa using Matrix.mem_spectrum_iff_isRoot_charpoly.1 h_mem : P.eval x = 0 ∧ _).1
 
 end New.GaloisRep
 
@@ -234,10 +234,12 @@ lemma GaloisRep.Attached.tendsto_charpoly_coeff [PadicIso ℓ] (hρ : Attached P
 lemma GaloisRep.Attached.trace_eq [PadicIso ℓ] {G : Type} [Group G] [TopologicalSpace G]
     {j' : G → Gal(Ω/E)} {σ : G →* GL n (PadicAlgCl ℓ)} (hρ : Attached P ρ j) (hσ : Attached P σ j')
     (x : H) {y : G} (hxy : j x = j' y) : (ρ x).val.trace = (σ y).val.trace := by
-  -- both characteristic polynomials are the limit of `ιℓ (P w)` as the Frobenius tends to `j x`
-  have h_char : (ρ x).val.charpoly = (σ y).val.charpoly :=
-    Polynomial.ext fun i ↦ tendsto_nhds_unique (hρ.tendsto_charpoly_coeff x i)
+  -- The localized Frobenius filter is nontrivial by Chebotarev, so its limits are unique.
+  have h_coeff (i : ℕ) : (ρ x).val.charpoly.coeff i = (σ y).val.charpoly.coeff i :=
+    tendsto_nhds_unique (hρ.tendsto_charpoly_coeff x i)
       (by simpa only [hxy] using hσ.tendsto_charpoly_coeff y i)
+  have h_char : (ρ x).val.charpoly = (σ y).val.charpoly :=
+    AddMonoidAlgebra.ext <| Finsupp.ext h_coeff
   simp [h_char, trace_eq_sum_roots_charpoly]
 
 end New

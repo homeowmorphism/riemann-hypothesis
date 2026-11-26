@@ -97,7 +97,7 @@ finite Galois extension K of ℚ_ℓ inside ℚ̄_ℓ, that is, the elements of 
 abbrev CoeffRing : Type :=
   Set.range fun K : FiniteGaloisIntermediateField ℚ_[ℓ] (PadicAlgCl ℓ) ↦
     ⟨NormedField.valuation.integer.toSubsemiring, fun r : ℤ_[ℓ] ↦
-        (norm_algebraMap' (PadicAlgCl ℓ) (r : ℚ_[ℓ])).trans_le r.2⟩ ⊓
+        (norm_algebraMap' (PadicAlgCl ℓ) (r : ℚ_[ℓ])).trans_le r.property⟩ ⊓
       K.toSubalgebra.restrictScalars ℤ_[ℓ]
 
 variable {ℓ : ℕ} [ThePrime ℓ] {O : CoeffRing ℓ}

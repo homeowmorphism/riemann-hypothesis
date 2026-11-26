@@ -161,14 +161,9 @@ lemma norm_det_submatrix_realFrameGram (v : InfinitePlace E) :
     ‖((realFrameGram (S.ratToInf γ v)).submatrix (castLE j.is_le) (castLE j.is_le)).det‖ =
       (|S.realM v| ^ ∑ a : Fin j, (𝔰.ϱ - a)) ^ 2 / S.N ^ j.1 *
         ‖Φ v (leadingMinor (S.frameProducts γ) j)‖ := by
-  have h_det :
-      ((realFrameGram (S.ratToInf γ v)).submatrix (castLE j.is_le) (castLE j.is_le)).det =
-        ↑(∏ a : Fin j, S.realM v ^ (2 * (𝔰.ϱ - castLE j.is_le a)) / S.N) *
-          Φ v (leadingMinor (S.frameProducts γ) j) :=
-    det_submatrix_realFrameGram_ratToInf ..
-  rw [h_det, norm_mul, Complex.norm_real, Real.norm_eq_abs, Finset.prod_div_distrib, abs_div,
-    abs_prod]
-  simp [prod_pow_eq_pow_sum, ← pow_mul, sum_mul, mul_comm 2]
+  rw [det_submatrix_realFrameGram_ratToInf, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+    Finset.prod_div_distrib, abs_div, abs_prod]
+  simp [leadingMinor, prod_pow_eq_pow_sum, ← pow_mul, sum_mul, mul_comm 2]
 
 /-- If `γ` has cell rank `j`, the determinant of the products of `e₁, …, e_i, z` (`i = min ϱ j`)
 with their images, in the unit frame at `v` (the matrix `subframeBlock`), has the modulus of the
@@ -184,7 +179,7 @@ lemma HasCellRank.norm_det_subframeBlock (h_rank : S.HasCellRank j γ) (v : Infi
 
 /-- A matrix product `P * M` with `P` integral has the conjugates of its rows in every `Ô`-module
 that contains the conjugates of the rows of `M`. -/
-lemma col_conjTranspose_mul_mem {m m' n : Type} [Fintype m] [DecidableEq m]
+lemma col_conjTranspose_mul_mem {m m' n : Type} [Fintype m]
     {M : Matrix m n (𝔸f E)} {P : Matrix m' m (𝔸f E)} (hP : IsIntMatrix (Ô E) P)
     {K : Submodule (Ô E) (n → 𝔸f E)} (hM : ∀ r : m, Mᴴ.col r ∈ K) (i : m') :
     (P * M)ᴴ.col i ∈ K := by
@@ -234,7 +229,6 @@ def IsLatticeTranslate (c : S.Classes) (γ p₀ p : S.G E) (l : Matrix 𝔰.κ (
 
 @[fun_prop]
 lemma measurable_eichlerShift : Measurable (S.eichlerShift j) := by
-  have h_of : Continuous fun A : Fin (min 𝔰.ϱ j) → 𝔰.κ → ℂ ↦ of A := continuous_id
   unfold eichlerShift
   exact Continuous.measurable (by fun_prop)
 
@@ -421,7 +415,6 @@ lemma tsum_orbit_le_of_isLatticeTranslate (h_over : γ ∈ S.termsOver c s c')
         (∀ p ∈ B, IsLatticeTranslate c γ p₀ p (l p)) → ∑' p : B, w p ≤ bound) :
     ∑' p : doubleCoset γ (S.classUnipotent₀ c) (S.classUnipotent₀ c'), w p ≤
       .ofReal (S.isotropicRowsIndex j (S.translateByClassReps c c' γ) ^ 𝔰.k) * bound := by
-  classical
   -- The middle parts of the frames differ by `k` rows in a basis of `Λ ∩ X₀`. These rows lie in `M`
   -- times the larger lattice in the definition of `isotropicRowsIndex`; colour them modulo `M`
   -- times the smaller one. `a` is a basis of `Λ ∩ X₀`, and `Q` is an integral left inverse of its
@@ -552,20 +545,16 @@ lemma HasCellRank.exists_majorant_lintegral_le_kernelBound (h_rank : S.HasCellRa
   have h_seven : 7 ≤ 𝔰.k := by
     have h_base : 2 ^ 9 ≤ (2 * 𝔰.ϱ + 2) ^ 9 := Nat.pow_le_pow_left (by lia) 9
     grind [S.pow_le_k]
-  have h_block : (subframeBlock (min_le_left 𝔰.ϱ j) (realFrameGram (S.ratToInf γ v))).det ≠ 0 :=
-    h_rank.det_subframeBlock_ne_zero v
   obtain ⟨φ₀, h_meas, h_int, h_le⟩ := exists_majorant_volumeRatio_inv_pow (min_le_left 𝔰.ϱ j)
-    h_box h_cut j.is_le (hij := rfl) h_seven hg₀_gram hg₀_pair h_block
+    h_box h_cut j.is_le (hij := rfl) h_seven hg₀_gram hg₀_pair (h_rank.det_subframeBlock_ne_zero v)
   -- Pass to the parameters of the shift; the term `+ 0` is the form that `lintegral_comp_mul_add`
   -- takes.
   refine ⟨fun A ↦ φ₀ ((S.shiftScaling j v)ᴴ * of A + 0), h_meas.comp (Continuous.measurable ?_),
     ?_, fun g A hg_gram hg_pair hg_part ↦ h_le g _ hg_gram hg_pair ?_⟩
-  · have h_of : Continuous fun A : Fin (min 𝔰.ϱ j) → 𝔰.κ → ℂ ↦ of A := continuous_id
-    change Continuous fun A : Fin (min 𝔰.ϱ j) → 𝔰.κ → ℂ ↦ (S.shiftScaling j v)ᴴ * of A + 0
-    fun_prop
+  · fun_prop
   · -- The change of variables brings in the Jacobian that `kernelBound` carries.
     have h_det : (S.shiftScaling j v)ᴴ.det ≠ 0 := by
-      simp [shiftScaling, basisScale, prod_eq_zero_iff, Nat.Prime.ne_zero]
+      simp [shiftScaling, prod_eq_zero_iff, Nat.Prime.ne_zero]
     have h_card : card 𝔰.κ = 𝔰.k := by simp
     refine (lintegral_comp_mul_add h_det 0 h_meas).trans_le ?_
     grw [h_int, det_conjTranspose, norm_star, h_card, kernelBound, ofReal_mul (by positivity)]
@@ -609,7 +598,7 @@ lemma exists_tsum_schurWeight_le {B : Set (S.G E)}
       (realFrameGram_inv_mul_ratToInf (hu v) (hZ hp₀)) (h_pair hp₀ v (hu v))
   refine ⟨fun x ↦ ∏ v : InfinitePlace E, φ₀ v (x v),
     Finset.measurable_prod _ fun v _ ↦ (hφ₀_meas v).comp (measurable_pi_apply v), ?_, fun x ↦ ?_⟩
-  · rw [volume_pi, lintegral_pi_prod _ hφ₀_meas]
+  · rw [volume_pi, TauCeti.lintegral_fintype_prod_eq_prod _ hφ₀_meas]
     exact Finset.prod_le_prod fun v _ ↦ hφ₀_int v
   -- The kernel at the shifted lattice point of `p` bounds the ratio of the volumes of `p`.
   have h_ratio {p : S.G E} (hp : p ∈ B) (v : InfinitePlace E) :
@@ -622,8 +611,8 @@ lemma exists_tsum_schurWeight_le {B : Set (S.G E)}
   -- Sort the terms by their lattice point and sum each fibre by packing.
   let point (p : B) : S.columnLattice (Fin (min 𝔰.ϱ j)) c :=
     ⟨conjColumnsAtInfinity E 𝔰 _ (l p), mem_columnLattice.2 ⟨l p, (hl p p.2).1, rfl⟩⟩
-  rw [← ENNReal.tsum_fiberwise _ point, ← ENNReal.tsum_mul_left]
-  refine ENNReal.tsum_le_tsum fun ⟨_, q, hq_int, rfl⟩ ↦ ?_
+  rw [← tsum_fiberwise _ point, ← ENNReal.tsum_mul_left]
+  refine tsum_le_tsum fun ⟨_, q, hq_int, rfl⟩ ↦ ?_
   let f (p : point ⁻¹' {⟨conjColumnsAtInfinity E 𝔰 _ q, ⟨q, hq_int, rfl⟩⟩}) : {p ∈ B | l p = q} :=
     ⟨p.1, p.1.2, conjColumnsAtInfinity_injective (congrArg Subtype.val p.2)⟩
   have hf : Function.Injective f := fun _ _ h_eq ↦
@@ -1000,7 +989,6 @@ lemma tsum_amplitudeMajorant_orbit_le (h_over : γ ∈ S.termsOver c s c')
   refine le_of_eq ?_
   simp only [identitySecondMoment, sourceDim, pairCountScale, Nat.cast_mul, div_pow, inv_pow,
     mul_inv, mul_pow]
-  field_simp
-  ring
+  field
 
 end New.Filling

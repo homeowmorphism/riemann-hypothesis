@@ -299,8 +299,7 @@ lemma IsLabel.isIrreducibleChar_labelChar (hc : IsLabel (Fintype.card n) c) :
   have h_degree : 0 ≤ ((labelChar T c).evalGL (n := n) 1).re := (labelChar_degree_bounds K hc).1
   -- With the function itself as test function: norm `1`, a value at `1` with nonnegative real part
   -- and integer inner products with all characters make it irreducible.
-  exact (isIrreducibleChar_and_mem_virtualChars_and_exists_mul ℤ isClassFunction_evalGL).left
-    (labelChar T c).evalGL
+  exact isClassFunction_evalGL.isIrreducibleChar_of_classInner_eq_intCast
     isClassFunction_evalGL (h_norm.trans_ne one_ne_zero) h_norm h_degree
     fun χ hχ _ _ ↦ hχ.exists_classInner_eq h_virtual
 
@@ -647,9 +646,9 @@ lemma evalGL_labelChar_mul_det [Algebra k K]
     refine fun hm ↦ greenCuspidal_simClassOf_eq_mul _ _ fun z ↦ ?_
     by_cases hz : z = 0
     · -- At `z = 0` both sides vanish.
-      simp_all [w, θ, ← range_val, MulChar.map_zero, mul_comm, prod_pow_eq_pow_sum]
+      simp_all [w, θ, ← range_val, MulChar.map_zero, prod_pow_eq_pow_sum]
     · simp_all [w, θ, thetaChar_mul, root_pow_card_pow_pred_eq_one hP_irred hP_coeff hy,
-        ← range_val, thetaChar_eq_apply_norm_pow T one_lt_card _ _ rfl (pow_one _), mul_comm,
+        ← range_val, thetaChar_eq_apply_norm_pow T one_lt_card _ _ rfl (pow_one _),
         prod_pow_eq_pow_sum, root_pow_card_pow_eq_self_iff (irreducible_X_sub_C a.val)]
   have h_scaleRoots_eq : labelChar T (c.scaleRoots a) = fun x ↦ labelChar T c x * w x := by
     refine hc.induction_irreducible_mul K ?_ fun P _ c y hP_monic hP_irred hP_coeff hy ih ↦

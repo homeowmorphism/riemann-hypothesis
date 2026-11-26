@@ -250,7 +250,9 @@ lemma isCohomEquiv_tensorPoint_tateGen (hS : ∀ (c : C) (x : S c), ℓ • x = 
       ((l.toAddMonoidHom.comp (tateRoot ψ)).toIntLinearMap.smulRight 1).flip
     have h_tmul : s ⊗ₜ[ℤ] ε = 0 := hs
     have h_smul : l (tateRoot ψ ε) • s = 0 := by
-      simpa [pairing] using congrArg (lift pairing) h_tmul
+      have h0 := congrArg (lift pairing) h_tmul
+      rw [lift.tmul, map_zero] at h0
+      exact h0
     obtain rfl : s = 0 := (smul_eq_zero_iff_right hl).mp h_smul
     exact ⟨1, m.one_notMem, fun b f' _ ↦ map_zero (S.map _).hom⟩
   · -- Cokernel: t (1 / ℓ) = ζ ^ i at m, so y = t' (1 / ℓ) is 1 at m for t' = t - i • ε.
@@ -283,7 +285,9 @@ lemma isCohomEquiv_tensorPoint_tateGen (hS : ∀ (c : C) (x : S c), ℓ • x = 
     have hτ : τ = ℓ • τ' := Subtype.ext (AddMonoidHom.nsmul_comp_mulRight_inv_natCast τ.val ℓ).symm
     have h_zero : S.map (f.down ≫ f') s ⊗ₜ[ℤ] τ = 0 := by rw [hτ, ← smul_tmul, hS, zero_tmul]
     -- In the cokernel s ⊗ t and s ⊗ t' agree, as they differ by (i • s) ⊗ ε.
-    have h_sub : (i • s) ⊗ₜ[ℤ] ε = s ⊗ₜ[ℤ] t - s ⊗ₜ[ℤ] t' := by simp [t', tmul_sub, smul_tmul]
+    have h_sub : (i • s) ⊗ₜ[ℤ] ε = s ⊗ₜ[ℤ] t - s ⊗ₜ[ℤ] t' := by
+      dsimp only [t']
+      rw [tmul_sub, sub_sub_cancel, smul_tmul]
     have h_class : (abCoker.π ((tensorPoint (tateGen g)).app S)).app c (s ⊗ₜ[ℤ] t) =
         (abCoker.π ((tensorPoint (tateGen g)).app S)).app c (s ⊗ₜ[ℤ] t') :=
       QuotientAddGroup.eq_iff_sub_mem.mpr ⟨i • s, h_sub⟩
@@ -435,10 +439,10 @@ lemma Theory.mulClass_congr_of_eq_on_zeros [HasFlatValues S] [HasFlatValues S'] 
     refine ⟨(family C (𝟭 C) Θ.functor).toTotalH, fun S _ z ↦ ?_⟩
     -- for S with flat values the class of the family is S ⊗ ξ
     have h_flat : (family C (𝟭 C) S).toTotalH = TotalH.map (abTensor.obj S) ξ.toTotalH :=
-      (h_family.eq_of_flat C (𝟭 C) S).trans (congrArg _ TotalH.map_id)
-    refine (h_family.comm C (𝟭 C) S Θ.functor z).trans ?_
-    rw [h_flat]
-    rfl
+      (h_family.eq_of_flat C (𝟭 C) S).trans (congrArg (TotalH.map (abTensor.obj S)) TotalH.map_id)
+    have h_comm := h_family.comm C (𝟭 C) S Θ.functor z
+    rw [h_flat] at h_comm
+    exact h_comm
   -- The sections of ker (F → F_J) ⊗ U are locally zero: locally s dies, or J is the unit ideal
   -- and then U is zero.
   have h_loc (c : C) (t : Φ (kerComplex (J.toZerosCoeff Θ.functor)).X₁ c) :
@@ -454,7 +458,7 @@ lemma Theory.mulClass_congr_of_eq_on_zeros [HasFlatValues S] [HasFlatValues S'] 
     · -- J is the unit ideal at b, where the relative chains U vanish
       have h_r : (relFreeAb J.topLocus).map f.down r = 0 :=
         AddSubgroup.mem_bot.mp (relFreeAb.mem_of_mk_mem ⊥ (fun _ ↦ relFreeAb.mk_eq_zero hb) _)
-      simp [h_r]
+      rw [h_r, tmul_zero]
   -- Hence F ⊗ U → F_J ⊗ U is an equivalence for F, and the class (w, then the action) lifts to v.
   have h_eqv : IsCohomEquiv Θ.functor ((kerComplex (J.toZerosCoeff Θ.functor)).map Φ).g :=
     isCohomEquiv_quotient_of_acyclic
@@ -672,8 +676,7 @@ lemma affinePt_eq_map (x : B')
     simp only [unimodularRow, map_add, map_mul, map_one] at h_ratio
     change (1 + (x - 1) * 1) * f q.down.out.snd = 1 * (1 + f q.down.out.fst * f q.down.out.snd)
     linear_combination -h_ratio
-  rw [map_eq_mk_map_out]
-  exact congrArg ULift.up (Quotient.sound h_rel)
+  simpa only [map_eq_mk_map_out] using! congrArg ULift.up (Quotient.sound h_rel)
 
 /-- If `f` sends the first coordinate of the row of `q` to a unit, then the row of the image point
 also has a unit as first coordinate. -/

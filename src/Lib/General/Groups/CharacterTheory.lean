@@ -1,6 +1,6 @@
 module
 
-public import Lib.Adelic.Unitary.Defs
+public import Lib.Base
 public import TauCeti.RepresentationTheory.CharacterTable.CentralCharacter
 public import TauCeti.RepresentationTheory.CharacterTable.Completeness
 import TauCeti.RepresentationTheory.CharacterTable.Values
@@ -24,8 +24,7 @@ This file sets up the character theory of a finite group `G` that is used for th
   `New.IsClassFunction.mem_virtualChars`, `New.IsClassFunction.exists_eq_mul_groupAlgElem_mul`:
   criteria for a class function `f` to be an irreducible character, for `f` to be a combination of
   characters with coefficients in a given semiring, and for an element of `ℂ[G]` to be recovered
-  from its product with `New.groupAlgElem f`. They are collected in
-  `New.isIrreducibleChar_and_mem_virtualChars_and_exists_mul`.
+  from its product with `New.groupAlgElem f`.
 * `New.IsCentralProj.isChar_card_mul_coeff`: for a central idempotent `e` of `ℂ[G]`, the function
   `g ↦ |G| · e(g)` is a character. Its pairing with any character is the rank of an idempotent, so a
   natural number. It is the character of a representation of dimension at most `|G|`
@@ -259,7 +258,7 @@ lemma IsChar.exists_classInner_eq (hχ : IsChar χ) (hf : f ∈ virtualChars S G
 omit [Finite G] in
 /-- The pull-back along a homomorphism from a finite group of an `S`-linear combination of
 characters is an `S`-linear combination of characters. -/
-lemma comp_mem_virtualChars (hf : f ∈ virtualChars S G) {H : Type*} [Group H] [Finite H]
+lemma comp_mem_virtualChars (hf : f ∈ virtualChars S G) {H : Type*} [Group H]
     (p : H →* G) : f ∘ p ∈ virtualChars S H :=
   -- precomposition with `p` is linear and maps characters to characters
   mapsTo_span (f := funLeft S ℂ p) (s := {χ | IsChar χ}) (fun _ hχ ↦ IsChar.comp hχ p) hf
@@ -579,25 +578,6 @@ lemma IsClassFunction.exists_eq_mul_groupAlgElem_mul (hf : IsClassFunction f) (a
         congrArg Matrix.toLinAlgEquiv'.symm h
     simp [ha_zero]
   · simp [hc, hi, algebraMap_eq_smul_one]
-
-/-- Three criteria for a class function `f` on a finite group `G`, collected in one statement:
-(a) `New.IsClassFunction.isIrreducibleChar_of_classInner_eq_intCast`, for `f` to be an irreducible
-character; (b) `New.IsClassFunction.mem_virtualChars`, for `f` to be a `Z`-combination of
-characters, `Z` a commutative semiring with `ℂ` a `Z`-algebra;
-(c) `New.IsClassFunction.exists_eq_mul_groupAlgElem_mul`, for a left multiple of
-`New.groupAlgElem f` to fix an element `a` of `ℂ[G]`. -/
-lemma isIrreducibleChar_and_mem_virtualChars_and_exists_mul (hf_class : IsClassFunction f) :
-    (∀ I : G → ℂ, IsClassFunction I → classInner I f ≠ 0 → classInner f f = 1 → 0 ≤ (f 1).re →
-      (∀ χ : G → ℂ, IsChar χ → classInner χ I ≠ 0 →
-        (∀ y : G, χ 1 * classInner χ (fun x : G ↦ I (x * y)) = classInner χ I * χ y) →
-        ∃ m : ℤ, classInner χ f = m) →
-      IsIrreducibleChar f) ∧
-    ((∀ χ : G → ℂ, IsChar χ → ∃ m : Z, classInner χ f = algebraMap Z ℂ m) → f ∈ virtualChars Z G) ∧
-    ∀ a : ℂ[G],
-      (∀ V : FDRep ℂ G, asAlgebraHom V.ρ (groupAlgElem f) = 0 → asAlgebraHom V.ρ a = 0) →
-      ∃ u : ℂ[G], a = u * groupAlgElem f * a :=
-  ⟨fun _ ↦ hf_class.isIrreducibleChar_of_classInner_eq_intCast, hf_class.mem_virtualChars,
-    hf_class.exists_eq_mul_groupAlgElem_mul⟩
 
 /-- Let `i : G →* H` be a group homomorphism with `G` finite, `χ` a character of `H` and `s ∈ H`.
 If the product of `χ ∘ i` with the character of a finite-dimensional representation `ρ` of `G` has

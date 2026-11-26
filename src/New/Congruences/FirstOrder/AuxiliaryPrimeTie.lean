@@ -221,13 +221,13 @@ lemma commute_of_mem_localOperators_of_ne (i j : J) (hij : i ≠ j) (s : D.integ
     (s' : D.integralEnd Q.place) (hs' : s' ∈ D.localOperators Q j) : Commute s s' := by
   obtain ⟨g, hg⟩ := hs
   obtain ⟨g', hg'⟩ := hs'
-  have h_comm : Commute g.1 g'.1 := by
-    refine commute_of_mem_adjoin_of_forall_mem_commute g'.2 ?_
+  have h_comm : Commute g.val g'.val := by
+    refine commute_of_mem_adjoin_of_forall_mem_commute g'.property ?_
     rintro _ ⟨h, hh, rfl⟩
-    exact (commute_of_mem_localGroupAlgebra g.2
-      (by simp [Gf.mem_supportedOn.1 hh, Q.apart.1.ne hij, Q.apart.2])).symm
+    exact (commute_of_mem_localGroupAlgebra g.property
+      (by simp [Gf.mem_supportedOn.1 hh, Q.apart.injective.ne hij, Q.apart.star_ne])).symm
   ext y : 3
-  simpa [hg, hg'] using LinearMap.congr_fun h_comm.eq y.1
+  simpa [hg, hg'] using LinearMap.congr_fun h_comm.eq y.val
 
 open Finset in
 /-- The family. Let the auxiliary places `w j = Q.place j` be off the base level (`hQ`), and let
@@ -293,7 +293,7 @@ theorem exists_deformed_norm_family (hQ : ∀ j : J, D.IsOffLevel ![] (Q.place j
   | mem z hz =>
     obtain ⟨g, rfl | ⟨j, rfl⟩⟩ := hz
     · -- The multiples of `ℓ ^ ν` are killed by `σ`.
-      simp only [mul_smul_comm, MvPolynomial.coeff_smul, map_nsmul, ← smul_sum]
+      simp only [mul_smul_comm, AddMonoidAlgebra.coeff_smul_apply, map_nsmul, ← smul_sum]
       rw [nsmul_eq_mul, hσ.natCast_eq_zero, zero_mul]
     · -- The tie at `w j` cancels the two terms of a tied relation.
       exact map_top_coeff_mul_C_sub_X_mul_C_eq_zero (heckeAction (D := D) (L := Q.place)).toRingHom
@@ -319,7 +319,7 @@ lemma exists_norm_apply_eq_smul (hQ : ∀ j : J, D.IsOffLevel ![] (Q.place j)) :
   have fixed (g : ∀ j : J, GL (Fin (card n)) (ResField (Q.place j))) : (D.residueRep Q g).1 y = y :=
     mem_formsOfLevel_empty_iff_residueRep_fixed.1 hy g
   rw [← Equiv.sum_comp (.inv _) (D.residueRep Q)]
-  calc _ = (∑ g, D.residueRep Q g⁻¹ * Ψ * D.residueRep Q g).1 y := by simp [fixed]
+  calc _ = (∑ g, D.residueRep Q g⁻¹ * Ψ * D.residueRep Q g).val y := by simp [fixed]
     _ = c • y := by
         rw [hΨ, SubringClass.coe_natCast, FormEnd.natCast_apply]
 
@@ -353,14 +353,14 @@ lemma heckeAction_pow_apply {A δ₀ : D.heckeAlgebra Q.place} {n₀ : EllAdicIn
     rw [eq_add_of_sub_eq hv]
     simp only [Algebra.smul_def]
     ring
-  have kill : (heckeAction (v * s * (δ₀ - algebraMap _ _ n₀))).1 y = 0 := by
+  have kill : (heckeAction (v * s * (δ₀ - algebraMap _ _ n₀))).val y = 0 := by
     simp [map_mul, hy, Algebra.algebraMap_eq_smul_one]
   rw [split, map_add, map_smul, AddMemClass.coe_add, FormEnd.add_apply, kill, add_zero]
   rfl
 
 end
 
-omit [Nonempty n] in
+omit [Nonempty n] [V.IsStd] [WeilData E] in
 /-- Assume that the auxiliary places are off the level of `D`. Let `Nm` be the sum of the action
 `residueRep` of the finite group `∏ GL_n(𝔽_{w j})` and `δ = c² A δ₀`, with `A`, `δ₀` in the Hecke
 algebra. If the forms `u`, `l`, `y` satisfy `Nm u = d c l` and `A δ₀ l = n₀ A y`, then
@@ -376,21 +376,22 @@ lemma norm_mul_heckeAction_apply (hQ : ∀ j : J, D.IsOffLevel ![] (Q.place j))
       (n₀ * c ^ 2) • d • c • (heckeAction (A * s)).val y := by
   have comm : Commute (heckeAction (c ^ 2 • (A * δ₀) * s)) (∑ g, D.residueRep Q g) :=
     .sum_right _ _ _ fun g _ ↦ commute_heckeAction_residueRep Q hQ _ g
-  calc ((∑ g, D.residueRep Q g) * heckeAction (c ^ 2 • (A * δ₀) * s)).1 u
-      = (heckeAction (c ^ 2 • (A * δ₀) * s)).1 (d • c • l) := by
+  calc ((∑ g, D.residueRep Q g) * heckeAction (c ^ 2 • (A * δ₀) * s)).val u
+      = (heckeAction (c ^ 2 • (A * δ₀) * s)).val (d • c • l) := by
         rw [← comm.eq, integralEnd_mul_apply, hu]
-    _ = d • c • c ^ 2 • (heckeAction s).1 ((heckeAction (A * δ₀)).1 l) := by
+    _ = d • c • c ^ 2 • (heckeAction s).val ((heckeAction (A * δ₀)).val l) := by
         rw [map_nsmul, map_nsmul, smul_mul_assoc, mul_comm _ s, map_nsmul, map_mul _ s,
           AddSubmonoidClass.coe_nsmul, FormEnd.nsmul_apply, integralEnd_mul_apply]
-    _ = d • c • c ^ 2 • n₀ • (heckeAction (A * s)).1 y := by
+    _ = d • c • c ^ 2 • n₀ • (heckeAction (A * s)).val y := by
         rw [h_proj, FormEnd.map_smul_of_tower, mul_comm A, map_mul, integralEnd_mul_apply]
-    _ = (n₀ * c ^ 2) • d • c • (heckeAction (A * s)).1 y := by
+    _ = (n₀ * c ^ 2) • d • c • (heckeAction (A * s)).val y := by
         simp only [← cast_smul_eq_nsmul EllAdicIntegers, smul_smul]
         push_cast
         ring_nf
 
 omit [Nonempty n] in
 open Finset in
+omit [V.IsStd] [WeilData E] in
 /-- A sum in which only the top term survives. Assume that the auxiliary places are off the level of
 `D`, whose common multiple of stabiliser orders is `c`. Let `Nm` be the sum of `residueRep`,
 `δ = c² A δ₀`, and let `Y ∅ = δ ^ i`. If `Nm u = d c l`, `A δ₀ l = n₀ A y`, `δ₀ y = n₀ y` and the
@@ -412,24 +413,24 @@ lemma sum_mul_residueRep_apply_eq_smul (h_offLevel : ∀ j : J, D.IsOffLevel ![]
   let δ : D.heckeAlgebra Q.place := c ^ 2 • (A * δ₀)
   let n₁ : EllAdicIntegers := n₀ * c ^ 2
   have term (S : Finset J) :
-      (Y Sᶜ * ((∑ g, D.residueRep Q g) * heckeAction (δ * coef S))).1 u =
-        n₁ • d • c • (Y Sᶜ).1 ((heckeAction (A * coef S)).1 y) := by
+      (Y Sᶜ * ((∑ g, D.residueRep Q g) * heckeAction (δ * coef S))).val u =
+        n₁ • d • c • (Y Sᶜ).val ((heckeAction (A * coef S)).val y) := by
     rw [integralEnd_mul_apply, norm_mul_heckeAction_apply Q h_offLevel hu h_proj,
       FormEnd.map_smul_of_tower, map_nsmul, map_nsmul]
   -- `Y ∅ = δ ^ i` acts as `(n₁ A) ^ i` on `y`.
-  have on_y : (Y ∅).1 ((heckeAction (A * coef univ)).1 y) =
-      n₁ ^ i • (heckeAction (A ^ (i + 1) * coef univ)).1 y := by
+  have on_y : (Y ∅).val ((heckeAction (A * coef univ)).val y) =
+      n₁ ^ i • (heckeAction (A ^ (i + 1) * coef univ)).val y := by
     rw [Y_empty, _root_.pow_succ A, mul_assoc, ← heckeAction_pow_apply Q h_lift,
       map_mul _ (δ ^ i), map_pow, integralEnd_mul_apply]
   have lower_zero (S : Finset J) (_ : S ∈ univ) (hS : S ≠ univ) :
-      (Y Sᶜ * ((∑ g, D.residueRep Q g) * heckeAction (δ * coef S))).1 u = 0 := by
+      (Y Sᶜ * ((∑ g, D.residueRep Q g) * heckeAction (δ * coef S))).val u = 0 := by
     rw [term, map_mul, integralEnd_mul_apply, h_low S hS]
     simp only [map_zero, smul_zero]
   rw [AddSubmonoidClass.coe_finsetSum, FormEnd.sum_apply,
     sum_eq_single_of_mem univ (mem_univ _) lower_zero]
-  calc _ = n₁ • d • c • (Y ∅).1 ((heckeAction (A * coef univ)).1 y) := by rw [term, compl_univ]
-    _ = n₁ • d • c • n₁ ^ i • (heckeAction (A ^ (i + 1) * coef univ)).1 y := by rw [on_y]
-    _ = n₁ ^ (i + 1) • d • c • (heckeAction (A ^ (i + 1) * coef univ)).1 y := by
+  calc _ = n₁ • d • c • (Y ∅).val ((heckeAction (A * coef univ)).val y) := by rw [term, compl_univ]
+    _ = n₁ • d • c • n₁ ^ i • (heckeAction (A ^ (i + 1) * coef univ)).val y := by rw [on_y]
+    _ = n₁ ^ (i + 1) • d • c • (heckeAction (A ^ (i + 1) * coef univ)).val y := by
       rw [smul_comm c, smul_comm d, smul_smul, ← _root_.pow_succ']
 
 open Finset in
@@ -512,26 +513,26 @@ theorem smul_top_coeff_mem_ellIntegralForms (hQ : ∀ j : J, D.IsOffLevel ![] (Q
           rw [σ.map_mul, factor, ← σ.map_mul, mul_assoc]
   obtain ⟨W, hW⟩ := ker _ _ (congr_ideal.trans congr_factor)
   obtain ⟨Ψ, hΨ⟩ : ∃ Ψ : D.integralEnd Q.place, ∀ z : D.formsOfLevel Q.place,
-    z.1 ∈ D.formsOfLevel ![] →
-      ((∑ g, D.residueRep Q g) * Ψ).1 z = c • z :=
+    z.val ∈ D.formsOfLevel ![] →
+      ((∑ g, D.residueRep Q g) * Ψ).val z = c • z :=
     exists_norm_apply_eq_smul Q hQ
-  let u : D.formsOfLevel Q.place := Ψ.1 (d • l)
-  have norm_u : (∑ g, D.residueRep Q g).1 u = d • c • l := by
+  let u : D.formsOfLevel Q.place := Ψ.val (d • l)
+  have norm_u : (∑ g, D.residueRep Q g).val u = d • c • l := by
     rw [← integralEnd_mul_apply, map_nsmul, hΨ l hl]
   -- Only the term for `S = J` remains.
-  have top : G'.1 u = n₁ ^ (i + 1) • d • c • (heckeAction (A ^ (i + 1) * coef univ)).1 y :=
+  have top : G'.val u = n₁ ^ (i + 1) • d • c • (heckeAction (A ^ (i + 1) * coef univ)).val y :=
     sum_mul_residueRep_apply_eq_smul Q hQ norm_u h_proj h_lift Y_empty h_low
   have n₁_ne : algebraMap EllAdicIntegers ℂ (n₁ ^ (i + 1)) ≠ 0 := fun h ↦ by
     simpa [n₁, h, (Fact.out : ℓ.Prime).ne_zero] using congrArg (algebraMap EllAdicIntegers ℂ) hμ'
-  have integral : d • c • (heckeAction (A ^ (i + 1) * coef univ)).1 y =
-      (heckeAction (A ^ (i + 1)) * G - μ' • W).1 u := by
+  have integral : d • c • (heckeAction (A ^ (i + 1) * coef univ)).val y =
+      (heckeAction (A ^ (i + 1)) * G - μ' • W).val u := by
     refine smul_right_injective _ n₁_ne ?_
     simp only [algebraMap_smul]
     rw [← top, ← sub_sub_cancel (n₁ ^ (i + 1) • _) G', hW, mul_smul, ← smul_sub, SetLike.val_smul,
       FormEnd.smul_apply]
-  change (d • c • (heckeAction (A ^ (i + 1) * coef univ)).1 y).1 ∈ ellIntegralForms
+  change (d • c • (heckeAction (A ^ (i + 1) * coef univ)).val y).val ∈ ellIntegralForms
   rw [integral]
-  exact (heckeAction (A ^ (i + 1)) * G - μ' • W).2 u (Ψ.2 (d • l) hd)
+  exact (heckeAction (A ^ (i + 1)) * G - μ' • W).property u (Ψ.property (d • l) hd)
 
 omit [Fintype J] [DecidableEq J] in
 /-- If `f` multiplies every `β i` into the ideal `I`, it multiplies
@@ -589,16 +590,16 @@ lemma exists_heckeAlgebra_ribetElement (hN : IsGalRepTwist N a) {ι : Type}
     AlgHom.pi fun x ↦
       MvPolynomial.mapAlgHom ((evalAlgHom _ _ x).comp (D.heckeAlgebra Q.place).val)
   let 𝒥 : Submodule ψ.range (D.Eigensystem Q.place → MvPolynomial J (PadicAlgCl ℓ)) :=
-    ⟨(tiedIdeal Q hN H).1.map ψ, by
+    ⟨(tiedIdeal Q hN H).toAddSubmonoid.map ψ, by
       rintro ⟨_, s, rfl⟩ _ ⟨F, hF, rfl⟩
       exact ⟨s * F, smul_mem _ s hF, map_mul ..⟩⟩
-  have h_ideal : IsTraceIdeal 𝒥 (fun (x : D.Eigensystem Q.place) (g : Gal(Ω/E)) ↦ (N x.1 g).1)
+  have h_ideal : IsTraceIdeal 𝒥 (fun (x : D.Eigensystem Q.place) (g : Gal(Ω/E)) ↦ (N x.val g).val)
       (ℓ ^ ν : EllAdicIntegers) (fun j : J ↦ (Q.frobData j).isPlaceOver.tameGenerator)
       (fun j : J ↦ (Q.frobData j).frob) (fun j : J ↦ j) H := by
     refine ⟨fun j ↦ ?_, fun g i ↦ ?_, fun g ↦ ?_, fun g j ↦ ?_⟩
     · exact ⟨.X j, by simp [ψ, funext_iff]⟩
     · let val : D.heckeAlgebra Q.place :=
-        ⟨fun x ↦ (N x.1 g).1.charpoly.coeff i, charpoly_coeff_mem_heckeAlgebra hN g i⟩
+        ⟨fun x ↦ (N x.val g).val.charpoly.coeff i, charpoly_coeff_mem_heckeAlgebra hN g i⟩
       exact ⟨.C val, by simp [ψ, val, funext_iff]⟩
     · -- The images of the two kinds of generators of `tiedIdeal`.
       exact ⟨_, subset_span ⟨g, .inl rfl⟩,
@@ -611,7 +612,7 @@ lemma exists_heckeAlgebra_ribetElement (hN : IsGalRepTwist N a) {ι : Type}
   have h_each (i : ι) : ∃ β : D.heckeAlgebra Q.place, β.1 = δ i ∧ .C β * f ∈ tiedIdeal Q hN H := by
     obtain ⟨β, hβ⟩ := h_mem i
     obtain ⟨F, hF, hF_map⟩ := hf_mem i
-    have hb : β.constantCoeff.1 = δ i := funext fun x ↦ by
+    have hb : β.constantCoeff.val = δ i := funext fun x ↦ by
       simpa [ψ] using congrArg MvPolynomial.constantCoeff (congrFun hβ x)
     have hF_eq : F = .C β.constantCoeff * f := by
       refine MvPolynomial.ext _ _ fun d ↦ Subtype.ext (funext fun x ↦ ?_)
@@ -683,7 +684,7 @@ lemma exists_diagOp_mem_ellIntegralForms (hQ : ∀ j : J, D.IsOffLevel ![] (Q.pl
   let δ₀ : D.heckeAlgebra Q.place := ∏ k, (algebraMap EllAdicIntegers _ (liftValue k) - β (sel k))
   let n₀ : EllAdicIntegers := ∏ k, liftValue k
   have hδ₀_apply (x : D.Eigensystem Q.place) :
-      δ₀.1 x = ∏ k, (algebraMap EllAdicIntegers (PadicAlgCl ℓ) (liftValue k) - δ (sel k) x) := by
+      δ₀.val x = ∏ k, (algebraMap EllAdicIntegers (PadicAlgCl ℓ) (liftValue k) - δ (sel k) x) := by
     simp [δ₀, hβ, Finset.prod_apply]
   -- `δ₀ - n₀` lies in the ideal spanned by the `β i`, which `f` multiplies into the tied ideal.
   have h_mul_mem : .C (δ₀ - algebraMap _ _ n₀) * f ∈ tiedIdeal Q hN H := by
@@ -697,12 +698,12 @@ lemma exists_diagOp_mem_ellIntegralForms (hQ : ∀ j : J, D.IsOffLevel ![] (Q.pl
   have kill_y (s : D.heckeAlgebra Q.place) (hs : ∀ x ∈ 𝓧, s.1 x = 0) : (heckeAction s).1 y = 0 :=
     Subtype.ext (y_supp s hs)
   -- Every `δ i` vanishes on `𝓧`, so `δ₀` acts on `y` as `n₀`.
-  have h_lift : (heckeAction δ₀).1 y = n₀ • y := by
+  have h_lift : (heckeAction δ₀).val y = n₀ • y := by
     simpa [sub_eq_zero, Algebra.algebraMap_eq_smul_one] using kill_y (δ₀ - algebraMap _ _ n₀)
       fun x hx ↦ by simp [hδ₀_apply, h_zero _ x hx, n₀, map_prod]
-  have h_proj : (heckeAction (A * δ₀)).1 l = n₀ • (heckeAction A).1 y :=
-    calc _ = (heckeAction (A * δ₀)).1 y := Subtype.ext (y_eq _ fun x hx ↦ by simp [hδ₀_apply, hx])
-      _ = n₀ • (heckeAction A).1 y := by
+  have h_proj : (heckeAction (A * δ₀)).val l = n₀ • (heckeAction A).val y :=
+    calc _ = (heckeAction (A * δ₀)).val y := Subtype.ext (y_eq _ fun x hx ↦ by simp [hδ₀_apply, hx])
+      _ = n₀ • (heckeAction A).val y := by
           rw [map_mul, integralEnd_mul_apply, h_lift, FormEnd.map_smul_of_tower]
   have h_lt_top (S : Finset J) (hS : S ≠ univ) :
       ∑ j ∈ S, Finsupp.single j 1 < ∑ j : J, Finsupp.single j 1 := by

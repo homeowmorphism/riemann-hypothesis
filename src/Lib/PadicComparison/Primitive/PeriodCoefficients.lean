@@ -149,7 +149,7 @@ lemma hasPartitions_periodAlg (θ : asModules (tilt ⋙ periodAlg S) ⋙ tensorW
     HasPartitions ringFunctor (moduleCoeff Ψ) := by
   refine ⟨exists_isQuotientByElem, fun {A B₁ B₂ : PadicTest} f g hfg ↦ ?_⟩
   -- Tilting keeps the product, and so do Witt vectors, which are sequences of coordinates.
-  let e {R : Type} : WittVector p R ≃ (ℕ → R) := mk WittVector.coeff .mk'
+  let e {R : Type} : WittVector p R ≃ (ℕ → R) := mk WittVector.coeff (.mk p)
   let W : PadicTest ⥤ ModuleCat Ainf := asModules (tilt ⋙ wittFunctor)
   have h_witt : Function.Bijective fun x : W.obj A ↦ (W.map f x, W.map g x) :=
     ((arrowProdEquivProdArrow ℕ (fun _ ↦ tilt.obj B₁) (fun _ ↦ tilt.obj B₂)).trans
@@ -421,13 +421,17 @@ lemma CoeffCompBijective.periodAlg_of_almostCoeff {C C' : Type 1} [Category C] [
   obtain ⟨U⟩ : Nonempty (P ⋙ G ≅ asModules B ⋙ G) := nonempty_completion_wittOfMaxIdeal_iso hK
   -- Transport along `U` and along `moduleCompletionIso`, which compares the completions of
   -- modules and of algebras.
-  let V : P ⋙ G ≅ B ⋙ asModules (algCompletion S p) ⋙ tensorWith K K :=
+  let V : P ⋙ G ≅ asModules (periodAlg S) ⋙ tensorWith K K :=
     U ≪≫ B.isoWhiskerLeft (isoWhiskerRight (moduleCompletionIso S p) _)
-  let γ := isoWhiskerRight V (moduleCoeff (𝟭 (ModuleCat K)))
-  refine (isBijective_iff_of_coeff_iso (c := ⟨φ, _⟩) (ψ.whiskerLeft γ.hom) _
-    (whiskerLeft_comp_whiskerRight β γ.hom)).mp ?_
+  let γ {D : Type 1} [Category.{0} D] (χ : D ⥤ CommAlg OFlat) :
+      moduleCoeff (χ ⋙ P ⋙ G) ≅ moduleCoeff (χ ⋙ asModules (periodAlg S) ⋙ tensorWith K K) :=
+    isoWhiskerRight (isoWhiskerRight (χ.isoWhiskerLeft V) (forget₂ _ Ab)) uliftFunctor
   -- By `hN` and `hN'`, `K ⊗ –` carries `h_cpl` to the coefficients `P ⋙ G`.
-  exact (IsBijective.baseChangeMap_bijective_iff h_cpl hN).mp (hN' _)
+  refine (isBijective_iff_of_coeff_iso
+    (c := ofModuleHom φ (Φ := ψ ⋙ P ⋙ G) (whiskerRight β (P ⋙ G))) (γ ψ).hom (γ ψ').hom ?_).mp
+    ((IsBijective.baseChangeMap_bijective_iff h_cpl hN).mp (hN' _))
+  ext A x
+  exact congrArg ULift.up (ConcreteCategory.congr_hom (V.hom.naturality (β.app A)).symm x.down)
 
 end PeriodLifting
 

@@ -282,10 +282,6 @@ finite ideles of `E`. -/
 noncomputable abbrev QZChar.ideleChar : (𝔸f E)ˣ →* ℂˣ :=
   expUnit.comp ((abelianLift χ).comp (artinMap Gal(Ω/E)))
 
-/-- The value of `New.QZChar.symmetrise χ` at `g` is `χ g + χ (gᶜ)`. -/
-private lemma QZChar.symmetrise_val_apply (g : Gal(Ω/E)) :
-    (symmetrise χ).val g = χ.val g + χ.val (conjGal g) := rfl
-
 /-- On the Artin symbol of an idele `a`, the symmetrised character `New.QZChar.symmetrise χ` takes
 the value of `χ` at `a` times the value of `χ` at the conjugate idele `star a`. -/
 lemma QZChar.abelianLift_symmetrise (a : (𝔸f E)ˣ) :
@@ -294,7 +290,8 @@ lemma QZChar.abelianLift_symmetrise (a : (𝔸f E)ˣ) :
   obtain ⟨g, hg⟩ := mk_surjective (artinMap Gal(Ω/E) a)
   -- the Artin symbol of `star a` is the class of `conjGal g`
   rw [← hg, artinMap_star g hg.symm]
-  simp [symmetrise_val_apply, ofAdd_add]
+  simp [symmetrise, ofAdd_add]
+  rfl
 
 end Grunwald
 
@@ -692,7 +689,7 @@ lemma New.nonempty_weilData_of_not_dvd_differentIdeal {E L : Type} [Field E] [CM
       multiplicity_differentIdeal_eq_ramificationIdx'_mul_of_not_dvd u (h_unram u hu_fix)
     refine ⟨-(w.asIdeal.ramificationIdx' u.asIdeal * (v (α.val w)).log), ?_⟩
     rw [hs_ord, h_tower, ← w.valuation_liesOver L, log_pow, hj,
-      ← w.1.ramificationIdx'_eq_ramificationIdx u.1 w.ne_bot]
+      ← w.asIdeal.ramificationIdx'_eq_ramificationIdx u.asIdeal w.ne_bot]
     push_cast
     ring
   -- an auxiliary order decides which of `u`, `star u` gets the larger half

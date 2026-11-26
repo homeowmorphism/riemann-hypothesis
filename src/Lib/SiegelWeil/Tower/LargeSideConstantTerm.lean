@@ -570,7 +570,7 @@ let `ρ` be a Haar measure on the finite ideles such that Haar measure on the id
 Tate's integral at `x` (for `β = true`) or at `1 - x` (for `β = false`) converges, and it is the
 integral of the cone kernel times `L^S(x, ν)` and explicit factors, for `ν = 𝔠.character` and
 `S = 𝔠.ramifiedPlaces`. -/
-theorem integral_zetaIntegrand_of_one_lt [Fintype b] [DecidableEq b]
+theorem integral_zetaIntegrand_of_one_lt
     (h_factor : LineValueFactors 𝔠 A X σ v y g f κ)
     (hc : ∀ a : 𝔸f E, lineFinFactor 𝔠 ϖ.val a = lineFinFactor 𝔠 1 (a * c))
     (hn : 2 ∣ card n) (hv : IsSchwartzVector v) (u : (𝔸 E)ˣ)
@@ -607,7 +607,7 @@ theorem integral_zetaIntegrand_of_one_lt [Fintype b] [DecidableEq b]
 character `𝔠 : SplitTameChar E μ` in terms of the cone kernel holds for all `x ≥ 1`, under the same
 hypotheses, if Tate's integral is continuous in its exponent: both sides are then continuous up to
 `1`. -/
-theorem integral_zetaIntegrand_of_one_le [Fintype b] [DecidableEq b]
+theorem integral_zetaIntegrand_of_one_le [Fintype b]
     (h_factor : LineValueFactors 𝔠 A X σ v y g f κ)
     (hc : ∀ a : 𝔸f E, lineFinFactor 𝔠 ϖ.val a = lineFinFactor 𝔠 1 (a * c))
     (hn : 2 ∣ card n) (hv : IsSchwartzVector v) (u : (𝔸 E)ˣ)
@@ -689,7 +689,7 @@ with `u = 1` or `rk V = rk W`. If Tate's integral `𝒵(e + 1)` of `planeDatum �
 integral of `Θ`, converges absolutely, then the constant term along `A` at `(u, g)` of the theta
 integral of `(W', V')` on this datum is `c 𝒵(e + 1)`. -/
 theorem exists_planeConstantTerm_eq_integral (A : W'.Splitting W Unit) (X : V'.Splitting V Unit)
-    [IsBaseAdapted A] [IsBaseAdapted X] (σ' : b ⊕ r' ≃ n') (hn : 2 ∣ card n) :
+    [IsBaseAdapted A] (σ' : b ⊕ r' ≃ n') (hn : 2 ∣ card n) :
     ∃ c : ℝ, c ≠ 0 ∧ ∀ {μ : InfinitePlace E → ℤ} (𝔠 : SplitTameChar E μ)
       {v : PairFock E s' t'}, IsSchwartzVector v → ∀ (y : Matrix b n (LocProd 𝔠.ramifiedPlaces))
         (g : G E s)

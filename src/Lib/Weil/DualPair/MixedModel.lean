@@ -59,7 +59,7 @@ variable {E : Type*} [Field E] [CMType E] [WeilData E]
 /-- For a space T with adelic frame x, the invertible adelic matrix (x⁻¹)* ε, with inverse ε x*,
 where ε is the standard form of its signs. -/
 def dualFrame : GL n' (𝔸 E) where
-  val := T.x⁻¹.1ᴴ * stdForm E s'
+  val := T.x⁻¹.valᴴ * stdForm E s'
   inv := stdForm E s' * T.xᴴ
   val_inv := by simp [conjTranspose_nonsing_inv, Matrix.mul_assoc]
   inv_val := by simp [conjTranspose_nonsing_inv, Matrix.mul_assoc]
@@ -260,10 +260,6 @@ lemma homSlice_rho (x : Matrix n' p (𝔸 E)) (y : Matrix n' n (𝔸 E)) (f : �
     kronecker_mulVec_eq_matrixToVec, Matrix.mul_assoc, Matrix.mul_add, Matrix.add_mul,
     conjTranspose_transpose_eq_transpose_conjTranspose, ← mul_kronecker_mul, ← transpose_mul] using
     (D.homSource T).isMixedLaw_slice (matrixToVec (T.x.val * x)) (matrixToVec y) f
-
-/-- The character `New.WeilData.upsilonU1` is υ on the norm-one ideles. -/
-private lemma upsilonU1_apply (u : unitary (𝔸 E)) : upsilonU1.val u = υ.1 (Unitary.toUnits u) :=
-  rfl
 
 /-- On a norm-one idele u, the character `New.chiAdelic` x ↦ υ(x)|x|^(−1/2) is υ: the idele norm
 of u is one. -/

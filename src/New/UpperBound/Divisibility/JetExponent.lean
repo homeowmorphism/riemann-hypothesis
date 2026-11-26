@@ -278,7 +278,7 @@ lemma one_add_logb_boxes_le (hj : j < D.m) :
     simp [f, Core.numInfPlaces]
   have h_log : 1 / 2 ≤ Real.log p := by
     grw [← q.out.two_le]
-    linarith [Real.log_two_gt_d9]
+    linarith only [Real.log_two_gt_d9]
   calc _ ≤ 1 + Real.log (D.f * D.a + D.f * D.M + 1) / (1 / 2) := by
         grw [logb, ← h_log, h_boxes]
     _ ≤ D.logB ^ 2 := D.le_of_hasLogBound
@@ -311,7 +311,7 @@ lemma posPart_sub_weight_le_posPart_longRow (hj : j < D.m) (hp : D.IsSmallNonspl
   · simp only [h_aPlace, mem_inter, false_and, and_false, ite_false, add_zero]
     positivity
   have h_nonneg : (0 : ℝ) ≤ D.weight τ' := Nat.cast_nonneg _
-  simp only [IsCollision, ← hτ', mem_inter, mem_sdiff, h_aPlace, he, posPart_def, longRow]
+  simp only [IsCollision, ← hτ', mem_inter, h_aPlace, he, posPart_def, longRow]
   by_cases h_removed : τ ∈ S
   · -- A removed row: only the surplus at `e = 1` is to be absorbed.
     have h_surplus (h_one : e = 1) : (D.a / D.x₁ : ℝ) ≤ D.a / p ^ e := by
@@ -381,7 +381,7 @@ lemma sub_le_predictedDivisibility (hj : j < D.m) (S : Finset D.Φ) :
     grw [sum_le_card_nsmul univ _ _ fun τ _ ↦
       min_longRow_add_lowColumns_add_min_lowBoxes_le hj S τ, nsmul_eq_mul]
     change (1 / 2 * (D.f * (3 * (D.a / P.d / D.m))) : ℝ) ≤ D.f * (2 * (D.a / P.d / D.m))
-    linarith [show (0 : ℝ) ≤ D.f * (D.a / P.d / D.m) by positivity]
+    linarith only [show (0 : ℝ) ≤ D.f * (D.a / P.d / D.m) by positivity]
   · positivity
 
 /-- For `j < D.m` and a place `τ`, the number `γ_p = gammaPrime P.d p` times the number

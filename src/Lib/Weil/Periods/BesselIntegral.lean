@@ -125,7 +125,7 @@ private lemma exists_unitriangular_mul_map_mem_matrix (w : ι → ℤ) {A : Set 
       rw [Matrix.mul_apply]
       refine Finset.sum_eq_zero fun l _ ↦ ?_
       by_cases hl : w i < w l
-      · have hlk : l ≠ k := by grind
+      · have hlk : l ≠ k := by lia
         rw [Matrix.map_apply, Z_tri l k (h.trans hl.le), one_apply_ne hlk, map_zero, mul_zero]
       · rw [hn i l hl, zero_mul]
     simp [h_sub_one_mul_eq_zero, apply_ite, Matrix.one_apply]
@@ -174,7 +174,9 @@ lemma isCocompact_ratBessel : (Y.ratBessel.subgroupOf Y.besselGroup).IsCocompact
   have m_unipotent : m ∈ Y.unipotent := p_unipotent (γ * g)
   have m_inv_raises : ∀ i l : ι, ¬w i < w l → (V.ratCoordMatrix m⁻¹ - 1) i l = 0 := by
     intro i l h_not_lt
-    have h_grade : Y.gradeOf i < Y.gradeOf l + 1 := by lia
+    have h_grade : Y.gradeOf i < Y.gradeOf l + 1 := by
+      have : -Y.gradeOf l ≤ -Y.gradeOf i := not_lt.mp h_not_lt
+      omega
     exact Y.mem_unipotent.mp (inv_mem m_unipotent) i l h_grade
   obtain ⟨r, hr, r_mem⟩ := exists_unitriangular_mul_map_mem_matrix w hq _ m_inv_raises
   obtain ⟨β, β_mem, β_uni⟩ := exists_unitriangular_mul_mem_K m ⟨r, hr⟩ r_mem
@@ -188,7 +190,7 @@ lemma isCocompact_ratBessel : (Y.ratBessel.subgroupOf Y.besselGroup).IsCocompact
     have β_ik : ((β : GL ι E) : Matrix ι ι E) i k = (1 : Matrix ι ι E) i k :=
       mem_agreeWithOneOn.mp β_uni i k (neg_le_neg h_grade_le)
     rw [h_matrix, Matrix.map_apply, β_ik]
-    simp [Matrix.one_apply, apply_ite]
+    simp [Matrix.one_apply]
   have β_rat : V.ratEmbed β ∈ Y.ratBessel := Subgroup.mem_inf.mpr ⟨⟨β, rfl⟩, β_bessel⟩
   let βB : Y.besselGroup := ⟨V.ratEmbed β, β_bessel⟩
   have βγ_rat : βB * γ ∈ Y.ratBessel.subgroupOf Y.besselGroup :=
@@ -226,8 +228,10 @@ lemma exists_ratCoordMatrix_eq_eichlerMap (x y : ι → 𝔸 E) (k : ℤ)
     by_cases ha : Y.gradeOf a ≤ 0 ⊔ k
     · rw [hx a ha, mul_zero]
     · rw [h_vecMul, Pi.star_apply, hz a ha, star_zero, zero_mul, zero_mul]
-  have h_iso : star x ⬝ᵥ J *ᵥ x = 0 := orth_x x fun a ha ↦ hx _ (by grind [gradeOf_stringReversal])
-  have h_orth : star y ⬝ᵥ J *ᵥ x = 0 := orth_x y fun a ha ↦ hy _ (by grind [gradeOf_stringReversal])
+  have h_iso : star x ⬝ᵥ J *ᵥ x = 0 :=
+    orth_x x fun a ha ↦ hx _ (by rw [gradeOf_stringReversal]; omega)
+  have h_orth : star y ⬝ᵥ J *ᵥ x = 0 :=
+    orth_x y fun a ha ↦ hy _ (by rw [gradeOf_stringReversal]; omega)
   -- The form is hermitian, so `h(y, y)` is fixed by `star` and is the trace of its half.
   have half : toAdele 2⁻¹ * star y ⬝ᵥ J *ᵥ y + star (toAdele 2⁻¹ * star y ⬝ᵥ J *ᵥ y) =
       star y ⬝ᵥ J *ᵥ y := by
@@ -349,10 +353,7 @@ private lemma exists_continuous_unipotent_besselRow_mul {q : Type*} [Fintype q]
     Pi.single_eq_of_ne (by omega : Y.gradeOf p ≠ 1) 1
   have y_supp (b : q × X → 𝔸 E) (l : ι) (hl : Y.gradeOf l ≠ -0) : y b l = 0 := by
     refine Finset.sum_eq_zero fun k _ ↦ ?_
-    have l_ne : l ≠ Y.indexEquiv (.inl k.snd) := by
-      rintro rfl
-      exact hl (Y.gradeOf_inl k.snd)
-    rw [ite_eq_right l_ne, zero_mul]
+    rw [ite_eq_right (ne_of_apply_ne Y.gradeOf (by rwa [gradeOf_inl])), zero_mul]
   have exists_u (b : q × X → 𝔸 E) : ∃ u ∈ Y.unipotent,
       V.ratCoordMatrix u = eichlerMap J x (y b) (toAdele 2⁻¹ * star (y b) ⬝ᵥ J *ᵥ y b) :=
     Y.exists_ratCoordMatrix_eq_eichlerMap x (y b) 0 x_supp (y_supp b)
@@ -468,10 +469,8 @@ lemma integral_besselMeasure_eq_of_mean {q : Type*} [Fintype q]
     have pr_unip : pr ⟨_, Y.unipotent_le_besselGroup (unip_part r)⟩ = 1 :=
       (mem_unip _).mp (unip_part r)
     simp only [j₀, map_mul, map_inv, pr_u, pr_unip, inv_one, mul_one]
-  have j_mem (r : Y.besselGroup) (b : q × X → 𝔸 E) : j₀ r b ∈ S := by
-    change pr (j₀ r b) ∈ (stdSpace E X).Γ
-    rw [pr_j₀ r b]
-    exact one_mem _
+  have j_mem (r : Y.besselGroup) (b : q × X → 𝔸 E) : j₀ r b ∈ S :=
+    pr.ker_le_comap _ (MonoidHom.mem_ker.2 (pr_j₀ r b))
   let j (r : Y.besselGroup) (b : q × X → 𝔸 E) : S := ⟨j₀ r b, j_mem r b⟩
   have diff_inv : (Y.ratBessel.subgroupOf Y.besselGroup).FixesLeft (fun r ↦ φ r - M (pr r)) :=
     fun γ hγ r ↦ congrArg₂ HSub.hSub (φ_inv γ hγ r) (M_comp_pr_inv γ hγ r)
@@ -564,11 +563,8 @@ lemma formAdjoint_mul_self_mulVec_apply_eq_of_survives {w : Matrix ι' ι (𝔸 
   let x : ι → 𝔸 E :=
     Pi.single (Y.stringReversal k) (star (↑(j⁻¹ * V.J⁻¹ k (Y.stringReversal k)) * t))
   have v_supp (p : ι) (hp : Y.gradeOf p ≤ 0 ⊔ Y.gradeOf k) : v p = 0 := hv p (by omega)
-  have x_supp (q : ι) (hq : Y.gradeOf q ≠ -Y.gradeOf k) : x q = 0 := by
-    have q_ne : q ≠ Y.stringReversal k := by
-      rintro rfl
-      exact hq (Y.gradeOf_stringReversal k)
-    exact Pi.single_eq_of_ne q_ne _
+  have x_supp (q : ι) (hq : Y.gradeOf q ≠ -Y.gradeOf k) : x q = 0 :=
+    Pi.single_eq_of_ne (ne_of_apply_ne Y.gradeOf (by rwa [gradeOf_stringReversal])) _
   obtain ⟨u, u_mem, u_mat⟩ : ∃ u ∈ Y.unipotent, V.ratCoordMatrix u =
       eichlerMap (V.J.map toAdele) v x (toAdele 2⁻¹ * star x ⬝ᵥ V.J.map toAdele *ᵥ x) :=
     Y.exists_ratCoordMatrix_eq_eichlerMap v x (Y.gradeOf k) v_supp x_supp
@@ -603,7 +599,31 @@ lemma formAdjoint_mul_self_mulVec_apply_eq_of_survives {w : Matrix ι' ι (𝔸 
     simp [u_mat, Y.vecMul_J_apply, vecMulVec_apply, x, -single_vecMul, Pi.single_apply,
       Matrix.one_apply, sub_eq_zero, Matrix.mulVec_add, Matrix.mulVec_smul, Matrix.mul_sub,
       Matrix.mul_add, HasDegreeGe, eichlerMap, mul_vecMulVec, mulVec_neg]
-    grind [gradeOf_stringReversal, star_zero]
+    -- The `x` terms need `σ a = σ k`, so `a` has the weight of `k`; the `star v` terms need
+    -- `v (σ a) ≠ 0`, so `a` has weight at most `-max 1 (2 + weight k)`.
+    have h_dual {a : ι} (h : Y.stringReversal a = Y.stringReversal k) :
+        Y.gradeOf a = Y.gradeOf k := by
+      simpa [gradeOf_stringReversal] using congrArg Y.gradeOf h
+    have h_va {a : ι} (h : v (Y.stringReversal a) ≠ 0) :
+        max 1 (2 + Y.gradeOf k) ≤ -Y.gradeOf a := by
+      have := mt (hv _) h
+      rw [gradeOf_stringReversal] at this
+      omega
+    have h_rev {b : ι} (h : Y.gradeOf b ≠ -Y.gradeOf k) : b ≠ Y.stringReversal k := by
+      rintro rfl
+      exact h (gradeOf_stringReversal _ _)
+    refine ⟨fun b a hba ↦ ?_, fun b a hba ↦ ?_⟩
+    · rcases eq_or_ne (v (Y.stringReversal a)) 0 with hva | hva
+      · simp only [hva, star_zero, zero_mul, mul_zero, sub_zero, add_eq_left, ite_eq_right_iff]
+        exact fun h ↦ by rw [hv b (by have := h_dual h; omega), zero_mul]
+      · have ha := h_va hva
+        simp [h_rev (b := b) (by omega), hv b (by omega)]
+    · rcases eq_or_ne (v (Y.stringReversal a)) 0 with hva | hva
+      · simp only [hva, star_zero, zero_mul, mul_zero, sub_zero, add_eq_left, ite_eq_right_iff]
+        exact fun h ↦ by rw [hwv b (by have := h_dual h; omega), zero_mul]
+      · have ha := h_va hva
+        have hwbk := (hw_col b _ (by rw [gradeOf_stringReversal]; omega)).resolve_right hva
+        simp [hwv b (by omega), hwbk]
   have h_phase : V.homBicharacter V' (Y.stringMap Y' * V.ratCoordMatrix u) (Y.stringMap Y') =
       V.homBicharacter V' (w * V.ratCoordMatrix u) w :=
     survives u u_mem u_deg
@@ -655,23 +675,43 @@ lemma agreesWithStringMap_mul_iff {w : Matrix ι' ι (𝔸 E)} {γ : G E ε} (h�
   -- `hasDegreeGe_zero_mul_stringMap_mul_sub`.
   have of_mem {δ : G E ε'} (hδ : δ ∈ Y'.besselGroup) :
       Y.AgreesWithStringMap Y' (V'.ratCoordMatrix δ * (w * V.ratCoordMatrix γ)) := by
-    grind [→ hasDegreeGe_zero_of_mem_besselGroup, → hasDegreeGe_zero_mul_stringMap_mul_sub,
-      Matrix.mul_apply, Matrix.sub_apply, HasDegreeGe, hasDegreeGe_neg_one_stringMap]
+    intro b a ha hba
+    have hδ0 := Y'.hasDegreeGe_zero_of_mem_besselGroup hδ
+    have hγ0 := Y.hasDegreeGe_zero_of_mem_besselGroup hγ
+    have h_sub := Y.hasDegreeGe_zero_mul_stringMap_mul_sub hγ hδ b a (by omega)
+    rw [Matrix.sub_apply, sub_eq_zero] at h_sub
+    rw [← h_sub, ← sub_eq_zero, ← Matrix.sub_apply, ← Matrix.mul_sub, ← Matrix.sub_mul,
+      Matrix.mul_apply]
+    -- A nonzero term `δ b c * (w - T) c d * γ d a` needs `b ≥ c ≥ d ≥ a` in weight.
+    refine Finset.sum_eq_zero fun c _ ↦ ?_
+    by_cases hc : Y'.gradeOf b < Y'.gradeOf c
+    · rw [hδ0 b c (by omega), zero_mul]
+    rw [Matrix.mul_apply, Finset.mul_sum]
+    refine Finset.sum_eq_zero fun d _ ↦ ?_
+    by_cases hd : Y.gradeOf d < Y.gradeOf a
+    · rw [hγ0 d a (by omega), mul_zero, mul_zero]
+    · rw [Matrix.sub_apply, hw c d (by omega) (by omega), sub_self, zero_mul, mul_zero]
   have agrees : Y.AgreesWithStringMap Y' (w * V.ratCoordMatrix γ) := by
     simpa using of_mem (one_mem _)
   refine ⟨fun hδ ↦ Y'.mem_besselGroup_iff_sub_one.mpr fun b ↦ ?_, of_mem⟩
   -- Show that the entry `(b, k)` of `δ - 1` vanishes, by downward induction on the weight of `k`.
   refine int_weight_induction (fun l : ι' ↦ -Y'.gradeOf l) fun k ih hk hbk ↦ ?_
   obtain ⟨a, ha, unit, col⟩ := Y.exists_gradeOf_succ_isUnit_stringMap Y' k hk
+  have hk0 : 0 ≤ Y'.gradeOf k := by split at hk <;> omega
   -- By `ih`, row `b` of `δ - 1` vanishes in the weights above that of `k`.
   have h_row : ∀ l : ι', Y'.gradeOf l ≤ Y'.gradeOf k ∨ (V'.ratCoordMatrix δ - 1) b l = 0 := by
-    grind
+    intro l
+    rcases le_or_gt (Y'.gradeOf l) (Y'.gradeOf k) with hl | hl
+    · exact Or.inl hl
+    · exact Or.inr (ih l (neg_lt_neg hl) (by split <;> omega) (hbk.trans hl.le))
   -- The entry `(b, a)` of `(δ - 1) * (w * γ)` is this entry times a unit (`col`, using `ih`), and
   -- it vanishes because `δ * (w * γ)` and `w * γ` both agree with `stringMap` there.
   rw [← unit.mul_left_eq_zero, ← col agrees _ h_row, ← Matrix.mul_apply', Matrix.sub_mul]
   change (V'.ratCoordMatrix δ * (w * V.ratCoordMatrix γ) -
       (1 : Matrix ι' ι' (𝔸 E)) * (w * V.ratCoordMatrix γ)) b a = 0
-  simp (disch := grind) [hδ b a, agrees b a]
+  have ha_pos : 0 < Y.gradeOf a := by omega
+  have hba : Y'.gradeOf b < Y.gradeOf a := by omega
+  simp only [Matrix.sub_apply, Matrix.one_mul, hδ b a ha_pos hba, agrees b a ha_pos hba, sub_self]
 
 /-- Let `T = Y.stringMap Y'` be the map that kills `X` and the last string vector of `V` and sends
 each other string vector to a multiple of the same-numbered string vector of `V'`. Suppose `w`
@@ -693,11 +733,21 @@ lemma hasDegreeGe_of_survives {w : Matrix ι' ι (𝔸 E)} (hw : Y.AgreesWithStr
   · exact h_eq
   -- By `hw` a bad entry has `gradeOf b < gradeOf a ≤ 0`, so the index dual to `b` has positive
   -- weight.
+  have ha : Y.gradeOf a ≤ 0 :=
+    le_of_not_gt fun h ↦ h_eq (hw b a h (by omega))
   have h_rev_pos : (if (Y'.indexEquiv.symm (Y'.stringReversal b)).isRight then 0 else 1) ≤
       Y'.gradeOf (Y'.stringReversal b) := by
-    grind [gradeOf_stringReversal]
+    rw [gradeOf_stringReversal]
+    split <;> omega
   obtain ⟨i, hi, unit, col⟩ :=
     Y.exists_gradeOf_succ_isUnit_stringMap Y' (Y'.stringReversal b) h_rev_pos
+  rw [gradeOf_stringReversal] at hi
+  -- Below row `b`, induction transfers the degree bound of the string map to `w`.
+  have low (p : ι') (j : ι) (hp : Y'.gradeOf p < Y'.gradeOf b)
+      (hj : Y'.gradeOf p < Y.gradeOf j - 1) : w p j = 0 := by
+    have he := ih p hp j (by omega)
+    rw [Matrix.sub_apply, sub_eq_zero] at he
+    exact he.trans (Y.hasDegreeGe_neg_one_stringMap p j (by omega))
   -- On the basis vector `i`, the coordinate dual to `a` of `w† w` is this entry of `w†` times a
   -- unit (`col`, using `ih`); likewise for `stringMap`.
   have adj_eq :
@@ -709,13 +759,42 @@ lemma hasDegreeGe_of_survives {w : Matrix ι' ι (𝔸 E)} (hw : Y.AgreesWithStr
           ((V.formAdjoint V' w * w) *ᵥ Pi.single i 1) (Y.stringReversal a) := by
       refine Y.formAdjoint_mul_self_mulVec_apply_eq_of_survives Y' survives (Pi.single i 1)
         (Y.stringReversal a) ?_ ?_ ?_
-      · grind [gradeOf_stringReversal]
-      · simp only [mulVec_single_one, Matrix.col_apply]
-        grind [HasDegreeGe, gradeOf_stringReversal, hasDegreeGe_neg_one_stringMap]
-      · grind [HasDegreeGe, gradeOf_stringReversal, Matrix.sub_apply, hasDegreeGe_neg_one_stringMap]
-    simpa (disch := grind [Y.formAdjoint_apply Y', HasDegreeGe, gradeOf_stringReversal, star_zero,
-      Matrix.sub_apply, hasDegreeGe_neg_one_stringMap]) [Matrix.mul_apply', col,
-      unit.mul_left_inj] using h_entry
+      · intro p hp
+        apply Pi.single_eq_of_ne
+        rintro rfl
+        rw [gradeOf_stringReversal] at hp
+        omega
+      · intro p hp
+        simp only [mulVec_single_one, Matrix.col_apply]
+        rw [gradeOf_stringReversal] at hp
+        rw [hw p i (by omega) (by omega)]
+        exact Y.hasDegreeGe_neg_one_stringMap p i (by omega)
+      · intro p q hp
+        by_cases hq : q = i
+        · subst q
+          left
+          apply low p _ (by omega)
+          simp only [gradeOf_stringReversal]
+          omega
+        · exact Or.inr (Pi.single_eq_of_ne hq _)
+    have row {y : Matrix ι' ι (𝔸 E)}
+        (hy : ∀ p j, Y'.gradeOf p < Y'.gradeOf b → Y'.gradeOf p < Y.gradeOf j - 1 →
+          y p j = 0) (l : ι') :
+        Y'.gradeOf l ≤ Y'.gradeOf (Y'.stringReversal b) ∨
+          V.formAdjoint V' y (Y.stringReversal a) l = 0 := by
+      by_cases hl : Y'.gradeOf l ≤ Y'.gradeOf (Y'.stringReversal b)
+      · exact Or.inl hl
+      · right
+        rw [gradeOf_stringReversal] at hl
+        rw [Y.formAdjoint_apply Y', hy (Y'.stringReversal l)
+          (Y.stringReversal (Y.stringReversal a)) (by simp only [gradeOf_stringReversal]; omega)
+          (by simp only [gradeOf_stringReversal]; omega)]
+        simp
+    have rowT := row (y := Y.stringMap Y') (fun p j _ hj ↦
+      Y.hasDegreeGe_neg_one_stringMap p j (by omega))
+    simp only [mulVec_single_one, Matrix.col_apply, Matrix.mul_apply'] at h_entry
+    rw [col (w := Y.stringMap Y') (fun _ _ _ _ ↦ rfl) _ rowT, col hw _ (row low)] at h_entry
+    exact unit.mul_left_inj.mp h_entry
   -- By `formAdjoint_apply` this entry of the adjoint determines the entry `(b, a)`.
   rw [← V.formAdjoint_formAdjoint _ w, Y'.formAdjoint_apply Y, ← adj_eq, ← formAdjoint_apply,
     formAdjoint_formAdjoint]
@@ -752,7 +831,8 @@ private lemma hasLeftInv_submatrix_of_survives {x : Matrix ι' ι E}
           x.map toAdele p (Y.stringReversal k) = 0 ∨ v q = 0 := by
       rw [v_ker]
       simp [v, k, A, reindex_equiv Y.indexEquiv]
-      grind
+      exact ⟨fun b hb hb' ↦ ih b hb' (Fin.lt_def.mpr (by omega)),
+        fun p b hb ↦ Or.inr fun h ↦ absurd h (by omega)⟩
     obtain ⟨h_shift, -⟩ : V.formAdjoint V' (Y.stringMap Y') * Y.stringMap Y' = Y.shift ∧
         (Y'.genericConst = Y.genericConst → Y.stringMap Y' * V.formAdjoint V' (Y.stringMap Y') =
           Y'.shift) :=
@@ -801,13 +881,23 @@ lemma exists_agreesWithStringMap (w : Matrix ι' ι (𝔸 E)) (hw : w ∈ ratMat
             ((V.formAdjoint V' (w.map toAdele) * w.map toAdele) *ᵥ Pi.single i 1)
               (Y.stringReversal k) := by
         -- Both `i` and `k` have positive weight, and the target weights are `0`.
+        have hi : 0 < Y.gradeOf i := (mem_filter.mp i.2).2
+        have hk : 0 < Y.gradeOf k := (mem_filter.mp k.2).2
         refine Y.formAdjoint_mul_self_mulVec_apply_eq_of_survives Y' survives (Pi.single i 1)
           (Y.stringReversal k) ?_ ?_ ?_
-        · grind [gradeOf_stringReversal]
-        · simp only [Pi.zero_apply]
-          grind [gradeOf_stringReversal]
-        · simp only [Pi.zero_apply]
-          grind
+        · intro p hp
+          refine Pi.single_eq_of_ne ?_ _
+          rintro rfl
+          rw [gradeOf_stringReversal] at hp
+          omega
+        · intro p hp
+          rw [Pi.zero_apply, gradeOf_stringReversal] at hp
+          omega
+        · intro p q hq
+          refine Or.inr (Pi.single_eq_of_ne ?_ _)
+          rintro rfl
+          rw [Pi.zero_apply] at hq
+          omega
       -- Row `k` of `V.J * M` is a multiple of the row of `M` dual to `k`.
       simpa [Y.gram_eq, map_gradedGram_mul_apply] using
         congrArg (fun z ↦ V.J.map toAdele k (Y.stringReversal k) * z) h_adj

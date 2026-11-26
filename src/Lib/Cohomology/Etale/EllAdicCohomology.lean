@@ -75,7 +75,7 @@ def geomPoints : Over (Spec R) ⥤ PointFunctor where
           ⟨(ULift.up (x.1.1.1 ≫ f.1), x.1.2), by
             -- `f` is a map over `Spec R`, so the new point lies over the same map out of `R`
             have h_over : (x.1.1.1 ≫ f.1) ≫ Y.hom = x.1.1.1 ≫ X.hom := by simp
-            exact (congrArg (fun h ↦ ULift.up (Spec.preimage h)) h_over).trans x.2⟩ }
+            exact (congrArg (fun h ↦ ULift.up (Spec.preimage h)) h_over).trans x.property⟩ }
 
 /-- Geometric `ℓ`-adic cohomology in degree `n`: `X ↦ ℚ_ℓ ⊗ H^n(X ×_R Ω, ℤ_ℓ)`. -/
 def ellAdicCohom (n : ℕ) : (Over (Spec R))ᵒᵖ ⥤ ModuleCat ℚ_[ℓ] :=

@@ -18,8 +18,8 @@ character of the Weil data.
 ## Main definitions and results
 
 * `New.AlgHeckeChar.exists_pow_eq_prod`, `New.AlgHeckeChar.norm_map_eq_sqrt_finIdeleAbs_zpow`,
-  `New.AlgHeckeChar.norm_padic_eq_prod`, `New.AlgHeckeChar.conjugateBy`: powers, complex and
-  `p`-adic absolute values and conjugates of the values of an algebraic Hecke character.
+  `New.AlgHeckeChar.norm_padic_eq_prod`: powers and complex and `p`-adic absolute values of the
+  values of an algebraic Hecke character.
 * `New.IsHeckeOfType.toAlgebraic`: the algebraic character `ψ |·|^{k/2}` of infinity type `m`, for
   `ψ` of type `m (Φ w) - m (Φ̄ w)` with `m (Φ w) + m (Φ̄ w) = k` at every infinite place `w`.
 * `New.AutChar.HasWeight.isHeckeOfType`: if `ν` has weight `e`, its base change has type `2 • e`.
@@ -172,26 +172,6 @@ theorem norm_padic_eq_one {p : ℕ} [Fact p.Prime] (ι : ℂ →+* ℂ_[p])
       ‖adeleExtension (ι.comp τ) y.val‖ = ‖adeleExtension (ι.comp τ) 1‖ :=
     (norm_adeleExtension_eq_iff _ _).2 (by simpa using hy _ (natCast_mem_placeOfEmb _))
   simp [θ.norm_padic_eq_prod y ι, h_unit]
-
-/-- The conjugate `σ ∘ θ` of an algebraic Hecke character `θ` by an automorphism `σ` of `ℂ`. It is
-algebraic, and its exponent at `σ ∘ τ` is that of `θ` at `τ`. -/
-def conjugateBy (σ : ℂ ≃+* ℂ) : AlgHeckeChar K where
-  val :=
-    ((Units.map σ.toMonoidHom).comp θ.val.fst,
-      Multiplicative.ofAdd fun τ ↦ θ.val.snd.toAdd (σ.symm.toRingHom.comp τ))
-  property := by
-    obtain ⟨h_open, h_principal⟩ := θ.property
-    have h_ker : θ.val.fst.ker ≤ ((Units.map σ.toMonoidHom).comp θ.val.fst).ker :=
-      fun y (hy : θ.val.fst y = 1) ↦ by simp [hy]
-    refine ⟨Subgroup.isOpen_mono h_ker h_open, fun x ↦ ?_⟩
-    -- Reindex the product by `τ ↦ σ ∘ τ`.
-    let e : (K →+* ℂ) ≃ (K →+* ℂ) :=
-      { toFun τ := σ.toRingHom.comp τ
-        invFun τ := σ.symm.toRingHom.comp τ
-        left_inv τ := by simp [← RingHom.comp_assoc]
-        right_inv τ := by simp [← RingHom.comp_assoc] }
-    rw [← e.prod_comp]
-    simp [e, h_principal, ← RingHom.comp_assoc]
 
 end AlgHeckeChar
 

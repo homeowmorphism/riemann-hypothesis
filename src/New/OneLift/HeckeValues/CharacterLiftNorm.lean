@@ -256,7 +256,7 @@ the basis given by `paramV`, the doubled Harish-Chandra parameter of this weight
 `P = fockPoly η` be the polynomial in the coordinates of `Hom(W, V)` at the infinite places that
 corresponds to `η`, with `W`, `V` the definite spaces of ranks `1` and `card n`. Then the squared
 Fock norm `⟨P̄, P⟩` is the hook number, where `⟨P, Q⟩ = fockPairing ℂ P Q = P(∂) Q (0)`. -/
-lemma LValueData.fockPairing_fockPoly_highestVector [WeilData E] :
+lemma LValueData.fockPairing_fockPoly_highestVector :
     fockPairing ℂ ((X.descentPair.fockPoly
       (highestVector X.descentPair.columnCount X.descentPair.paramV)).map conj)
         (X.descentPair.fockPoly (highestVector X.descentPair.columnCount X.descentPair.paramV)) =
@@ -410,7 +410,7 @@ in which `(x, y)` acts by the Fock operator times `∏ τ, det (y τ) ^ γ τ * 
 `γ' τ = -X.rowLength τ`, so that `ω(x, 1)` fixes `v`. Then the integral over the real points `x` of
 `U(1)` of `⟨v, ω(x, 1) v⟩` times the Petersson product `⟨1, 1⟩` on `W` is the hook number times the
 volume of the adelic quotient `[U(1)]`, the total mass of `quotMeasure` of `stdSpace E Unit`. -/
-lemma LValueData.integral_fockInner_realPairWeil [WeilData E] :
+lemma LValueData.integral_fockInner_realPairWeil :
     ∫ x : GInf E X.descentPair.signs,
         fockInner (polyVector (realSigns E (homSigns 1 1))
             (X.descentPair.fockPoly (highestVector X.descentPair.columnCount X.descentPair.paramV)))

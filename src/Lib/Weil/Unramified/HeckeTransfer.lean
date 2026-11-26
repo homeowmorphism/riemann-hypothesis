@@ -183,8 +183,7 @@ private lemma sum_heckePolyCoeff_mul_ite_integral_eq {ι₁ ι₂ : Type} [Finty
   have h_integral (U : Submodule (ResField w) (ι₂ → ResField w)) :
       (∀ (i : ι₁) (j : ι₂), v ((y * (basicCosetRep U)⁻¹.val) i j) ≤ 1) ↔
         (∀ (i : ι₁) (j : ι₂), v (y i j) ≤ 1) ∧ U ≤ residueKer y := by
-    rw [v_mul_inv_le_one_iff (basicCosetRep_mem_and_residueKer_eq U).left,
-      (basicCosetRep_mem_and_residueKer_eq U).right]
+    rw [v_mul_inv_le_one_iff (basicCosetRep_mem_basicDoubleCoset U), residueKer_basicCosetRep U]
   have h_coeff (U : Submodule (ResField w) (ι₂ → ResField w)) :
       heckePolyCoeff X U * c ^ Module.finrank (ResField w) U = heckePolyCoeff (X * c) U := by
     simp only [heckePolyCoeff, ← neg_mul, mul_pow, mul_right_comm]
@@ -239,8 +238,8 @@ lemma pairWeil_transposeGL_basicCosetRep (ha : CharUnramifiedAt a.baseChange.fin
           then 1 else 0) f := by
   classical
   set γ : GL m (LocField w) := basicCosetRep U
-  obtain ⟨⟨-, -, hγ_det : v γ.det.val = WithZero.exp (-(Module.finrank (ResField w) U : ℤ))⟩, -⟩ :=
-    basicCosetRep_mem_and_residueKer_eq U
+  obtain ⟨-, -, hγ_det : v γ.det.val = WithZero.exp (-(Module.finrank (ResField w) U : ℤ))⟩ :=
+    basicCosetRep_mem_basicDoubleCoset U
   have h_det : v (transposeGL γ).det.val = WithZero.exp (-(Module.finrank (ResField w) U : ℤ)) := by
     simpa using hγ_det
   have h_local : (ofSplitPlace hw (transposeGL γ))⁻¹.val.val.map (evalAt w) = γ⁻¹.valᵀ := by
@@ -278,8 +277,8 @@ lemma pairWeil_basicCosetRep_inv (hb : CharUnramifiedAt b.baseChange.finPart w)
           then 1 else 0) f := by
   classical
   set γ : GL n (LocField w) := basicCosetRep U
-  obtain ⟨⟨-, -, hγ_det : v γ.det.val = WithZero.exp (-(Module.finrank (ResField w) U : ℤ))⟩, -⟩ :=
-    basicCosetRep_mem_and_residueKer_eq U
+  obtain ⟨-, -, hγ_det : v γ.det.val = WithZero.exp (-(Module.finrank (ResField w) U : ℤ))⟩ :=
+    basicCosetRep_mem_basicDoubleCoset U
   have h_local : (ofSplitPlace hw γ⁻¹).val.val.map (evalAt w) = γ⁻¹.val :=
     congrArg Units.val (atPlace_ofSplitPlace hw γ⁻¹)
   have h_integral (x : m × n → 𝔸f E) :
@@ -678,7 +677,7 @@ lemma SiegelWeil.hasHeckePolynomial_of_apply_eq_smul_det (hw : w.IsSplit) {s : n
       (ρ.val (detFin s (ofSplitPlace hw (transposeGL (basicCosetRep U)))) : ℂ) =
         c ^ Module.finrank (ResField w) U := by
     -- The determinant of the representative has order `dim U` at `w`.
-    obtain ⟨⟨-, -, h_det⟩, -⟩ := basicCosetRep_mem_and_residueKer_eq U
+    obtain ⟨-, -, h_det⟩ := basicCosetRep_mem_basicDoubleCoset U
     rw [detFin_of_mem_supportedOn, detOn_eq_prod, prod_singleton,
       ← AutChar.baseChange_apply_coe_toFun,
       hρ.apply_locFullIdele]

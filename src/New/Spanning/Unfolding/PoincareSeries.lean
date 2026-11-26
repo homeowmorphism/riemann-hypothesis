@@ -136,8 +136,7 @@ seal Finset.sum in
 group. -/
 theorem adelicEquiv_ratEquiv (γ : S.G E) : X.adelicEquiv (X.ratEquiv γ) = S.ratToAdelic γ := by
   -- The conjugations by the point of `V` in `X.adelicEquiv` and in `X.ratEquiv` cancel.
-  erw [V.toRatCoords.trans_apply, V.toRatCoords.apply_symm_apply]
-  rfl
+  exact X.adelicEquiv.apply_symm_apply (S.ratToAdelic γ)
 
 /-- Let the hermitian space V fit the filling data S, and let x_v be the component of the point
 `V.x` at an infinite place v. Then x_vᴴ J x_v is the diagonal matrix of the signs ε, where J is the
@@ -179,7 +178,7 @@ theorem realHomeomorph_mul (g' : New.G E ε) :
   let x : GL 𝔰.BesselIndex ℂ := (S.basisScaleGL v)⁻¹ * GeneralLinearGroup.map (evalInf v) V.x
   change x * p.matrix⁻¹ * (p.matrix * (g * g').1 v * p.matrix⁻¹) =
     S.adelicToInf (X.adelicEquiv g) v * (x * p.matrix⁻¹ * (p.matrix * g'.1 v * p.matrix⁻¹))
-  simp [x, adelicToInf, adelicEquiv, U.map, U.conj, Space.toRatCoords, mul_assoc, h_comp]
+  simp [x, adelicToInf, adelicEquiv, U.map, Space.toRatCoords, mul_assoc, h_comp]
 
 /-- The isomorphism from the standard finite adelic unitary group onto that of S in the lattice
 basis: conjugate by the finite point of V, change to the lattice basis, then conjugate by the
@@ -359,7 +358,7 @@ theorem exists_tsum_enorm_cutBessel_le :
       ∑' γ : T, S.classCutoff a.1 ((S.ratToInf γ)⁻¹ * y) *
         ∏ v, ‖(S.besselSystem v).besselFn .full (((S.ratToInf γ)⁻¹ * y) v)‖ₑ ≤ M :=
     (exists_tsum_classCutoff_mul_prod_enorm_le .univ a.1 1).imp fun _ hM y ↦
-      (ENNReal.le_tsum a.1).trans (hM y)
+      (le_tsum _ a.1).trans (hM y)
   refine ⟨M, fun g ↦ ?_⟩
   -- All terms vanish unless some `δ` satisfies the level condition `InLevel δ` at the finite
   -- places. Then write the terms as `γ⁻¹ * δ` and compare with `hM` at the point
@@ -382,7 +381,7 @@ theorem exists_tsum_enorm_cutBessel_le :
         refine (tsum_subtype_eq_of_support_subset fun γ hγ ↦ h_over γ (by_contra fun h ↦ ?_)).symm
         exact hγ (by simp only [h_zero _ h, eNorm_zero])
     _ ≤ M := by
-        refine le_trans (ENNReal.tsum_le_tsum fun γ ↦ ?_) (hM (S.ratToInf δ * X.realHomeomorph g.1))
+        refine le_trans (tsum_le_tsum fun γ ↦ ?_) (hM (S.ratToInf δ * X.realHomeomorph g.1))
         simpa only [map_mul S.ratToInf, map_inv, mul_assoc] using
           X.enorm_cutBessel_ratEquiv_mul_le a g (γ.val⁻¹ * δ)
 
@@ -439,7 +438,8 @@ omit [S.IsAdmissible] [HasPrimitiveRoot5040 E] in
 private theorem mul_poincareSeries_eq_sum (y : New.G E ε → ℂ) :
     y g * X.poincareSeries φ g =
       ∑ a : S.Classes × S.BesselCoord, φ a * (y g * ∑' γ : V.Γ, X.cutBessel a (γ * g)) := by
-  simp only [poincareSeries, Finset.mul_sum, mul_left_comm]
+  rw [poincareSeries, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun _ _ ↦ mul_left_comm ..
 
 /-- Unfolding, for admissible filling data and a form y on V of any type e (a bounded automorphic
 function): the integral over Γ∖G of y times the Poincaré series of φ is
@@ -511,7 +511,7 @@ theorem exists_levelSpace_tsum_cutBessel_eq :
     rw [← cosetEquiv.tsum_eq]
     exact (cosetEquiv.summable_iff.2 (.of_eNorm ((hM g).trans_lt ENNReal.coe_lt_top).ne)).tsum_prod
   have h_bound (g : New.G E ε) : ∑' q : S.G E ⧸ S.classUnipotent a.1, ‖F q g‖ₑ ≤ M := by
-    grw [← hM g, ← cosetEquiv.tsum_eq, ENNReal.tsum_prod', ← eNorm_tsum_le_tsum_eNorm]
+    grw [← hM g, ← cosetEquiv.tsum_eq, tsum_prod', ← eNorm_tsum_le_tsum_eNorm]
   have h_fix (q : S.G E ⧸ S.classUnipotent a.1) (g : New.G E ε) :
       realConv (typeKernel l ε) (F q) g = F q g := by
     simpa [F, cosetEquiv, mul_assoc] using
@@ -704,7 +704,7 @@ theorem amplitudeSum_apply_eq_integral_tsum {S : Filling E 𝔰} [S.IsAdmissible
       ‖(S.classCutoff c y * S.classCutoff c' ((S.ratToInf γ)⁻¹ * y)).toReal •
         S.besselKernel .full γ y‖ₑ < ⊤ := by
     grw [enorm_toReal_smul_le]
-    exact (ENNReal.le_tsum c').trans_lt (tsum_amplitudeMajorant_lt_top T c s)
+    exact (le_tsum _ c').trans_lt (tsum_amplitudeMajorant_lt_top T c s)
   simpa only [amplitudeSum, amplitude, PiLp.smul_apply] using
     tsum_integral_apply (by fun_prop) h_fin i
 
@@ -757,9 +757,10 @@ theorem petersson_poincare {S : Filling E 𝔰} {V : Space E 𝔰.BesselIndex ε
         rw [X.coe_poincareMap]
         simp [poincareSeries, ← ((Equiv.inv (S.G E)).trans X.ratEquiv.toEquiv).tsum_eq]
       _ = _ := by
-        rw [← tsum_subtype_eq_of_support_subset (s := Set.univ ∩ S.termsOver c s c')]
-        · exact tsum_congr fun γ ↦ by rw [h_term, ite_eq_left γ.property.2]
-        · exact fun γ hγ ↦ ⟨trivial, by_contra fun h ↦ hγ ((h_term γ).trans (ite_eq_right h))⟩
+        rw [_root_.tsum_subtype (Set.univ ∩ S.termsOver c s c') (fun γ : S.G E ↦
+          (S.classCutoff c' ((S.ratToInf γ)⁻¹ * X.realHomeomorph x)).toReal •
+            S.besselFn .full ((S.ratToInf γ)⁻¹ * X.realHomeomorph x) i')]
+        simp only [h_term, Set.univ_inter, Set.indicator]
   calc
     _ = ∫ g : New.G E ε, star (z g) * X.poincareSeries (.single (c, i) 1) g ∂V.Γ.quotMeasure := by
       rw [← X.coe_poincareMap]

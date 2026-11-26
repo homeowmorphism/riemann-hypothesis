@@ -6,6 +6,7 @@ public import Lib.Shimura.TraceFormula.DefiniteTrace
 public import Lib.Shimura.TraceFormula.MarkedDefiniteSums
 public import Lib.Shimura.TraceFormula.TestFunction
 public import Lib.Shimura.Transfer.Lefschetz
+import TauCeti.LinearAlgebra.Trace.Nilpotent
 
 /-!
 # Coefficient systems from weights and the degrees where Hecke eigensystems occur
@@ -48,22 +49,6 @@ topological trace formula (2003), and Shimura, On the trace formula for Hecke op
 
 open NumberField Matrix Polynomial Fintype Finset IsAlgClosed LinearMap Submodule New.QuadField Fin
 
-/-- An endomorphism of a finite-dimensional complex vector space all of whose positive powers have
-trace zero is nilpotent. -/
-lemma New.Variety.isNilpotent_of_trace_pow_succ_eq_zero {V : Type} [AddCommGroup V] [Module ℂ V]
-    [Module.Finite ℂ V] {f : Module.End ℂ V} (hf : ∀ k : ℕ, (f ^ (k + 1)).trace ℂ V = 0) :
-    IsNilpotent f := by
-  -- The powers of `f` have the traces of the powers of zero, so the characteristic polynomials
-  -- agree.
-  let b : Module.Basis (Module.Free.ChooseBasisIndex ℂ V) ℂ V := Module.Free.chooseBasis ℂ V
-  have h_trace (k : ℕ) : (toMatrix b b f ^ k).trace =
-      (toMatrix b b 0 ^ k).trace + ∑ e ∈ (∅ : Finset ℂ), e ^ k := by
-    rw [toMatrix_pow, toMatrix_pow, ← trace_eq_matrix_trace, ← trace_eq_matrix_trace]
-    cases k <;> simp [hf]
-  rw [isNilpotent_iff_charpoly, ← charpoly_toMatrix f b,
-    charpoly_eq_mul_of_trace_pow_add _ ∅ _ h_trace, charpoly_toMatrix, LinearMap.charpoly_zero,
-    Finset.prod_empty, mul_one]
-
 /-- For `a` odd, `rootCoeffEval` sends the variable `X 0` to minus the product of the `a` roots. -/
 lemma New.Variety.rootCoeffEval_X_zero_of_odd {a : ℕ} [NeZero a] (ha : Odd a) {R : Type}
     [CommRing R] (r : Fin a → R) :
@@ -84,32 +69,19 @@ lemma New.Variety.prod_map_tauHecke_mem_spanOn {E : Type} [Field E] [NumberField
   induction L with
   | nil => exact subset_span ⟨1, Subgroup.one_mem _, by simp [MonoidAlgebra.one_def]⟩
   | cons s L ih =>
-    obtain ⟨⟨v, hv_safe⟩, j⟩ := s
+    obtain ⟨⟨v, -, h_notMem, h_notMem_conj⟩, j⟩ := s
     refine spanOn.mul heckeSum_mem_spanOn ih ?_
     rintro _ ⟨U, rfl⟩ g
-    have h_GU : invHeckeIsogeny (v : SplitFinPlace E) U ∈ GU E (Fin a) :=
-      And.left (invHeckeIsogeny_mem_GUPlus _ U)
-    refine Subgroup.mul_mem _ ⟨h_GU, ?_⟩
-    -- Both factors of `invHeckeIsogeny` are trivial at `w₁`, because `w₁` divides `𝔑`, whereas a
-    -- safe place and the places over the conjugate of the place below it do not.
-    -- (`h_notMem` says that `𝔑 ∉ v`, and `h_notMem_conj` that `𝔑` lies in no place over the
-    -- conjugate of the place below `v`.)
-    obtain ⟨-, h_notMem, h_notMem_conj⟩ := hv_safe
+    refine Subgroup.mul_mem _ ⟨(invHeckeIsogeny_mem_GUPlus _ U).1, ?_⟩
+    -- Both factors of `invHeckeIsogeny` are trivial at `w₁` since `w₁ ∣ 𝔑` and `v` is safe.
     have h_below_ne : (w₁ : FinPlace E).below (QuadField d₀) ≠
-        star ((v : FinPlace E).below (QuadField d₀)) :=
-      fun h_below ↦ h_notMem_conj _ h_below hw₁
-    have h_ne : (w₁ : FinPlace E) ≠ (v : FinPlace E) :=
-      fun h_eq ↦ h_notMem (by rwa [← h_eq])
-    have h_star_ne : star (w₁ : FinPlace E) ≠ (v : FinPlace E) :=
-      fun h_eq ↦ h_below_ne (by rw [← h_eq, below_star, star_star])
-    suffices h_triv :
-        (invHeckeIsogeny (v : SplitFinPlace E) U).map (evalAt (w₁ : FinPlace E)) = 1 by
-      simp [dualComponent, h_triv]
-    rw [invHeckeIsogeny, map_mul, evalAt_conjAtSplit_of_ne (hu := h_ne) (hu' := h_star_ne),
-      mul_one]
-    -- `uniformizerNorm v` is a norm of a local idele at `v`, so the central scalar is trivial
-    -- at `w₁`.
-    rw [uniformizerNorm, ← map_pow, ← map_inv, ← map_pow, ← map_inv]
+        star ((v : FinPlace E).below (QuadField d₀)) := fun h ↦ h_notMem_conj _ h hw₁
+    suffices (invHeckeIsogeny (v : SplitFinPlace E) U).map (evalAt (w₁ : FinPlace E)) = 1 by
+      simp [dualComponent, this]
+    rw [invHeckeIsogeny, map_mul,
+      evalAt_conjAtSplit_of_ne (hu := fun h ↦ h_notMem (by rwa [← h]))
+        (hu' := fun h ↦ h_below_ne (by rw [← h, below_star, star_star])),
+      mul_one, uniformizerNorm, ← map_pow, ← map_inv, ← map_pow, ← map_inv]
     exact evalAt_centralScalar_of_ne h_below_ne _
 
 /-- A word `L` in the Hecke operators `tauHecke` at safe places acts on a common eigenvector `φ`
@@ -342,7 +314,8 @@ lemma New.Variety.occursInWeight_of_isTestEigenform {E : Type} [Field E] [CMBase
     exists_test_function (Submodule.mem_inf.mp hφ).right h_test h_supp h_fix
   have h_finite_forms : Module.Finite ℂ (definiteForms 𝔑 ξ) := finite_definiteForms ξ hN
   have h_nilpotent : IsNilpotent (definiteForms.rep 𝔑 ξ (b * p)) := by
-    refine isNilpotent_of_trace_pow_succ_eq_zero fun k ↦ ?_
+    refine LinearMap.isNilpotent_iff_forall_trace_pow_eq_zero.2 fun k hk ↦ ?_
+    obtain ⟨k, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hk.ne'
     obtain ⟨-, h_reg, h_type⟩ := hb k
     rw [← map_pow]
     refine trace_definiteForms_rep_eq_zero_of_isNullHecke ha h_char hq hq_conj hq_other hN h_reg
