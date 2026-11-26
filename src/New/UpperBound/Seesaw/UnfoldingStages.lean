@@ -822,7 +822,6 @@ lemma exists_unfoldStageOn_even_eq_sourceFn (t : (WeylIndex (D.X 0) D.columnCoun
 
 -- Without this, comparing the index types of neighbouring stages unfolds `Finset.univ`.
 seal Finset.univ in
-set_option synthInstance.maxSize 512 in
 /-- Let `R` be data for the two lifts `Y_{2i} → Y_{2i+1} → Y_{2i+2}`, the last space with a grading
 `Y` of definite part `X`. Suppose that `D.doubleLiftEvalY i`, the linear map that turns finite data
 for the spaces `Y_k` into finite data for their definite parts `X_k`, is the map `R.finEval` of `R`.

@@ -358,8 +358,6 @@ section IntegrationOverLine
 open CategoryTheory Fin TotalH Functor.Elements Finsupp
 open Function hiding comp comp_id id_comp
 
-set_option backward.isDefEq.respectTransparency false
-
 variable {C : Type 1}
   {C' D : Type _} [Category C] [Category C'] [Category D] {ℓ : ℕ}
   {A : Type} [CommRing A] [InvertsPrime A ℓ]
