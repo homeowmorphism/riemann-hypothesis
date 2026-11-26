@@ -1,6 +1,8 @@
-import New.Spanning.MainTerm.Frequencies
-import New.Spanning.RemainingTerms.Box
-import New.Spanning.Unfolding.BesselLevelStructure
+module
+
+public import New.Spanning.MainTerm.Frequencies
+public import New.Spanning.RemainingTerms.Box
+public import New.Spanning.Unfolding.BesselLevelStructure
 
 /-!
 # One-sided Poisson summation, sums over frequencies, and the sieve over all places
@@ -54,6 +56,8 @@ decomposition of GL(3) Kloosterman sums and the spectral large sieve, 2015; Desh
 Kloosterman sums and Fourier coefficients of cusp forms, 1982.
 -/
 
+@[expose] public section
+
 namespace New.Filling
 
 open NumberField ENNReal Finset Fintype MeasureTheory Measure Real AddSubgroup Matrix ComplexOrder
@@ -86,7 +90,7 @@ lemma charOnPlaces_evalPlaces {x : 𝔸f E} (hx : x ∈ integralOff T) :
   exact S.selfDualChar_eq_one_of_mem _ ((sub_adeleOfLocal_mem_iff T).2 hx)
 
 lemma continuous_charOnPlaces : Continuous (S.charOnPlaces T) :=
-  continuous_ψf.subtype_val.comp ((continuous_adeleOfLocal T).const_mul _)
+  continuous_ψf.subtypeVal.comp ((continuous_adeleOfLocal T).const_mul _)
 
 /-- The character of the product of the infinite places and the completions at `T`: the product of
 the characters `wave c = exp (c - conj c)` at the infinite places and of `S.charOnPlaces T`. -/
@@ -128,7 +132,7 @@ lemma absNorm_denominator_le {y : E} (hy : y ∈ ratIntegralOff T) :
     rintro _ ⟨a, rfl⟩
     exact ((mem_Ô_iff T).1 (h_integral a)).left
   calc
-    _ = (denominator y).toAddSubgroup.index := rfl
+    _ = (denominator y).toAddSubgroup.index := Ideal.absNorm_eq_natCard _
     _ = D.relIndex f.range := by rw [h_comap, index_comap]
     _ ≤ _ := relIndex_le_of_le_right h_range (denomIndex_ne_zero T _)
 
@@ -183,7 +187,7 @@ theorem sum_frequencies_le (B : ℝ) (k : ℕ) (X : Finset E) (c : InfinitePlace
       ∏ v : InfinitePlace E, |x v| ^ k * (S.b * B ^ 2) ^ 3 := by
   -- The inverse cubes of the heights have sum at most `64 * 38 * exp 4` per infinite place.
   have h_const : 64 * 38 * Real.exp 4 ≤ S.b ^ 3 := by
-    have h_exp : Real.exp 4 = Real.exp 1 ^ 4 := by simp [← Real.exp_nat_mul]
+    have h_exp : Real.exp 4 = Real.exp 1 ^ 4 := by simp [← Real.exp_natCast_mul]
     grw [h_exp, Real.exp_one_lt_three.le, ← S.thousand_le_b]
     norm_num
   calc

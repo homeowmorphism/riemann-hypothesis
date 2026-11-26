@@ -1,4 +1,6 @@
-import Lib.Base
+module
+
+public import Lib.Base
 
 /-!
 # Line bundles on schemes via ring-valued points: descent and the Picard group
@@ -31,6 +33,8 @@ defines the Picard group with its pull-back.
 These are standard facts on line bundles and faithfully flat descent, in the language of ring-valued
 points.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -196,13 +200,6 @@ def H0 : Submodule R (ι → PointFn X) where
     -- at a point `t` a scalar acts by multiplication with its image in the ring of `t`
     simp [IsSection, PointFn.IsRegularOn, HSMul.hSMul, SMul.smul]
     grind
-
-variable {L R} in
-lemma mem_H0 {s : ι → PointFn X} :
-    s ∈ L.H0 R ↔
-      L.IsSection s ∧
-      ∀ (i : ι) (A : CommRingCat) (t : Spec A ⟶ X), ¬LandsIn t (L.opens i) → s i A t = 0 :=
-  Iff.rfl
 
 end LineBundle
 

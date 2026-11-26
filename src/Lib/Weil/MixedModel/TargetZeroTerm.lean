@@ -1,5 +1,7 @@
-import Lib.ClassField.HeckeCharacter.TameModulus
-import Lib.SiegelWeil.Tower.RealConeIntegral
+module
+
+public import Lib.ClassField.HeckeCharacter.TameModulus
+public import Lib.SiegelWeil.Tower.RealConeIntegral
 
 /-!
 # Zero terms of the mixed models of the Weil representation at the real places
@@ -36,6 +38,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.MixedModel.ZeroTerm` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -235,11 +239,11 @@ lemma realSlice_realPairWeil [IsBaseAdapted A] (γ : InfinitePlace E → ℤ) (h
   -- `0`, gives the case `γ = 0`; other weights differ by powers of `det h` on both sides.
   let x₀ : Matrix r' Unit (𝔸 E) := x.map fun a ↦ (a.1, 0)
   let y₀ : Matrix r' Unit (𝔸 E) := G.adeleMatrix ((h, 1) : G E t')⁻¹ * x₀
-  have hy₀ (i : r') (j : Unit) : (y₀ i j).2 = 0 := by simp [y₀, x₀, mul_apply, Prod.snd_sum]
+  have hy₀ (i : r') (j : Unit) : (y₀ i j).2 = 0 := by simp [y₀, x₀, Matrix.mul_apply, Prod.snd_sum]
   -- `realSlice` reads only the real parts of the entries of its point
   have h_real : realSlice A V' x = realSlice A V' x₀ := rfl
   have h_slice : realSlice A V' (G.adeleMatrix ((h, 1) : G E t')⁻¹ * x) = realSlice A V' y₀ := by
-    simp [realSlice, y₀, x₀, matrixToVec, mul_apply, Prod.fst_sum]
+    simp [realSlice, y₀, x₀, matrixToVec, Matrix.mul_apply, Prod.fst_sum]
   have h_one : realSlice A V' x₀ (realPairWeil 1 0 (1, h) v) =
       realPairWeil 0 0 (1, h) (realSlice A V' y₀ v) := by
     refine eq_of_integrated_zeroTerm_eq (isAdapted_homSource A V') fun f ↦ ?_
@@ -276,8 +280,8 @@ lemma exists_real_block_of_actsOnFrame {g : GInf E t'} {m : Matrix Unit Unit (�
     have h_coord : X.iCoord * X.iAdelic = 1 := by simp [X.coord_mul_frame]
     refine Gf.val_ext _ _ (Units.ext (Matrix.ext fun i j ↦ ?_))
     have h_entry : (G.adeleMatrix ((h, k) : G E t) i j).2 = ((X.iCoord * X.iAdelic) i j).2 := by
-      simp [h_block, mul_apply, Prod.snd_sum, G.adeleMatrix_snd, one_apply]
-    simpa [h_coord, G.adeleMatrix_snd, Gf.coe_one, one_apply, apply_ite Prod.snd] using h_entry
+      simp [h_block, Matrix.mul_apply, Prod.snd_sum, G.adeleMatrix_snd, Matrix.one_apply]
+    simpa [h_coord, G.adeleMatrix_snd, Gf.coe_one, Matrix.one_apply, apply_ite Prod.snd] using h_entry
   exact ⟨h, h_block.symm⟩
 
 /-- Let `card n` be even, and let the real point `g` of `U(V')` multiply the vector `lineVector X w`
@@ -300,9 +304,9 @@ lemma exists_realTargetZeroTerm_realPairWeil [IsBaseAdapted X] (hn : 2 ∣ card 
   let m : GL Unit (𝔸 E) := GeneralLinearGroup.scalar Unit (realIdele a)
   have h_frame : X.ActsOnFrame (g, 1) m.val := by
     refine Matrix.ext fun i j ↦ Prod.ext (funext fun w ↦ ?_) ?_
-    · simpa [m, mul_apply, Prod.fst_sum, G.adeleMatrix_fst, mulVec, dotProduct, lineVector,
+    · simpa [m, Matrix.mul_apply, Prod.fst_sum, G.adeleMatrix_fst, mulVec, dotProduct, lineVector,
         mul_comm] using congrFun (hg w) i
-    · simp [m, mul_apply, Prod.snd_sum, G.adeleMatrix_snd, one_apply]
+    · simp [m, Matrix.mul_apply, Prod.snd_sum, G.adeleMatrix_snd, Matrix.one_apply]
   obtain ⟨h, h_block⟩ : ∃ h : GInf E t,
       X.iCoord * (G.adeleMatrix ((g, 1) : G E t') * X.iAdelic) = G.adeleMatrix ((h, 1) : G E t) :=
     exists_real_block_of_actsOnFrame X h_frame
@@ -312,7 +316,6 @@ lemma exists_realTargetZeroTerm_realPairWeil [IsBaseAdapted X] (hn : 2 ∣ card 
     have h_adelic : G.det ((g, 1) : G E t') = divStar m.det * G.det ((h, 1) : G E t) :=
       X.det_eq_divStar_mul (g, 1) (h, 1) m h_frame h_block
     have h_div : (divStar m.det : 𝔸 E).1 w = u w ^ (2 : ℤ) := by
-      have h_inv : a⁻¹.val w = (a.val w)⁻¹ := eq_inv_of_mul_eq_one_left (congrFun a.inv_mul w)
       have h_quotient : (divStar m.det : 𝔸 E).1 w = a.val w / starRingEnd ℂ (a.val w) := by
         simp [coe_divStar, m, div_eq_mul_inv, ← map_inv]
       rw [h_quotient, zpow_two, div_mul_div_comm, ← sq (‖a.val w‖ : ℂ), ← Complex.mul_conj',

@@ -1,6 +1,8 @@
-import Lib.GaloisRep.TaylorWiles
-import New.Congruences.GaloisRepresentations.RowsAndColumnsFromLabels
-import New.OneLift.FalseLifts.BottomOfTower
+module
+
+public import Lib.GaloisRep.TaylorWiles
+public import New.Congruences.GaloisRepresentations.RowsAndColumnsFromLabels
+public import New.OneLift.FalseLifts.BottomOfTower
 
 /-!
 # Base data whose forms contain those with given labels in a lift setting
@@ -18,10 +20,6 @@ labels `c`.
   of the idempotent and whose eigensystems have normalised representations that are representations
   of a type with a quadratic relation on inertia, when the modulus of `ϑ` is auxiliary; also,
   `New.Data.chosenGroupOrder` times the idempotent keeps integral forms.
-* `New.Selmer.normalisedJumps_eq_range_add_map`: the Hodge–Tate jumps of the normalised
-  representations are, when the rank of the larger space is even, `0, …, t - 1` and the
-  `(t - 1) / 2 ∓ (λ_c + κ')`, where `t` is the difference of the ranks, `λ` the parameter on the
-  smaller space and `-κ'` the weight of the character.
 
 Notions from other files:
 * `New.levelSpace`: the vectors `v` of a representation `π` with `π k v = χ k • v` for all `k` in
@@ -49,6 +47,8 @@ Notions from other files:
   twist of a representation by `normalizingAvatar O`; `ϑ.invAvatar`: the `ℓ`-adic avatar of `ϑ⁻¹`
   over `D.E`.
 -/
+
+@[expose] public section
 
 namespace New.Selmer
 
@@ -83,23 +83,9 @@ theorem hasParahoricType_chosenGLRep {S : Submodule ℂ (Gf D.E n → WeylIndex 
   refine ⟨by simp, fun k g h_parab h_block ↦ ?_⟩
   -- Let `c` be `k` placed at `i`: its reductions are `reduceGL k` at `i` and `1` elsewhere.
   let c : stdLevel D.E n := ⟨ofSplitPlace hw k.val, (ofSplitPlace_mem_stdLevel hw k.val).2 k.prop⟩
-  obtain ⟨t, ht⟩ : ∃ t : GL n (LocInt (O.chosenPlace i)),
-      GeneralLinearGroup.map (LocInt (O.chosenPlace i)).subtype t = k.val := k.2
-  have h_red_same : stdLevel.reduceAt (O.chosenPlace i) c = reduceGL k := by
-    have h1 : stdLevel.reduceAt (O.chosenPlace i) c =
-        GeneralLinearGroup.map (IsLocalRing.residue (LocInt (O.chosenPlace i))) t :=
-      stdLevel.reduceAt_eq_of_atPlace ((atPlace_ofSplitPlace hw k.val).trans ht.symm)
-    have h2 : reduceGL k =
-        GeneralLinearGroup.map (IsLocalRing.residue (LocInt (O.chosenPlace i))) t := by
-      have hk : k = ⟨GeneralLinearGroup.map (LocInt (O.chosenPlace i)).subtype t, t, rfl⟩ :=
-        Subtype.ext ht.symm
-      rw [hk]
-      rfl
-    exact h1.trans h2.symm
-  have h_red_ne (j : O.ChosenIndex ⊕ O.TwistIndex) (hj : j ≠ .inl i) :
-      stdLevel.reduceAt (O.placeAt j) c = 1 :=
-    stdLevel.reduceAt_eq_one_of_atPlace
-      (atPlace_ofSplitPlace_of_ne hw k.val (O.apart.injective.ne hj) (O.apart.star_ne j (.inl i)))
+  obtain ⟨h_red_same, h_red_ne⟩ : stdLevel.reduceAt (O.chosenPlace i) c = reduceGL k ∧
+      ∀ j : O.ChosenIndex ⊕ O.TwistIndex, j ≠ .inl i → stdLevel.reduceAt (O.placeAt j) c = 1 :=
+    Function.eq_update_iff.mp (reduceFamily_ofSplitPlace (w := O.placeAt) (.inl i) k)
   -- These reductions are block triangular, with first block `g` at `i` and `1` elsewhere.
   let s₀ : ∀ j : O.ChosenIndex, GL r (ResField (O.chosenPlace j)) := Pi.mulSingle i g
   have hs₀_same : s₀ i = g :=
@@ -333,85 +319,6 @@ lemma isRepOfType_normalisedRep [Nonempty n] {ϑ : D.Twist}
     h_type_R.twist_avatar (.inv (μ := O.charW)) (-Fintype.card r) 0 h_rank h_lift (by simp)
 
 end
-
-/-- The pair `O` has hermitian spaces `W` and `V` with bases indexed by `r` and `n`.
-`normalisedJumps O` are the jumps of the weight `(O.columnCount, O.detExp)` of forms on `V`, shifted
-by minus the infinity type of the algebraic Hecke character whose `ℓ`-adic avatar is
-`normalizingAvatar O`. They are computed here from the parameter of that weight. Let `a p` be entry
-`p` of twice its Harish-Chandra parameter at the place of the complex embedding `σ` (`hcParameter`).
-Let `r₋ = Exchange.negCount O.signs` be the number of minus signs among the signs `O.signs` of the
-hermitian form of `W`. Let `t = O.rankDiff = card n - card r`. The jumps at `σ` are the
-`(t - 1 ∓ (a p - 2 r₋ + card r)) / 2` for `p < card n`. The upper sign is taken when `σ` is on the
-CM type (`cmSign σ = 1`), and the lower sign otherwise; the division is exact. -/
-lemma normalisedJumps_eq_map_hcParameter (O : DescentPair D.E r n) (σ : D.E →+* ℂ) :
-    normalisedJumps O σ = (Multiset.range (Fintype.card n)).map fun p : ℕ ↦
-        ((O.rankDiff : ℤ) - 1 - cmSign σ *
-          (hcParameter O.columnCount O.detExp (Fintype.card n) (NumberField.InfinitePlace.mk σ) p -
-            2 * Exchange.negCount O.signs + Fintype.card r)) / 2 := by
-  classical
-  have h_lt : Fintype.card r < Fintype.card n := O.rank_lt
-  set v : NumberField.InfinitePlace D.E := NumberField.InfinitePlace.mk σ with hv
-  -- The normalising character has exponent `card r - r₋` on the CM type and `r₋` off it.
-  have h_type :
-      ((AutChar.HasWeight.inv (μ := O.charW)).toAlgebraic (-Fintype.card r) 0).val.2.toAdd σ =
-        if σ = Φ v then (Fintype.card r : ℤ) - Exchange.negCount O.signs
-        else Exchange.negCount O.signs := by
-    simp only [AutChar.HasWeight.toAlgebraic, IsHeckeOfType.toAlgebraic, toAdd_ofAdd, Pi.neg_apply]
-    split_ifs <;> omega
-  rw [normalisedJumps, jumps, Multiset.map_map, h_type]
-  refine Multiset.map_congr rfl fun p _ ↦ ?_
-  -- Entry `p` of the parameter is `2 μ_p + card n - 1 - 2 p`, with `μ` the highest weight.
-  have h_param : hcParameter O.columnCount O.detExp (Fintype.card n) v p =
-      2 * (O.detExp v + (∑ h ∈ Finset.Ioo p (Fintype.card n), O.columnCount v h : ℕ)) +
-        Fintype.card n - 1 - 2 * p := by simp only [hcParameter, diagramWeight_apply]
-  simp only [Function.comp_apply, h_param, cmSign, DescentPair.rankDiff, apply_ite Units.val,
-    Units.val_neg, Units.val_one, ← hv]
-  split_ifs <;> omega
-
-/-- The Hodge–Tate jumps `normalisedJumps O` of the normalised representations, written out. The
-pair `O` has hermitian spaces `W` and `V` with bases indexed by `r` and `n`; suppose that `card n`,
-the rank of `V`, is even. Let `l = 2 λ` be the doubled parameter on `W` that fits `O`
-(`DescentPair.FitsParams`), let `-κ'` be the weight `O.weight` of the character of `O`, and let
-`t = O.rankDiff = card n - card r`. At a complex embedding `σ` with place `v` the jumps are
-`0, 1, …, t - 1` and the `(t - 1) / 2 ∓ (λ v c + κ' v)` over the indices `c : r`, with the upper
-sign on the CM type (`cmSign σ = 1`); the division in the statement is exact. -/
-theorem normalisedJumps_eq_range_add_map (O : DescentPair D.E r n) (h_even : Even (Fintype.card n))
-    {l : NumberField.InfinitePlace D.E → r → ℤ} (h_fits : O.FitsParams l) (σ : D.E →+* ℂ) :
-    normalisedJumps O σ = (Multiset.range O.rankDiff).map (fun b : ℕ ↦ (b : ℤ)) +
-        Finset.univ.val.map fun c : r ↦
-          ((O.rankDiff : ℤ) - 1 - cmSign σ * (l (NumberField.InfinitePlace.mk σ) c -
-            2 * O.weight (NumberField.InfinitePlace.mk σ))) / 2 := by
-  -- The jumps are distinct and both sides have `card n` members, so an inclusion suffices.
-  have h_lt : Fintype.card r < Fintype.card n := O.rank_lt
-  have h_nodup : (normalisedJumps O σ).Nodup :=
-    (Weight.nodup_jumps (O.columnCount, O.detExp) (Fintype.card n) σ).map (add_left_injective _)
-  refine Multiset.eq_of_le_of_card_le ((Multiset.le_iff_subset h_nodup).2 fun u hu ↦ ?_) ?_
-  · rw [normalisedJumps_eq_map_hcParameter] at hu
-    obtain ⟨p, hp, rfl⟩ := Multiset.mem_map.1 hu
-    set v : NumberField.InfinitePlace D.E := NumberField.InfinitePlace.mk σ
-    set s : ℤ := hcParameter O.columnCount O.detExp (Fintype.card n) v p -
-      2 * Exchange.negCount O.signs + Fintype.card r with hs
-    -- By the block rule, `s` is a shifted entry of `l` or a member of the doubled block `[t]`.
-    have h_rule : s ∈ Finset.univ.image
-          (shiftedEntry ((Fintype.card n / 2 : ℕ) + O.weight v) (Fintype.card n) (l v)) ∪
-        doubledBlock (Fintype.card n - Fintype.card r) := by
-      rw [← (h_fits.paramsCorrespond v).entries_of_le h_lt.le]
-      exact Finset.mem_image.2 ⟨(Fintype.equivFin n).symm ⟨p, Multiset.mem_range.1 hp⟩,
-        Finset.mem_univ _, by simp [shiftedEntry, DescentPair.paramV, hs]⟩
-    simp only [Multiset.mem_add, Multiset.mem_map, Multiset.mem_range]
-    obtain h_entry | h_block := Finset.mem_union.1 h_rule
-    · obtain ⟨c, -, hc⟩ := Finset.mem_image.1 h_entry
-      have h_shift : s = l v c - 2 * O.weight v := by grind [shiftedEntry]
-      exact .inr ⟨c, Finset.mem_univ_val c, by rw [h_shift]⟩
-    · -- The member `t - 1 - 2 b` of the block gives the jump `b`, or `t - 1 - b` off the CM type.
-      obtain ⟨b, hb, h_eq⟩ := Finset.mem_image.1 h_block
-      rw [Finset.mem_range] at hb
-      simp only [← h_eq, DescentPair.rankDiff]
-      obtain hσ | hσ := Int.units_eq_one_or (cmSign σ) <;>
-        simp only [hσ, Units.val_neg, Units.val_one]
-      · exact .inl ⟨b, hb, by omega⟩
-      · exact .inl ⟨_, Nat.sub_one_sub_lt hb, by omega⟩
-  · simp [normalisedJumps, jumps, DescentPair.rankDiff, h_lt.le]
 
 variable {O : DescentPair D.E r n} [DecidableEq n]
 

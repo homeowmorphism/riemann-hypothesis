@@ -1,7 +1,9 @@
-import Lib.General.LinearAlgebra.HermitianMatrices
-import Lib.General.Measure.HaarModulus
-import Lib.General.Measure.IntegralOperators
-import Lib.Weil.Construction.WeilOperators
+module
+
+public import Lib.General.LinearAlgebra.HermitianMatrices
+public import Lib.General.Measure.HaarModulus
+public import Lib.General.Measure.IntegralOperators
+public import Lib.Weil.Construction.WeilOperators
 
 /-!
 # The Fock model of the Weil representation of U(ε) at a real place
@@ -43,6 +45,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.Fock.OscillatorPair` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -365,7 +369,7 @@ lemma exists_norm_eval_le_exp (P : MvPolynomial ι ℂ) :
     _ ≤ ∑ d ∈ P.support, ‖P.coeff d‖ * Real.exp ‖l‖ ^ ∑ i, P.degreeOf i := by
       gcongr with d hd_support
       exact h_mono d hd_support
-    _ ≤ _ := by grw [← sum_mul, ← le_abs_self, Real.exp_nat_mul]
+    _ ≤ _ := by grw [← sum_mul, ← le_abs_self, Real.exp_natCast_mul]
 
 end New.Fock
 
@@ -471,7 +475,8 @@ lemma realMultiplier_mul_integral_eq_one {ε : ι → ℤˣ} (g h : USign ε) :
       ofReal 2⁻¹ • fromBlocks ((h : Matrix ι ι ℂ)ᴴ * signMatrix ε * (h : Matrix ι ι ℂ)) 0 0
           (-((k : Matrix ι ι ℂ)ᴴ * signMatrix ε * (k : Matrix ι ι ℂ))) =
         ofReal 2⁻¹ • fromBlocks (signMatrix ε) 0 0 (-signMatrix ε) := by
-    rw [mem_U.mp h.prop, mem_U.mp k.prop]
+    rw [← star_eq_conjTranspose, ← star_eq_conjTranspose, mem_unitaryGroupOf_iff.mp h.prop,
+      mem_unitaryGroupOf_iff.mp k.prop]
   have hA_factor :
       A = ((T h).fromBlocks (1 - posProj ε) 0 (T ↑k⁻¹ * (k : Matrix ι ι ℂ)))ᴴ *
           (posProj ε).fromBlocks (posProj ε - 1) 1 1 *
@@ -877,7 +882,7 @@ lemma blockMatrix_preserves_signMatrix :
       signMatrix fun p : T × ι ↦ ε p.2 := by
   -- Apply the ring homomorphism `blockMatrix` to the unitarity relations of the blocks.
   have h_blocks : (fun τ : T ↦ (u τ).val.valᴴ * signMatrix ε * (u τ).val.val) =
-      fun _ ↦ signMatrix ε := funext fun τ ↦ (u τ).prop
+      fun _ ↦ signMatrix ε := funext fun τ ↦ mem_unitaryGroupOf_iff.1 (u τ).prop
   simpa [blockMatrix, ← submatrix_mul_equiv (e₂ := .prodComm ..), -Equiv.coe_prodComm,
     signMatrix, comp_def] using congrArg blockMatrix h_blocks
 

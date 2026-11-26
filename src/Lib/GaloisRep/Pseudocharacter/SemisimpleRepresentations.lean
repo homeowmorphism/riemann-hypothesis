@@ -1,8 +1,11 @@
-import Lib.ClassField.Places.DecompositionCompletion
-import Lib.General.LinearAlgebra.Eigenvalues
-import Lib.General.LinearAlgebra.MatrixNormBounds
-import Lib.General.NumberTheory.CoefficientRings
-import Lib.PadicComparison.Descent.TestCategory
+module
+
+public import Lib.ClassField.Places.DecompositionCompletion
+public import Lib.General.LinearAlgebra.Eigenvalues
+public import Lib.General.LinearAlgebra.MatrixNormBounds
+public import Lib.General.NumberTheory.CoefficientRings
+public import Lib.PadicComparison.Descent.TestCategory
+public import TauCeti.LinearAlgebra.Trace.Idempotent
 
 /-!
 # Semisimple representations: conjugacy, continuity, cancellation and stable lattices
@@ -35,6 +38,8 @@ Notions from other files:
 
 Known; see `Lib.GaloisRep.Pseudocharacter.Pseudorepresentations` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -97,7 +102,8 @@ lemma exists_mul_mul_eq_of_rank_le {A : Matrix N N k} {A' : Matrix n n k} (h : A
   -- and a left inverse of `J` gives `U'`.
   let R : Submodule k (N → k) := range A.mulVecLin
   let R' : Submodule k (n → k) := range A'.mulVecLin
-  obtain ⟨J, J_inj⟩ : ∃ J : R' →ₗ[k] R, Function.Injective J := finrank_le_iff_exists_linearMap.1 h
+  obtain ⟨J, J_inj⟩ : ∃ J : R' →ₗ[k] R, Function.Injective J :=
+    finrank_le_iff_exists_linearMap.1 (by simpa only [R, R', finrank_range_mulVecLin] using h)
   obtain ⟨lift, h_lift⟩ : ∃ lift : R' →ₗ[k] N → k, A.mulVecLin.rangeRestrict ∘ₗ lift = J :=
     Module.projective_lifting_property _ J A.mulVecLin.surjective_rangeRestrict
   obtain ⟨L, hL⟩ : ∃ L : (N → k) →ₗ[k] R', L ∘ₗ R.subtype ∘ₗ J = .id :=
@@ -114,18 +120,12 @@ variable {p : Matrix n n k} (f : PiMatrix k d →ₐ[k] Matrix N N k)
   (f' : PiMatrix k d →ₐ[k] Matrix n n k) [Ring B] [Group H] [Algebra k B] [Module.Finite k B]
   (ρ : G →* B)
 
-lemma eq_zero_iff_trace_eq_zero_of_isIdempotentElem [CharZero k] [IsAlgClosed k]
-    (hp : IsIdempotentElem p) :
-    p = 0 ↔ p.trace = 0 := by
-  have h_rank : p.rank = 0 ↔ p = 0 := by
-    rw [Matrix.rank, finrank_eq_zero, range_eq_bot, ← toLin'_apply', toLin'.map_eq_zero_iff]
-  rw [trace_eq_rank_of_isIdempotentElem hp, Nat.cast_eq_zero, h_rank]
-
 /-- The trace of an idempotent matrix is its rank. In characteristic zero, the matrix is zero
 exactly when its trace is zero. -/
 lemma trace_of_idempotent [CharZero k] [IsAlgClosed k] (hp : IsIdempotentElem p) :
     p.trace = p.rank ∧ (p = 0 ↔ p.trace = 0) :=
-  ⟨trace_eq_rank_of_isIdempotentElem hp, eq_zero_iff_trace_eq_zero_of_isIdempotentElem hp⟩
+  ⟨trace_eq_rank_of_isIdempotentElem hp, fun h ↦ by simp [h],
+    Matrix.IsIdempotentElem.eq_zero_of_trace_eq_zero hp⟩
 
 attribute [local ext] ext_linearMap
 
@@ -156,7 +156,7 @@ lemma IsTraceNondeg.of_span_piMatrix [CharZero k] [IsAlgClosed k]
       LinearMap.ext_on_range s_span fun g ↦ by simp [hr, Matrix.trace_mul_comm _ (f' a), h_trace]
     simpa using LinearMap.congr_fun h_lin y
   have idem_zero : f' (c * a) = 0 :=
-    (eq_zero_iff_trace_eq_zero_of_isIdempotentElem (idem.map f')).2 (trace_zero c)
+    Matrix.IsIdempotentElem.eq_zero_of_trace_eq_zero (idem.map f') (trace_zero c)
   rw [← hb, map_mul, idem_zero, mul_zero]
 
 /-- Let `k` be an algebraically closed field of characteristic zero, and let `s : G →* PiMatrix k d`
@@ -606,7 +606,8 @@ lemma eventually_exists_isLatticeIn [TopologicalSpace G] [IsTopologicalGroup G] 
   choose D hD_count hD_dense using fun p : n × n ↦ (isCompact_range (hs_cont p)).isSeparable
   have h_gen (g : G) (p : n × n) : ∃ S : Finset (PadicAlgCl ℓ),
       ↑S ⊆ D p ∧ s g p.fst p.snd ∈ adjoin ℚ_[ℓ] (S : Set (PadicAlgCl ℓ)) := by
-    refine exists_finset_of_mem_adjoin ((fixedField_fixingSubgroup _).le fun σ ↦ ?_)
+    refine exists_finset_of_mem_adjoin
+      ((InfiniteGalois.fixedField_fixingSubgroup _).le fun σ ↦ ?_)
     -- `σ` fixes `D p`, hence its closure, which contains `s g p.fst p.snd`
     exact EqOn.closure (fun x hx ↦ σ.prop ⟨x, subset_adjoin ℚ_[ℓ] _ hx⟩) (by fun_prop) continuous_id
       (hD_dense p ⟨g, rfl⟩)
@@ -623,7 +624,7 @@ lemma eventually_exists_isLatticeIn [TopologicalSpace G] [IsTopologicalGroup G] 
   have hZ_closed (m : ∀ p, I p) : IsClosed (Z m) := isClosed_iInter fun p ↦
     -- `O (m p)` is compact, hence closed; `Z m` is an intersection of preimages of it
     .preimage (hs_cont p) <| by
-      simpa using (isCompact_range (X := O (m p)) continuous_subtype_val).isClosed
+      simpa using (isCompact_range (X := O (m p)) continuous_subtypeVal).isClosed
   have hZ_cover : ⋃ m, Z m = univ := by
     refine eq_univ_of_forall fun g ↦ ?_
     choose m hm hg using h_gen g
@@ -643,8 +644,8 @@ lemma eventually_exists_isLatticeIn [TopologicalSpace G] [IsTopologicalGroup G] 
   -- The entries of `s` as a representation with values in matrices over `O'`.
   let u : G →* Matrix n n O' :=
     { toFun := fun x ↦ of fun i j ↦ ⟨s x i j, h_mem x i j⟩
-      map_one' := by simp [← ext_iff, Subtype.ext_iff, one_apply, apply_ite]
-      map_mul' x y := by simp [← ext_iff, Subtype.ext_iff, mul_apply] }
+      map_one' := by simp [← ext_iff, Subtype.ext_iff, Matrix.one_apply, apply_ite]
+      map_mul' x y := by simp [← ext_iff, Subtype.ext_iff, Matrix.mul_apply] }
   -- `(P⁻¹)⁻¹ * r g * P⁻¹ = s g`, whose entries are those of `u g`
   exact ⟨u, P⁻¹, fun g ↦ by ext i j; simp [u, s]⟩
 

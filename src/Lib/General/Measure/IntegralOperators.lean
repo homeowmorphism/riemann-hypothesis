@@ -1,4 +1,6 @@
-import Lib.Adelic.QuotientMeasure.Basic
+module
+
+public import Lib.Adelic.QuotientMeasure.Basic
 
 /-!
 # Product measures, layer cake bounds, cocompact subgroups and L² bounds of integral operators
@@ -30,6 +32,8 @@ for `γ ∈ Γ`, and the following.
   passes to the product of finitely many such families, for σ-finite measures and measurable kernels
   that are integrable in the last variable.
 -/
+
+@[expose] public section
 
 /-! ## Regrouping, currying and flipping coordinates of product measures -/
 
@@ -267,7 +271,7 @@ lemma lintegral_pi_prod {ι : Type*} [Fintype ι] {X : ι → Type*} [∀ i : ι
 lemma enorm_toReal_smul_le (x : ENNReal) (v : V) : ‖x.toReal • v‖ₑ ≤ x * ‖v‖ₑ := by
   cases x with
   | top => simp
-  | coe r => simp [enorm_smul]
+  | coe r => simp [eNorm_smul]
 
 /-- Let `φ` be measurable with values in `[0, ∞]` and `F` almost everywhere strongly measurable.
 If `∫⁻ φ ‖F‖` is finite, then `φ • F` is integrable (`φ = ∞` is read as `0`). -/

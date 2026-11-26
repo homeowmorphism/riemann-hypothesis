@@ -1,5 +1,7 @@
-import Lib.Adelic.Adeles.LocalFactors
-import Lib.ClassField.Global.AlbertBrauerHasseNoether
+module
+
+public import Lib.Adelic.Adeles.LocalFactors
+public import Lib.ClassField.Global.AlbertBrauerHasseNoether
 
 /-!
 # Artin's reciprocity law and the sign law
@@ -71,6 +73,8 @@ Notions from other files:
 
 Known; see `Lib.ClassField.Global.AlbertBrauerHasseNoether` for sources.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -442,7 +446,7 @@ private noncomputable def reciprocityChars (K : Type) [Field K] [EmbeddedNumberF
 `a` prime to `l` has `a • n • χ g = 0`. -/
 private noncomputable def QZChar.coprimeOrderSubgroup (g : Γ) (n l : ℕ) : AddSubgroup (QZChar Γ) :=
   let primeToL : Submonoid ℕ :=
-    { carrier := l.Coprime, mul_mem' := .mul_right, one_mem' := l.gcd_one_right }
+    { carrier := {a | l.Coprime a}, mul_mem' := Nat.Coprime.mul_right, one_mem' := l.gcd_one_right }
   (Submodule.torsion' ℤ QZ primeToL).toAddSubgroup.comap
     (.mk' (fun χ : QZChar Γ ↦ n • χ.val g) (by simp))
 

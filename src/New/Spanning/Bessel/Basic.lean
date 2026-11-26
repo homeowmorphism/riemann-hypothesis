@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.Bessel.Basic
-import New.Spanning.MainTerm.SieveSystem
+module
+
+public import Lib.DiscreteSeries.Bessel.Basic
+public import New.Spanning.MainTerm.SieveSystem
 
 /-!
 # Bessel systems at a real place: length and norm bounds, lattice basis, discriminant
@@ -46,6 +48,8 @@ References on Bessel functions and kernels are in `New.Spanning.Bessel.FillingDa
 the decay of discrete series coefficients are in `New.Spanning.Bessel.CutTailBound`.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-!
@@ -84,7 +88,7 @@ lemma frameVector_mul_of_mem_besselFixer (hs : s ∈ besselFixer) :
       (s.val.val)⁻¹ i (𝔰.besselFrame a) = (1 : Matrix _ _ ℂ) i (𝔰.besselFrame a) := by
     simpa using (inv_mem hs : s⁻¹ ∈ besselFixer) i _ ⟨a, rfl⟩
   ext
-  simp [frameVector, mul_apply, h_fix, Matrix.one_apply]
+  simp [frameVector, Matrix.mul_apply, h_fix, Matrix.one_apply]
 
 /-- For `s` in the unipotent group `New.Shape.Form.besselU`, the frame at `y` is the frame at
 `s * y` times the matrix `frameMatrix s` of the action of `s` on the frame. -/
@@ -95,7 +99,7 @@ lemma frameVector_eq_sum (hs : s ∈ besselU) :
       (s * y)⁻¹.val.val.submatrix id 𝔰.besselFrame * frameMatrix s := by
     simpa using submatrix_mul_besselFrame hs (y⁻¹ * s⁻¹).val.val id
   ext i
-  simpa [frameVector, mul_apply, mul_comm] using congrFun₂ h_cols i a
+  simpa [frameVector, Matrix.mul_apply, mul_comm] using congrFun₂ h_cols i a
 
 /-- The vector `frameVector y a` = y⁻¹ f_a, where f_a is the `a`-th vector of the frame (e₁, …, e_ϱ,
 z), is not longer than the operator norm of `y`. -/
@@ -117,7 +121,7 @@ lemma norm_sum_le_mul_norm_sum_frameVector {ι : Type*} [Fintype ι] (e : ι →
       ‖(s * y).val.val‖ * ‖∑ a : ι, c a • frameVector y (e a)‖ := by
   -- The left side is an entry of `(s * y) *ᵥ ∑ c a • frameVector y (e a)`.
   grw [← l2_opNorm_mulVec, ← PiLp.norm_apply_le _ i]
-  simp [frameVector, mulVec_sum, mulVec_smul, ← mul_apply, mulVec_apply_eq_sum]
+  simp [frameVector, mulVec_sum, mulVec_smul, ← Matrix.mul_apply, mulVec_apply_eq_sum]
 
 lemma besselLength_le_norm_mul_add_one (hs : s ∈ besselS) :
     besselLength y ≤ ‖(s * y).val.val‖ + 1 :=
@@ -225,7 +229,8 @@ theorem norm_add_one_le_of_mem_frameBox (h_box : y ∈ frameBox M) (hM_one : 1 �
         (‖toLp 2 (A · 𝔰.z) + toLp 2 (A · 𝔰.z)‖ +
           ∑ a : Fin 𝔰.ϱ, ‖toLp 2 (A · (eStar a)) - toLp 2 (A · (.inl a))‖) ≤
         (4 * 𝔰.ϱ + 2) * M by
-      simpa [↓norm_rankOne, splitGram, middleGram, mul_apply, one_apply, ← Pi.sub_def, ← Pi.neg_def]
+      simpa [↓norm_rankOne, splitGram, middleGram, Matrix.mul_apply, Matrix.one_apply, ← Pi.sub_def,
+        ← Pi.neg_def]
     grw [norm_sub_le, norm_sub_le, norm_add_le, h_frame, h_frame, h_dual, h_dual, h_last]
     simp
     linarith
@@ -257,7 +262,8 @@ theorem realFrameGram_eq_inner (γ y : 𝔰.G₁) (a b : Fin (𝔰.ϱ + 1)) :
   -- `y⁻¹` preserves the form, so `J γ = (y⁻¹)ᴴ J (y⁻¹ γ)`; read off the entry `(a, b)`.
   have h_entry : realFrameGram γ a b = (y⁻¹.val.valᴴ * (𝔰.J₁ * (y⁻¹.val.val * γ.val.val)))
       (𝔰.besselFrame a) (𝔰.besselFrame b) := by
-    simp only [← mul_assoc, mem_U.1 y⁻¹.property]
+    simp only [← mul_assoc,
+        show y⁻¹.val.valᴴ * _ * _ = _ from mem_unitaryGroupOf_iff.1 y⁻¹.property]
     rfl
   rw [h_entry]
   -- both sides are the same dot product of the two frame vectors
@@ -402,7 +408,7 @@ lemma one_le_norm_mul_norm_orthoFrame : 1 ≤ ‖y.val.val‖ * ‖orthoFrame y 
   have h_expand : orthoFrame y a = ∑ b, frameMatrix u⁻¹ b a • frameVector y b := by
     rw [← h_frame, frameVector_eq_sum a (inv_mem hu), inv_mul_cancel_left]
   have h_entry : ‖frameMatrix u⁻¹ a a‖ ≤ ‖y.val.val‖ * ‖orthoFrame y a‖ := by
-    simpa [← h_expand, one_apply, besselFrame_injective.eq_iff] using
+    simpa [← h_expand, Matrix.one_apply, besselFrame_injective.eq_iff] using
       norm_sum_le_mul_norm_sum_frameVector (s := 1) (y := y) id (frameMatrix u⁻¹ · a)
         (𝔰.besselFrame a)
   simpa [frameMatrix_unitriangular (inv_mem hu) a a le_rfl] using h_entry
@@ -448,8 +454,8 @@ theorem gramSchmidtMatrix_besselS_mul (y : 𝔰.G₁) {s : 𝔰.G₁} (hs : s �
       ∑ a : Fin (𝔰.ϱ + 1), gramSchmidtMatrix y a b • orthoFrame y a := by
     rw [← frameVector_eq_sum_orthoFrame, ← h_fix, frameVector_eq_sum b hu, ← mul_assoc, hC,
       frameMatrix_mul_besselH u (toBesselH_mem k)]
-    simp only [frameVector_eq_sum_orthoFrame, h_orth, mul_apply, sum_smul, smul_sum, smul_smul,
-      mul_comm]
+    simp only [frameVector_eq_sum_orthoFrame, h_orth, Matrix.mul_apply, sum_smul, smul_sum,
+      smul_smul, mul_comm]
     exact sum_comm
   ext a b
   exact Fintype.linearIndependent_iffₛ.1 (linearIndependent_orthoFrame y) (C · b)
@@ -766,13 +772,14 @@ lemma gram_framePair (N : R) (hN : star N = N) (γ : (𝔰.middleGram N).G) :
       simp [Shape.besselFrame, Shape.Form.splitGram, Shape.middleGram,
         (castSucc_ne_last _).symm]
   have h_herm : (𝔰.middleGram N).splitGramᴴ = (𝔰.middleGram N).splitGram := by
-    simp [Shape.Form.splitGram, Shape.middleGram, ← Matrix.ext_iff, hN, one_apply, apply_ite star,
-      eq_comm]
+    simp [Shape.Form.splitGram, Shape.middleGram, ← Matrix.ext_iff, hN, Matrix.one_apply,
+      apply_ite star, eq_comm]
   have h_block (x y : Matrix 𝔰.BesselIndex 𝔰.BesselIndex R) :
       (frameImage x)ᴴ * (𝔰.middleGram N).splitGram * frameImage y =
         (xᴴ * (𝔰.middleGram N).splitGram * y).submatrix 𝔰.besselFrame 𝔰.besselFrame := rfl
   rw [conjTranspose_fromCols_eq_fromRows_conjTranspose, fromRows_mul, fromRows_mul_fromCols,
-    h_block, h_block, h_block, h_block, mem_U.1 γ.property]
+    h_block, h_block, h_block, h_block,
+    show γ.val.valᴴ * _ * _ = _ from mem_unitaryGroupOf_iff.1 γ.property]
   simp [h_frame, h_herm, Shape.Form.frameGram]
 
 /-- Let `N` be self-adjoint in the commutative star ring `R`, let h be the form of ϱ hyperbolic

@@ -1,4 +1,6 @@
-import Lib.Adelic.Witt.WittTheorem
+module
+
+public import Lib.Adelic.Witt.WittTheorem
 
 /-!
 # Floor groups, Weyl elements and the Bessel subgroup of a split unitary group
@@ -45,6 +47,8 @@ unfolding, for which it supplies the groups. Sources: A. Borel, Introduction to 
 Proc. Sympos. Pure Math. 9 (1966) (Poincaré series); V. Platonov, A. Rapinchuk, Algebraic groups and
 number theory (1994) §7.1; for the set-up, W. T. Gan, B. Gross, D. Prasad, Astérisque 346 (2012).
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -145,15 +149,16 @@ def weylOn (P : ℕ → Prop) (p : ℕ → A) : T.G :=
         inv := M (star p)
         val_inv := by
           ext
-          simp [M, mul_apply, Matrix.one_apply]
+          simp [M, Matrix.mul_apply, Matrix.one_apply]
           grind [oppositeIndex_involutive_and_floorOf_level, inverse_mul_cancel]
         inv_val := by
           ext
-          simp [M, mul_apply, Matrix.one_apply]
+          simp [M, Matrix.mul_apply, Matrix.one_apply]
           grind [oppositeIndex_involutive_and_floorOf_level, inverse_mul_cancel] }
     property := by
+      rw [mem_unitaryGroupOf_iff]
       ext
-      simp [M, mul_apply, apply_ite star, inverse_star]
+      simp [M, Matrix.mul_apply, apply_ite star, inverse_star]
       grind [splitGram_eq_ite_oppositeIndex, oppositeIndex_involutive_and_floorOf_level,
         inverse_mul_cancel] }
 
@@ -167,7 +172,7 @@ def floorWeyl (c : A) : T.G := weylOn (· = l) fun _ ↦ c
 
 /-- The inverse, in the sense of `Ring.inverse`, of the conjugate of a unit `u` is the conjugate of
 `u⁻¹`. -/
-@[simp ↓]
+@[simp↓]
 lemma inverse_star_unit (u : Aˣ) : (star ↑u)⁻¹ʳ = star u⁻¹.val := by aesop
 
 /-! ### The subgroups and their entries -/
@@ -222,7 +227,7 @@ lemma floorGroup_apply_row (hg : g ∈ floorGroup l) (i j : 𝔰.BesselIndex) (h
   -- Read the entry `(oppositeIndex i, j)` of `gᴴ J g = J`: the column `oppositeIndex i` of `g` is
   -- that of `1`, so the left side is `g i j`.
   have h_isometry : (g.val.valᴴ * T.splitGram * g.val.val) (oppositeIndex i) j =
-      T.splitGram (oppositeIndex i) j := congrFun₂ g.property _ _
+      T.splitGram (oppositeIndex i) j := congrFun₂ (mem_unitaryGroupOf_iff.1 g.property) _ _
   simpa [mem_floorGroup.1 hg, oppositeIndex_oppositeIndex, floorOf_oppositeIndex, hi, hi_pair,
     apply_ite, Matrix.one_apply, Matrix.mul_apply] using h_isometry
 
@@ -334,8 +339,11 @@ lemma unipotentBelow_le_partialUnitriangularGroup :
   fun _ hg ↦ mem_partialUnitriangularGroup_of_mem_besselU (unipotentBelow_le_besselU hg)
 
 /-- The groups `𝒩_{<j} = unipotentBelow j` increase with `j`. -/
-lemma unipotentBelow_le_succ : T.unipotentBelow j ≤ unipotentBelow (j + 1) := by
-  grind [IsConcreteLE.le_iff]
+lemma unipotentBelow_le_succ : T.unipotentBelow j ≤ unipotentBelow (j + 1) :=
+  fun _ hg ↦ mem_unipotentBelow.2 fun i k h_level ↦ mem_unipotentBelow.1 hg i k <| by
+    have := floorOf_level_cases i
+    have := floorOf_level_cases k
+    split_ifs at h_level ⊢ <;> lia
 
 /-- The groups `Q_l = partialUnitriangularGroup l` decrease as `l` grows. -/
 lemma partialUnitriangularGroup_anti : Antitone T.partialUnitriangularGroup := by
@@ -560,8 +568,11 @@ lemma commute_weylOn {p : ℕ → A} (hP : ∀ a : ℕ, P a → a < l) (hs : s �
   let k' : 𝔰.BesselIndex :=
     if P (floorOf k) ∧ floorOf k < 𝔰.ϱ ∧ IsUnit (p (floorOf k)) then oppositeIndex k else k
   have h_left : (weylOn P p * s).val i k = (weylOn P p : T.G).val i i' * s.val i' k :=
-    sum_eq_single i' fun j ↦ by grind (splits := 20) only
-                                  [oppositeIndex_involutive_and_floorOf_level j]
+    sum_eq_single i' fun j _ ↦ by
+      dsimp only
+      rw [h_weyl i j]
+      clear h_entry h_weyl
+      grind only [oppositeIndex_involutive_and_floorOf_level j]
   have h_right : (s * weylOn P p).val i k = s.val i k' * (weylOn P p : T.G).val k' k :=
     sum_eq_single k' (by grind only)
   rw [h_left, h_right]
@@ -665,7 +676,7 @@ lemma leadingMinor_submatrix_mul_of_mem_partialUnitriangularGroup {l : ℕ} {s :
     exact hi ⟨⟨level i, h_lt.trans b.is_lt⟩, (eq_besselFrame_of_floorOf_eq h_floor le_rfl).symm⟩
   have h_block : (M * s.val.val).submatrix f f = M.submatrix f f * s.val.val.submatrix f f := by
     ext a b
-    rw [submatrix_apply, mul_apply, mul_apply]
+    rw [submatrix_apply, Matrix.mul_apply, Matrix.mul_apply]
     refine (sum_of_injective f f_injective _ _ (fun i hi ↦ ?_) fun _ ↦ rfl).symm
     rw [h_column i b (h_level i hi b), one_apply_ne fun h_eq ↦ hi ⟨b, h_eq.symm⟩, mul_zero]
   have h_det : (s.val.val.submatrix f f).det = 1 := by
@@ -721,8 +732,9 @@ lemma leadingMinor_frameGram_weylElem {l : ℕ} (hl : l ≤ 𝔰.ϱ) (p : ℕ �
       (Fin.castLE j.is_le) = diagonal fun a : Fin j ↦ (p a).val := by
     ext a b
     have hb : b.val < l := by lia
-    simp +contextual [frameGram, h_frame, weylElem, weylOn, level, Matrix.mul_apply, diagonal_apply,
-      hb, hb.trans_le hl, Fin.ext_iff]
+    simp [frameGram, h_frame, weylElem, weylOn, level, Matrix.mul_apply, diagonal_apply, hb,
+      hb.trans_le hl, Fin.ext_iff]
+    split_ifs with h_eq <;> simp [h_eq]
   rw [leadingMinor, h_block, det_diagonal, Units.coe_prod, Finset.prod_range]
 
 /-! ### Action on coordinates of vectors -/
@@ -956,8 +968,21 @@ lemma simpleRootSum_eq_zero_of_mem_besselH (hh : h ∈ besselH) : simpleRootSum 
 of `1`. -/
 lemma besselH_apply_eq_or (hu : u ∈ besselU) (hh : h ∈ besselH) (i j : 𝔰.BesselIndex) :
     h.val i j = (u * h).val i j ∨ h.val i j = (1 : Matrix 𝔰.BesselIndex 𝔰.BesselIndex R) i j := by
-  revert i j
-  simp [apply_eq_one_apply_of_mem_floorGroup hh, apply_inr_of_mem_besselU hu, Matrix.mul_apply]
+  have h_lt : 𝔰.ϱ < 𝔰.n := Nat.lt_succ_self _
+  by_cases h_col : floorOf j < 𝔰.n
+  · exact .inr (apply_eq_one_apply_of_mem_floorGroup hh i j (.inr h_col))
+  by_cases h_row : floorOf i < 𝔰.ϱ
+  · exact .inr (apply_eq_one_apply_of_mem_floorGroup hh i j (.inl ⟨h_row.trans h_lt, h_row⟩))
+  -- Now `i` lies in the middle block, of level `ϱ`, and only the term `x = i` of the product stays.
+  have h_level_i : BesselIndex.level i = 𝔰.ϱ := by have := floorOf_level_cases i; lia
+  refine .inl (Eq.symm ?_)
+  rw [Subgroup.coe_mul, Units.val_mul, Matrix.mul_apply, Fintype.sum_eq_single i fun x hx ↦ ?_,
+    mem_besselU.1 hu i i le_rfl, one_apply_eq, one_mul]
+  by_cases hx_floor : floorOf x < 𝔰.ϱ
+  · rw [apply_eq_one_apply_of_mem_floorGroup hh x j (.inl ⟨hx_floor.trans h_lt, hx_floor⟩),
+      one_apply_ne (by rintro rfl; lia), mul_zero]
+  · rw [mem_besselU.1 hu i x (by have := floorOf_level_cases x; lia), one_apply_ne (Ne.symm hx),
+      zero_mul]
 
 /-- Let `u` be block unitriangular (`besselU`) and let `h` fix the basis vectors outside `κ`
 (`besselH`). If `u * h` is integral over `Q` and congruent to `1` modulo `g` (`New.unitaryLevel`),

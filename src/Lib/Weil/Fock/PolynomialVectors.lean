@@ -1,6 +1,8 @@
-import Lib.DiscreteSeries.Theta.FockDualPair
-import Lib.General.LinearAlgebra.MatricesNearIdentity
-import Lib.Weil.Fock.WeightedNorms
+module
+
+public import Lib.DiscreteSeries.Theta.FockDualPair
+public import Lib.General.LinearAlgebra.MatricesNearIdentity
+public import Lib.Weil.Fock.WeightedNorms
 
 /-!
 # Polynomial vectors in Fock space: inner product, density and Weil derivative
@@ -30,6 +32,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.Fock.OscillatorPair` for sources.
 -/
+
+@[expose] public section
 
 /-- A sesquilinear form B on complex polynomials vanishes if B(1, 1) = 0 and multiplication by each
 variable X_j on either side moves to the derivative ∂_j on the other side:
@@ -140,17 +144,6 @@ lemma fockMatrixCoeff_lowerOp (u : USign ε) (P Q : MvPolynomial ι ℂ) (j : ι
     sum_add_distrib]
   grind [I_sq, h_deriv 1, conj_I]
 
-/-- Both relations of `New.Fock.fockMatrixCoeff_raiseOp` and `New.Fock.fockMatrixCoeff_lowerOp`:
-for u in U(ε), polynomials P, Q and an index j, with A_a = `New.Fock.raiseOp` ε a and
-B_a = `New.Fock.lowerOp` ε a, ⟨v_Q, ω₀(u) v_{A_j P}⟩ = Σ_i u_ij ε_i ⟨v_{B_i Q}, ω₀(u) v_P⟩ and ε_j
-⟨v_Q, ω₀(u) v_{B_j P}⟩ = Σ_i conj(u_ij) ⟨v_{A_i Q}, ω₀(u) v_P⟩. -/
-lemma fockMatrixCoeff_raiseOp_lowerOp (u : USign ε) (P Q : MvPolynomial ι ℂ) (j : ι) :
-    fockMatrixCoeff u Q (raiseOp ε j P) =
-      ∑ i : ι, u.val i j * ε i * fockMatrixCoeff u (lowerOp ε i Q) P ∧
-    ε j * fockMatrixCoeff u Q (lowerOp ε j P) =
-      ∑ i : ι, conj (u.val i j) * fockMatrixCoeff u (raiseOp ε i Q) P :=
-  ⟨fockMatrixCoeff_raiseOp u P Q j, fockMatrixCoeff_lowerOp u P Q j⟩
-
 /-- Multiplication by X_i is adjoint to the derivative ∂_i for the inner product
 `New.Fock.fockInner` of polynomial vectors: ⟨v_{X_i P}, v_Q⟩ = ⟨v_P, v_{∂_i Q}⟩. -/
 lemma fockInner_X_mul (P Q : MvPolynomial ι ℂ) (i : ι) :
@@ -180,23 +173,6 @@ lemma fockInner_polyVector (P Q : MvPolynomial ι ℂ) :
       _ = fockPairing ℂ (MvPolynomial.map conj (P * X i)) Q := by
           rw [map_mul, MvPolynomial.map_X, fockPairing_mul_X]
 
-open scoped Nat in
-/-- The Fock vectors of monomials are orthogonal, and the vector of the monomial `X ^ μ` has
-squared norm `μ! = ∏ i, (μ i)!`. -/
-lemma fockInner_polyVector_monomial {ι : Type} [Fintype ι] [DecidableEq ι] (ε : ι → ℤˣ)
-    (μ μ' : ι →₀ ℕ) :
-    fockInner (polyVector ε (monomial μ 1)) (polyVector ε (monomial μ' 1)) =
-      if μ = μ' then ∏ i ∈ μ.support, ((μ i)! : ℂ) else 0 := by
-  -- The inner product is the Fischer pairing, which reads off the coefficient of `X ^ μ`.
-  calc
-    fockInner (polyVector ε (monomial μ 1)) (polyVector ε (monomial μ' 1))
-        = fockPairing ℂ (monomial μ (1 : ℂ)) (monomial μ' (1 : ℂ)) := by
-      rw [fockInner_polyVector, map_monomial, map_one]
-    _ = (∏ i ∈ μ.support, ((μ i)! : ℂ)) * if μ' = μ then 1 else 0 := by
-      rw [fockPairing_monomial, one_mul, coeff_monomial, Finsupp.prod, Nat.cast_prod]
-    _ = if μ = μ' then ∏ i ∈ μ.support, ((μ i)! : ℂ) else 0 := by
-      simp only [mul_ite, mul_one, mul_zero, eq_comm]
-
 /-- The Fock vectors v_P of the polynomials P are dense in the Fock space with signs ε. -/
 lemma denseRange_polyVector : DenseRange (polyVector ε) := by
   -- The closure `V` of the range holds every translate of the vacuum: its moments `fockMoment N`
@@ -212,7 +188,7 @@ lemma denseRange_polyVector : DenseRange (polyVector ε) := by
     obtain ⟨P, hP⟩ := exists_tendsto_fockMoment h_rapid
     have h_tendsto : Filter.Tendsto (fun n : ℕ ↦ polyVector ε (P n)) Filter.atTop
         (nhds (realHeisenbergOp y vacVector)) := by
-      simpa [fockMoment_zero, enorm_sub_rev, tendsto_iff_enorm_sub_tendsto_zero] using hP 0
+      simpa [fockMoment_zero, eNorm_sub_rev, tendsto_iff_eNorm_sub_tendsto_zero] using hP 0
     exact mem_closure_of_tendsto h_tendsto (by simp)
   -- A bounded map is determined by its values on these translates (`hom_ext`), so the quotient
   -- map by `V` vanishes.
@@ -257,7 +233,8 @@ private lemma star_mul_sign_eq_neg_sign_mul_of_hasDerivAt [DecidableEq ι]
   have form_const :
       HasDerivAt (fun t : ℝ ↦ star ((γ t : GL ι ℂ) : Matrix ι ι ℂ) * signMatrix ε *
         ((γ t : GL ι ℂ) : Matrix ι ι ℂ)) (0 : Matrix ι ι ℂ) 0 :=
-    (hasDerivAt_const 0 (signMatrix ε)).congr_of_eventuallyEq (.of_forall fun t ↦ (γ t).prop)
+    (hasDerivAt_const 0 (signMatrix ε)).congr_of_eventuallyEq (.of_forall fun t ↦
+        mem_unitaryGroupOf_iff.1 (γ t).prop)
   have sum_zero :
       star Y * signMatrix ε * ((γ 0 : GL ι ℂ) : Matrix ι ι ℂ) +
         star ((γ 0 : GL ι ℂ) : Matrix ι ι ℂ) * signMatrix ε * Y = 0 :=
@@ -306,7 +283,7 @@ X_b by the signs) takes at 0 the value −1 if a = b has sign −1, and 0 otherw
 entry of 1 − `New.Fock.posProj` ε. -/
 private lemma valueAt_zero_polyVector_glOp_one [DecidableEq ι] (a b : ι) :
     valueAt 0 (polyVector ε (glOp ε a b 1)) = -(1 - posProj ε) b a := by
-  aesop (add simp [glOp, raiseOp, lowerOp, realVac, posProj, one_apply, diagonal])
+  aesop (add simp [glOp, raiseOp, lowerOp, realVac, posProj, Matrix.one_apply, diagonal])
 
 /-- The relation `New.Fock.fockMatrixCoeff_raiseOp`, differentiated along a
 curve γ in U(ε) with γ(0) = 1 whose matrix has derivative Y at 0. Here `hD` says that ⟨v_Q, D P⟩
@@ -334,7 +311,7 @@ private lemma fockInner_raiseOp_eq_of_hasDerivAt [DecidableEq ι] {γ : ℝ → 
     .fun_sum fun i _ ↦ ((entry i j).mul_const _).fun_mul (hD _ P)
   -- `fockMatrixCoeff_raiseOp` at each `γ t` says that the two curves agree, so their derivatives
   -- do; at `γ 0 = 1` only the term `i = j` of the second sum remains.
-  simpa [one_apply, hγ_zero, sum_add_distrib] using (hD Q (raiseOp ε j P)).unique
+  simpa [Matrix.one_apply, hγ_zero, sum_add_distrib] using (hD Q (raiseOp ε j P)).unique
     (sum_deriv.congr_of_eventuallyEq
       (.of_forall fun t : ℝ ↦ fockMatrixCoeff_raiseOp (γ t) P Q j))
 
@@ -363,7 +340,7 @@ private lemma fockInner_lowerOp_eq_of_hasDerivAt [DecidableEq ι] {γ : ℝ → 
     .fun_sum fun i _ ↦ (entry i j).star.fun_mul (hD _ P)
   -- `fockMatrixCoeff_lowerOp` at each `γ t` says that the two curves agree, so their derivatives
   -- do; at `γ 0 = 1` only the term `i = j` of the second sum remains.
-  simpa [one_apply, hγ_zero, sum_add_distrib] using
+  simpa [Matrix.one_apply, hγ_zero, sum_add_distrib] using
     ((hD Q (lowerOp ε j P)).const_mul (ε j : ℂ)).unique (sum_deriv.congr_of_eventuallyEq
       (.of_forall fun t : ℝ ↦ fockMatrixCoeff_lowerOp (γ t) P Q j))
 
@@ -408,18 +385,18 @@ theorem hasDerivAt_realWeil [DecidableEq ι] {γ : ℝ → USign ε} {Y : Matrix
         (hasDerivAt_det_posProj_add_mul hγ_zero hγ).inv
     -- Pairing with the vacuum evaluates at `0` (`valueAt_zero_polyVector_glOp_one`).
     rw [B_apply, (pair_deriv 1 1).unique vacuum_coeff, trace_mul_comm]
-    simp [weilDeriv, trace, mul_apply, ← valueAt_apply, valueAt_zero_polyVector_glOp_one, mul_sub,
-      sum_sub_distrib, one_apply]
+    simp [weilDeriv, trace, Matrix.mul_apply, ← valueAt_apply, valueAt_zero_polyVector_glOp_one, mul_sub,
+      sum_sub_distrib, Matrix.one_apply]
   -- At `u = 1` the relations `fockMatrixCoeff_raiseOp` and `fockMatrixCoeff_lowerOp` say that
   -- `raiseOp ε i` and `ε i * lowerOp ε i` are adjoint.
   have raise_adjoint (P Q : MvPolynomial ι ℂ) (i : ι) :
       fockInner (polyVector ε Q) (polyVector ε (raiseOp ε i P)) =
         ε i * fockInner (polyVector ε (lowerOp ε i Q)) (polyVector ε P) := by
-    simpa [one_apply] using fockMatrixCoeff_raiseOp (ε := ε) 1 P Q i
+    simpa [Matrix.one_apply] using fockMatrixCoeff_raiseOp (ε := ε) 1 P Q i
   have lower_adjoint (P Q : MvPolynomial ι ℂ) (i : ι) :
       ε i * fockInner (polyVector ε Q) (polyVector ε (lowerOp ε i P)) =
         fockInner (polyVector ε (raiseOp ε i Q)) (polyVector ε P) := by
-    simpa [one_apply] using fockMatrixCoeff_lowerOp (ε := ε) 1 P Q i
+    simpa [Matrix.one_apply] using fockMatrixCoeff_lowerOp (ε := ε) 1 P Q i
   -- The commutators of `weilDeriv ε Y = ∑ Y a b • raiseOp ε a * lowerOp ε b` with `raiseOp ε j`
   -- and `lowerOp ε j`, by `canonical_commutation`.
   have comm_raise (j : ι) (P : MvPolynomial ι ℂ) : weilDeriv ε Y (raiseOp ε j P) =

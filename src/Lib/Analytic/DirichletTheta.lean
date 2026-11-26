@@ -1,4 +1,6 @@
-import Lib.Analytic.PolyaVinogradov
+module
+
+public import Lib.Analytic.PolyaVinogradov
 
 /-!
 # Theta series of Dirichlet characters, Poisson summation, and `L(s, χ)` as a Mellin transform
@@ -17,6 +19,8 @@ character. Sources: Davenport, Multiplicative Number Theory; Montgomery–Vaugha
 Number Theory I, ch. 10. Form here: the transformation is proved in absolute value only, so no root
 number appears.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -119,7 +123,7 @@ lemma summable_and_norm_gaussianTheta_le (hc : ∀ n : ℕ, ‖c n‖ ≤ 1) (ht
       simpa using (hasSum_nat_add_iff' 1).2 ((hasSum_geometric_of_abs_lt_one hr).mul_left 3)
   have h_term (n : ℕ+) : ‖c n * gaussianMonomial j (n * t)‖ ≤ 3 * r ^ (n : ℕ) := by
     grw [norm_mul, hc, norm_real, norm_gaussianMonomial_le (by positivity)]
-    simp [r, ← Real.exp_nat_mul, field]
+    simp [r, ← Real.exp_natCast_mul, field]
   -- As `t + 1 ≤ e^t`, we have `(t + e^(-t)) e^(-t) ≤ 1`.
   have h_mul_exp_le : t * rexp (-t) ≤ 1 - r := by
     nlinarith [add_one_le_exp t, exp_pos (-t), exp_le_one_iff.2 (neg_nonpos.2 ht.le),
@@ -342,7 +346,8 @@ lemma hasSum_invDFT_mul_gaussianMonomial (Φ : ZMod q → ℂ) {S : ZMod q → �
       (I ^ j.val * t * ∑ a : ZMod q, Φ a * S a) := by
   have h_char (a : ZMod q) (n : ℤ) :
       stdAddChar (a * (n : ZMod q)) = cexp (2 * π * I * (a.val / q : ℝ) * n) := by
-    rw [← zsmul_eq_mul', AddChar.map_zsmul_eq_zpow, stdAddChar_apply, toCircle_apply, ← exp_int_mul]
+    rw [← zsmul_eq_mul', AddChar.map_zsmul_eq_zpow, stdAddChar_apply, toCircle_apply,
+      ← Complex.exp_intCast_mul]
     push_cast
     ring_nf
   have h_value : (∑ a : ZMod q, Φ a * (I ^ j.val * (q * t : ℝ) * S a)) / q =
@@ -477,13 +482,8 @@ theorem hasMellin_thetaSeries_char (hχ_ne : χ ≠ 1) (hχ_parity : χ (-1) = (
 `(r, ∞)`. -/
 lemma image_inv_const_mul_Ioo {b r : ℝ} (hb : 0 < b) (hr : 0 < r) (h_fix : (b * r)⁻¹ = r) :
     (fun u : ℝ ↦ (b * u)⁻¹) '' Ioo 0 r = Ioi r := by
-  ext v
-  refine ⟨?_, fun (hv : r < v) ↦ ?_⟩
-  · rintro ⟨u, ⟨hu, hur⟩, rfl⟩
-    exact h_fix.ge.trans_lt (inv_strictAnti₀ (by positivity) (by gcongr))
-  have hv_pos : 0 < v := hr.trans hv
-  exact ⟨(b * v)⁻¹, ⟨by positivity, (inv_strictAnti₀ (by positivity) (by gcongr)).trans_eq h_fix⟩,
-    by field⟩
+  rw [← image_image Inv.inv (b * ·), image_mul_left_Ioo hb, mul_zero, image_inv_eq_inv,
+    inv_Ioo_0_left (mul_pos hb hr), h_fix]
 
 /-- The fold: for primitive `χ ≠ 1` of conductor `q` with `χ(-1) = (-1) ^ j`,
 `∫_0^∞ |θ_χ(u)| du / u = 2 ∫_{q ^ (-1/2)}^∞ |θ_χ(u)| du / u`, where

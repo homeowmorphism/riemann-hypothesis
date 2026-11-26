@@ -1,6 +1,8 @@
-import Lib.General.Algebra.SeriesBounds
-import Lib.LocalGL.SphericalChainLemma
-import New.Congruences.GaloisRepresentations.SelmerHypotheses
+module
+
+public import Lib.General.Algebra.SeriesBounds
+public import Lib.LocalGL.SphericalChainLemma
+public import New.Congruences.GaloisRepresentations.SelmerHypotheses
 
 /-!
 # Chains of roots for weak lifts, and Hecke-stable subspaces of forms
@@ -41,6 +43,8 @@ Notions from other files:
   orthogonal complement of a Hecke-stable subspace Z is Hecke stable, and Z lies in a subspace N
   once every nonzero form of Z in an isotypic space lies in N.
 -/
+
+@[expose] public section
 
 /-!
 ## A single operator from several diagonal operators
@@ -390,7 +394,8 @@ lemma eventually_exists_hasRootChain {O : DescentPair D.E r n}
   have hT_map : T.map ιℓ.toRingHom * B = H.comp (C χ⁻¹ * X) := by
     rw [mul_comm, ← hB, ← Polynomial.map_mul, ← hT, Polynomial.map_comp]
     simp [H, χ]
-  have hχ : ‖χ‖ = 1 := norm_eq_one_of_continuous (AlgHeckeChar.continuous_avatar _) _
+  have hχ : ‖χ‖ = 1 := ContinuousMonoidHom.norm_apply_eq_one_of_compactSpace
+    ⟨_, AlgHeckeChar.continuous_avatar _⟩ _
   have h_twist : (normalisedRep O x.galRep y.frob).val = χ • (x.galRep y.frob).val := by
     simp [χ, Units.smul_def]
   have h_near (i : ℕ) : ‖(C (χ ^ card n) * T.map ιℓ.toRingHom * B -

@@ -1,4 +1,6 @@
-import New.Derivatives.Sharpness.LeastValuation
+module
+
+public import New.Derivatives.Sharpness.LeastValuation
 
 /-!
 # Least valuations along couplings
@@ -37,6 +39,8 @@ Notions from other files:
   of degree `ν` in a product `∏ (H_c Θ)(z_c)` over `n` copies, where `Θ = C.thetaProd μ m` and the
   `H_c` run through the ring `C.multiSeriesRing μ`.
 -/
+
+@[expose] public section
 
 /-! ## Families of couplings -/
 
@@ -225,7 +229,7 @@ lemma IsCouplingFamily.isLowestTerm_pderiv_couplingSum {pr : ℕ → Φ → Φ} 
 /-- A series with constant term `1` has lowest term `1 = 1 z ^ 0` for the total degree:
 `IsLowestTerm w f m c` says that, in `w`-weight at most that of `m`, the coefficients of `f` are
 those of `c z ^ m`, here with all weights `1`, `m = 0` and `c = 1`. -/
-lemma isLowestTerm_zero_one {X R : Type} [Fintype X] [CommRing R] {f : MvPowerSeries X R}
+lemma isLowestTerm_zero_one {X R : Type} [CommRing R] {f : MvPowerSeries X R}
     (hf : f.constantCoeff = 1) : IsLowestTerm 1 f 0 1 := by
   intro d hd
   obtain rfl : d = 0 := by
@@ -458,7 +462,7 @@ lemma isUnit_of_rescale_thetaProd_eq [PadicPlace p] {J X : Type} [Fintype J] [Fi
     (hW : (C.thetaProd μ m).rescale (fun _ : X ↦ ϖ) = seriesToCp W * expSubst (κ • seriesToCp Ξ)) :
     IsUnit W := by
   have h_const : (W.constantCoeff : ℂ_[p]) = 1 := by
-    simpa [constantCoeff_thetaProd, constantCoeff_subst_of_constantCoeff_eq_zero, hΞ] using
+    simpa [constantCoeff_thetaProd, PowerSeries.constantCoeff_subst_of_constantCoeff_zero, hΞ] using
       (congrArg (coeff 0) hW).symm
   rw [isUnit_iff_constantCoeff, isUnit_integer_iff_norm_eq_one, h_const, norm_one]
 

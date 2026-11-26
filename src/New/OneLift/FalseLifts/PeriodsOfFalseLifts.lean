@@ -1,4 +1,6 @@
-import New.OneLift.FalseLifts.HyperbolicPlaneStep
+module
+
+public import New.OneLift.FalseLifts.HyperbolicPlaneStep
 
 /-!
 # The tower of descents and the periods of false lifts
@@ -29,9 +31,7 @@ periods assume `2 r + 2 N + 3 < n`.
   `New.SiegelWeil.integral_blockEmb_eq_zero_of_descentsVanish`, which takes a Fourier coefficient
   and varies the datum.
 * The theorem `New.Rows.stdClassSum_gramForm_eq_zero` writes the periods over the block `I_l` as
-  class sums `New.stdClassSum`. `New.Rows.stdClassSum_gramForm_eq_zero_of_rank_one` is the case of
-  false lifts from a line; that of false lifts on `V_j` is in
-  `New.OneLift.ComparisonOperator.GluingMaps`.
+  class sums `New.stdClassSum`.
 * Two uses: `New.Rows.stdClassSum_period_eq_zero` for point forms, and
   `New.Rows.DividedSplitting.stdClassSum_inner_productForm_eq_zero` for the product forms
   `New.Rows.DividedSplitting.productForm` of the kernel vectors.
@@ -61,6 +61,8 @@ lifts for unitary groups, arXiv 2104.11954, 2021; Ginzburg–Jiang–Soudry, Pol
 theta liftings for orthogonal groups, 2009; Jiang–Wu, On (χ,b)-factors of cuspidal automorphic
 representations of unitary groups I, 2016; Rallis, On the Howe duality conjecture, 1984.
 -/
+
+@[expose] public section
 
 section MemberOrthogonality
 
@@ -203,7 +205,7 @@ lemma exists_projOn_eq_pairTheta_ne_zero {s : r → ℤˣ} {t : n → ℤˣ} (W 
   let x' : n × r → 𝔸 E := matrixToVec (p.2⁻¹.adeleMatrix * vecToMatrix (realVec x) *
     p.1.adeleMatrix)
   have hx' (i : n × r) (v : FinPlace E) : (x' i).2 v = 0 := by
-    simp [x', matrixToVec, vecToMatrix, realVec, mul_apply, snd_sum]
+    simp [x', matrixToVec, vecToMatrix, realVec, Matrix.mul_apply, snd_sum]
   refine ⟨(W.hom V).ϱ x' (vacElem _), ?_, ?_⟩
   · rw [projOn_rho _ fun i v _ ↦ hx' i v, projOn_vacElem]
   · rwa [pairTheta, ← rho_pairWeil, theta_rho]
@@ -504,47 +506,6 @@ lemma hyperplaneSum_apply_eq_zero_of_rank_one {O : DescentPair E Unit n}
       tupleIdem Unit (fun _ ↦ Polynomial.X - 1) = 0 :=
     piTensorElem_mul_eq_zero i (hyperplaneSum_mul_labelIdem_X_sub_one (h_chosen i) hv)
   rw [← Module.End.mul_apply, ← map_mul, h_zero, map_zero, LinearMap.zero_apply]
-
-open scoped Classical in
-/-- Periods of false lifts from a line vanish. Let the archimedean parameter `l₀` on `W` correspond
-to that on `I_n` (`O.FitsParams`), and let the residue characters `O.tamePart` be nontrivial at all
-places of the level. Let the form `Ξ` on `U(I_n)` be a false lift (`O.falseLiftsAt`): it lies in the
-image of the mean over the product of the groups `GL_1(k_v)` at the chosen places `v`, and it is
-killed by the theta descent `O.normalizedDescent` to `W` and by the Hecke polynomial at the number
-`O.liftHeckeRoot w` for a split place `w` off the level. Let `ε` split `I_n = I_N ⊕ I_l` with
-`2 #N + 5 < #n`, and let `x` be supported on `O.places`. Let each coordinate of `ϑ`, moved by the
-real points of `U(I_l)`, be a multiple of a conjugate theta kernel (`pairTheta`) of the pair
-`O.W, I_l` whose datum is the vacuum off `O.places` and their conjugates. Let `C` be
-conjugate-linear and equivariant for the real points of `U(I_l)`, which act by the representation
-`conjWeylRep` of the given weight. Then the invariant inner product `gramForm` of `C (ϑ h)` with
-`Ξ ((h₁, h) x)` is left invariant under the rational points, and its class sum is zero at every
-level `K` that fixes it. -/
-theorem stdClassSum_gramForm_eq_zero_of_rank_one {O : DescentPair E Unit n}
-    {l₀ : InfinitePlace E → Unit → ℤ} (hO_fits : O.FitsParams l₀)
-    (h_chosen : ∀ i : O.ChosenIndex, O.tamePart (O.chosenPlace i) ≠ 1)
-    (h_twist : ∀ i : O.TwistIndex, O.tamePart (O.twistPlace i) ≠ 1)
-    {w : FinPlace E} {hw : star w ≠ w} {hw_off : w ∉ O.places.conjClosure} {Ξ : O.FormV}
-    (hΞ : Ξ ∈ O.falseLiftsAt hw hw_off (tupleIdem Unit fun _ : O.ChosenIndex ↦ Polynomial.X - 1)
-      O.normalizedDescent.ker)
-    (ε : N ⊕ l ≃ n) (h_rank : 2 * card N + 5 < card n) {κ : InfinitePlace E → ℕ → ℕ}
-    (C : (WeylIndex l κ → ℂ) →ₗ⋆[ℂ] WeylIndex n O.columnCount → ℂ)
-    (hC : ∀ (g : GInf E (1 : n → ℤˣ)) (y : GInf E (1 : l → ℤˣ)) (ζ : WeylIndex l κ → ℂ),
-      (∀ τ : InfinitePlace E, (g τ : GL n ℂ) = reindexGL ε (blockGL (1, y τ))) →
-        conjWeylRep O.columnCount O.detExp g (C ζ) = C (conjWeylRep κ 0 y ζ))
-    (ϑ : Gf E l → WeylIndex l κ → ℂ)
-    (h_kernels : ∀ j : WeylIndex l κ, ∃ (c : ℂ) (g : G E O.signs) (b : AutChar E)
-      (φ : 𝒮 (O.W.hom (stdSpace E l))),
-      projOn (O.W.hom (stdSpace E l)) O.places.conjClosureᶜ φ = φ ∧
-        ∀ (u : GInf E (1 : l → ℤˣ)) (h : Gf E l), conjWeylRep κ 0 u⁻¹ (ϑ h) j =
-          c * conj (pairTheta O.W (stdSpace E l) O.charW b φ (g, u, h)))
-    (h₁ : Gf E N) {x : Gf E n} (hx : x ∈ supportedOn n O.places) :
-    let f (h : Gf E l) : ℂ := gramForm (C (ϑ h)) (Ξ (U.block ε (h₁, h) * x))
-    (∀ δ ∈ (stdSpace E l).Γ, ∀ h : Gf E l, f (δ.2 * h) = f h) ∧
-      ∀ (K : Subgroup (Gf E l)) [IsLevel K], K ≤ rightStabilizer f → stdClassSum K f = 0 := by
-  obtain ⟨⟨hΞ_range, hΞ_hecke⟩, hΞ_descent⟩ := hΞ
-  exact stdClassSum_gramForm_eq_zero hO_fits h_twist
-    (hyperplaneSum_apply_eq_zero_of_rank_one h_chosen hΞ_range) hΞ_descent hΞ_hecke
-    (by grind [card_unit]) ε C hC ϑ h_kernels h₁ hx
 
 omit [WeilData E] [Nonempty r] in
 /-- Conjugates of the second block fix forms. Let `ε` split `I_n = I_N ⊕ I_l`, with `U.block ε` the

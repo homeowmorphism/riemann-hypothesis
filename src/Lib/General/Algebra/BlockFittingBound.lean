@@ -1,4 +1,6 @@
-import Lib.General.Algebra.FittingIdealsAndLengths
+module
+
+public import Lib.General.Algebra.FittingIdealsAndLengths
 
 /-!
 # A matrix of relations with small block determinant valuation
@@ -25,6 +27,8 @@ solutions bounds the determinant of such a basis by the duality lemma
 
 General linear algebra over a discrete valuation ring (elementary divisors).
 -/
+
+@[expose] public section
 
 open IsDiscreteValuationRing Matrix Module Submodule Fintype Ideal LinearMap
 
@@ -60,7 +64,7 @@ lemma New.Selmer.exists_rows_addVal_det_le {O ι A d : Type} [CommRing O] [DVR O
     have h_orth : ∑ x : ι × d, σ (e • s) x • w x = 0 :=
       (mem_L _).1 (mem_sup_right (mem_map_of_mem (N.smul_mem e hs))) w hw
     have σ_row (j : ι) (l : d) : σ (e • s) (j, l) = ψ (s j) i l := by
-      simp [e, σ_apply, hE, mul_apply, Matrix.single_apply, ite_and]
+      simp [e, σ_apply, hE, Matrix.mul_apply, Matrix.single_apply, ite_and]
     simpa [σ_row, sum_prod_type] using h_orth
   have det_M : addVal O M.det ≤ b := by grw [det_le, length_le_of_le_map _ Z S_le, hZ]
   have M_row (k : ι) (c : d) : ∃ u : ι × d → O, ∃ s ∈ N, p • u + σ s = M (k, c) := by
@@ -71,7 +75,7 @@ lemma New.Selmer.exists_rows_addVal_det_le {O ι A d : Type} [CommRing O] [DVR O
   refine ⟨B, fun k ↦ N.sum_mem fun c _ ↦ N.smul_mem _ (t_mem k c), ?_⟩
   set ψB : Matrix (ι × d) (ι × d) O := comp ι ι d d O (B.map ψ)
   have B_apply (k j : ι) (c l : d) : ψB (k, c) (j, l) = σ (t k c) (j, l) := by
-    simp [ψB, B, σ_apply, hE, mul_apply, Matrix.sum_apply, updateRow_apply]
+    simp [ψB, B, σ_apply, hE, Matrix.mul_apply, Matrix.sum_apply, updateRow_apply]
   have congr_p : p ∣ ψB.det - M.det := by
     rw [← Quotient.eq_zero_iff_dvd, map_sub, sub_eq_zero, RingHom.map_det, RingHom.map_det]
     congr 1

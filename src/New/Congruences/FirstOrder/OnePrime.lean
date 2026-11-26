@@ -1,4 +1,6 @@
-import Lib.Weil.Unramified.HeckeGL
+module
+
+public import Lib.Weil.Unramified.HeckeGL
 
 /-!
 # Norms, logarithms and first-order deformations of the norm
@@ -34,6 +36,8 @@ Notions from other files:
   completion `E_w`, its ring of integers `O_w` and its residue field, which has `w.q` elements.
 * `New.localIntGL n w`: the subgroup `GL_n(O_w)` of `GL_n(E_w)`.
 -/
+
+@[expose] public section
 
 /-!
 ## Congruences, norms and the family
@@ -172,7 +176,7 @@ lemma commutingProd_sum {𝒜 : J → Subring R}
   have Φ_smul (y : ∀ j : J, 𝒜 j) (j : J) (r : ℕ) (a : 𝒜 j) :
       Φ (Function.update y j (r • a)) = r • Φ (Function.update y j a) := by
     rw [last y j (r • a), last y j a, AddSubgroupClass.coe_nsmul, mul_smul_comm]
-  let M : MultilinearMap ℕ (fun j : J ↦ 𝒜 j) R := .mk' Φ Φ_add Φ_smul
+  let M : MultilinearMap (RingHom.id ℕ) (fun j : J ↦ 𝒜 j) R := .mk' Φ Φ_add Φ_smul
   exact M.map_sum x
 
 /-- The coefficient `∏_{j ∈ S} ∂ j ∏_{j ∉ S} Nm j` of `∏_{j ∈ S} α j` in the family
@@ -469,7 +473,7 @@ lemma transfer_firstEntry_diagGL (x : Fˣ) :
   · intro q hq
     have not_mem : q.out.out ∉ H := fun h ↦ hq (by rw [(eq_iff q.out).2 h, q.out_eq])
     obtain ⟨i, hi, entry_ne⟩ : ∃ i ≠ 0, q.out.out i 0 ≠ 0 := by
-      simpa [H, mem_residueLineStabilizer] using not_mem
+      simpa using mt mem_residueLineStabilizer.2 not_mem
     rw [firstEntry_conj_diagGL (g_pow _) _ entry_ne, Pi.mulSingle_eq_of_ne hi]
 
 /-- A character `τ` of `GL n F` with values in `Fˣ`, for a finite field `F`, is trivial on
@@ -563,9 +567,10 @@ lemma reduceGL_mem_iff_mem_residuePreimage {N : ℕ} {P : GL (Fin N) (LocField w
     reduceGL g ∈ H ↔ (g : GL (Fin N) (LocField w)) ∈ residuePreimage P H hP :=
   (hP g).trans (and_iff_right g.property).symm
 
-/-- The reduction of `g ∈ GL_N(O_w)` stabilises the line of the first basis vector if and only if
-`g` lies in the parahoric subgroup with blocks of sizes `1` and `N - 1`. -/
-lemma reduceGL_mem_residueLineStabilizer_iff {N : ℕ} [NeZero N] {g : localIntGL (Fin N) w} :
+/-- The reduction of `g ∈ GL_N(O_w)` belongs to the residue line stabiliser if and only if
+`g` belongs to the corresponding block parahoric. For positive `N`, the blocks have sizes
+`1` and `N - 1`. -/
+lemma reduceGL_mem_residueLineStabilizer_iff {N : ℕ} {g : localIntGL (Fin N) w} :
     reduceGL g ∈ residueLineStabilizer (ResField w) N ↔
       (g : GL (Fin N) (LocField w)) ∈ blockParahoric (min 1) := by
   unfold residueLineStabilizer blockParahoric

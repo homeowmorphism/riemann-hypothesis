@@ -1,4 +1,6 @@
-import New.Spanning.Frames.StandardLevel
+module
+
+public import New.Spanning.Frames.StandardLevel
 
 /-!
 # Fiber measures of the standard form, and the top quadric by its last entry
@@ -30,6 +32,8 @@ Notions from other files:
 
 See `New.Spanning.MainTerm.EnergyEstimate` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 namespace New.Floors
@@ -180,26 +184,26 @@ lemma gram_middleBasisMatrix {N : A} (hN : π * star (π : A) = N) :
         (of fun _ j ↦ if j = 𝔰.k₀ then -star (↑π⁻¹ : A) else 0) (of fun _ _ ↦ -(π : A)) := by
     ext (i | ⟨⟩) (j | ⟨⟩)
     · by_cases hi : i = 𝔰.k₀ <;> by_cases hj : j = 𝔰.k₀ <;>
-        simp [middleBasisMatrix, middleInclusionMatrix, latticeMiddleGram, mul_apply, diagonal,
-          apply_ite star,
+        simp [middleBasisMatrix, middleInclusionMatrix, latticeMiddleGram, Matrix.mul_apply,
+          diagonal, apply_ite star,
           hi, hj, eq_comm]
     · by_cases hi : i = 𝔰.k₀ <;>
-        simp [middleBasisMatrix, middleInclusionMatrix, latticeMiddleGram, mul_apply, diagonal,
-          apply_ite star,
+        simp [middleBasisMatrix, middleInclusionMatrix, latticeMiddleGram, Matrix.mul_apply,
+          diagonal, apply_ite star,
           h_cancel, hi, eq_comm]
-    · simp [middleBasisMatrix, latticeMiddleGram, mul_apply]
-    · simp [middleBasisMatrix, latticeMiddleGram, mul_apply, h_cancel]
+    · simp [middleBasisMatrix, latticeMiddleGram, Matrix.mul_apply]
+    · simp [middleBasisMatrix, latticeMiddleGram, Matrix.mul_apply, h_cancel]
   -- Multiply by the new basis: the `x_i` are orthonormal and orthogonal to `π⁻¹ z`, whose norm
   -- is `-π π⁻¹ = -1`.
   rw [h_pairing]
   ext (i | ⟨⟩) (j | ⟨⟩)
   · by_cases hi : i = 𝔰.k₀ <;> by_cases hj : j = 𝔰.k₀ <;>
-      simp [middleBasisMatrix, middleInclusionMatrix, mul_apply, diagonal, one_apply, h_inv, hi, hj,
-        eq_comm]
-  · simp [middleBasisMatrix, mul_apply]
+      simp [middleBasisMatrix, middleInclusionMatrix, Matrix.mul_apply, diagonal, Matrix.one_apply,
+        h_inv, hi, hj, eq_comm]
+  · simp [middleBasisMatrix, Matrix.mul_apply]
   · by_cases hj : j = 𝔰.k₀ <;>
-      simp [middleBasisMatrix, middleInclusionMatrix, mul_apply, diagonal, h_inv, hj]
-  · simp [middleBasisMatrix, mul_apply]
+      simp [middleBasisMatrix, middleInclusionMatrix, Matrix.mul_apply, diagonal, h_inv, hj]
+  · simp [middleBasisMatrix, Matrix.mul_apply]
 
 /-- In the basis `middleBasisMatrix`, the orthonormal basis of `X₀` followed by `π⁻¹ z`, the vector
 `vectorOfLastEntry π t x = x - (π π̄)⁻¹ t z` has the coordinates `x` on `X₀` and `-π̄⁻¹ t` at
@@ -211,13 +215,13 @@ lemma vectorOfLastEntry_eq_mulVec (x : 𝔰.κ → A) :
         (x ⊕ᵥ fun _ : Unit ↦ (-(star π)⁻¹ : Aˣ) * t) := by
   -- One case for each kind of index: the `e_a`, the basis of `X₀`, the vector `z`, the `e*_a`.
   ext (a | (k | ⟨⟩) | a)
-  · simp [vectorOfLastEntry, besselLatticeBasis, inclMatrix, mulVec, dotProduct, one_apply]
+  · simp [vectorOfLastEntry, besselLatticeBasis, inclMatrix, mulVec, dotProduct, Matrix.one_apply]
   · simp [middleBasisMatrix, vectorOfLastEntry, besselLatticeBasis, inclMatrix, mulVec, dotProduct,
-    one_apply]
+    Matrix.one_apply]
   · simp [middleBasisMatrix, vectorOfLastEntry, besselLatticeBasis, inclMatrix, mulVec, dotProduct,
-    one_apply,
+    Matrix.one_apply,
       mul_assoc, mul_left_comm]
-  · simp [vectorOfLastEntry, besselLatticeBasis, inclMatrix, mulVec, dotProduct, one_apply]
+  · simp [vectorOfLastEntry, besselLatticeBasis, inclMatrix, mulVec, dotProduct, Matrix.one_apply]
 
 end TailBasis
 
@@ -301,7 +305,7 @@ lemma IntegralPlace.ae_vectorOfLastEntry_mem_lastVectorQuadric (hN : π * star (
     have h_ne (a : 𝔰.MiddleIndex) : i ≠ inr (inl a) := by
       rintro rfl
       cases a <;> simp [floorOf] at hi
-    simp [vectorOfLastEntry_eq_mulVec, inclMatrix, mulVec, dotProduct, one_apply, h_ne]
+    simp [vectorOfLastEntry_eq_mulVec, inclMatrix, mulVec, dotProduct, h_ne]
   have h_sphere : star x ⬝ᵥ x = ↑(π * star π)⁻¹ * t * star t - N := by
     rw [hx, ← hN]
     simp [lastEntrySphereIndex]
@@ -334,7 +338,7 @@ lemma HyperbolicBasis.measurePreserving_inclMatrix_flatChart {T : 𝔰.Form A}
   let ι₀ : Matrix 𝔰.BesselIndex 𝔰.MiddleIndex A := inclMatrix A (inr ∘ inl)
   have h_form : ι₀ᴴ * T.splitGram * ι₀ = T := gram_inclMatrix (inr ∘ inl) T.splitGram
   have h_left : ι₀ᴴ * ι₀ = 1 := by
-    simpa [ι₀, ← ext_iff, one_apply] using
+    simpa [ι₀, ← ext_iff, Matrix.one_apply] using
       gram_inclMatrix (inr ∘ inl) (1 : Matrix 𝔰.BesselIndex 𝔰.BesselIndex A)
   have h_chart : P.IsDisintegration (volume.map (ι₀ *ᵥ ·)) T.splitGram
       fun b' : skewAdjoint A ↦ ((P.quadricMeasure S b').map (E *ᵥ ·)).map (ι₀ *ᵥ ·) :=
@@ -417,7 +421,8 @@ lemma HyperbolicBasis.measurePreserving_vectorOfLastEntry_flatChart
     calc
       _ = (fullBasisᴴ * latticeMiddleGram 𝔰 N * fullBasis).submatrix regroup.symm regroup.symm :=
         rfl
-      _ = planeSumGram restGram := by simp [gram_fullBasis, restGram, regroup, ← ext_iff, one_apply]
+      _ = planeSumGram restGram := by
+        simp [gram_fullBasis, restGram, regroup, ← ext_iff, Matrix.one_apply]
   have restGram_herm : restGramᴴ = restGram := by simp [restGram, fromBlocks_conjTranspose]
   have restGram_sq : restGram * restGram = 1 := by simp [restGram, fromBlocks_multiply]
   have h_card : card 𝔰.MiddleIndex = card (Fin 2 ⊕ Fin (card 𝔰.κ - 2) ⊕ Unit) := by

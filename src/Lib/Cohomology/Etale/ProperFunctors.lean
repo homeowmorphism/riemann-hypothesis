@@ -1,7 +1,9 @@
-import Lib.Cohomology.Etale.EllAdicCohomology
-import Lib.Cohomology.Etale.RelativeChains
-import Lib.General.Geometry.GeometricPoints
-import Lib.General.Geometry.PointsOfProperSchemes
+module
+
+public import Lib.Cohomology.Etale.EllAdicCohomology
+public import Lib.Cohomology.Etale.RelativeChains
+public import Lib.General.Geometry.GeometricPoints
+public import Lib.General.Geometry.PointsOfProperSchemes
 
 /-!
 # Local-to-global principle, density criteria and proper functors for cohomology on test rings
@@ -51,6 +53,8 @@ Notions from other files:
 Known; see `Lib.Cohomology.Etale.FilteredLimits` and `Lib.Cohomology.ProperBaseChange.Theorem` for
 sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Zorn's lemma, Mayer–Vietoris and reduction to connected pieces
@@ -429,7 +433,7 @@ lemma IsTestCohomEquiv.of_connected (hX : IsCohomContinuous Λ X)
   let G : Ideal R ⥤ AddCommGrpCat := TestCohomology.antitoneFamily hU.antitone Λ n
   let K : Ideal R ⥤ AddCommGrpCat := TestCohomology.antitoneFamily (hU.antitone_preimage u) Λ n
   let π (a : Ideal R) : G.obj a →+ K.obj a := TestCohomology.map Λ (fromPreimage (U a) u) n
-  show Bijective (π ⊥)
+  change Bijective (π ⊥)
   have h_nat {a b : Ideal R} (f : a ⟶ b) (x : G.obj a) : K.map f (π a x) = π b (G.map f x) :=
     -- both sides are the pull-back along the composite `u⁻¹(U b) → U a`
     calc K.map f (π a x)

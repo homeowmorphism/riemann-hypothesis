@@ -1,7 +1,9 @@
-import Lib.GaloisRep.Pseudocharacter.SemisimpleRepresentations
-import Lib.General.NumberTheory.PadicLimitsValuation
-import Lib.PadicHodge.Kisin.PeriodMatrixFrame
-import Lib.PadicHodge.RadiusLemma
+module
+
+public import Lib.GaloisRep.Pseudocharacter.SemisimpleRepresentations
+public import Lib.General.NumberTheory.PadicLimitsValuation
+public import Lib.PadicHodge.Kisin.PeriodMatrixFrame
+public import Lib.PadicHodge.RadiusLemma
 
 /-!
 # Uniform period bounds and limits of crystalline lattices with bounded jumps
@@ -45,6 +47,8 @@ Notions from other files:
 
 Known; see `Lib.PadicHodge.Limit.TraceLimit` and `Lib.PadicHodge.RadiusLemma` for sources.
 -/
+
+@[expose] public section
 
 /-! ## Crystalline modules with Hodge–Tate jumps in [0, h] -/
 
@@ -293,7 +297,7 @@ lemma exists_finite_groupRing_quotient [IsTopologicalGroup G] [Finite κ] {τ : 
       finite := h_finite
       surjective := Φ.rangeRestrict_surjective
       factors := fun s y ↦ by simp [u, Φ] -- the maps `u s` recover the `τ s`
-      apply_eq_zero_iff := fun y ↦ by simp [Φ, Subtype.ext_iff, funext_iff]
+      apply_eq_zero_iff := fun y ↦ Subtype.ext_iff.trans (by simp [Φ, funext_iff])
       isCrystallineUpTo := fun {h w} h_crys ↦ ?_ }⟩
   -- The columns of the `u s` are jointly injective equivariant maps from `T` to the `τ s`.
   let f (s : Σ s, (τ s).Index) : Φ.range →ₗ[ℤ_[p]] (τ s.fst).Index → PadicAlgCl p :=
@@ -392,7 +396,7 @@ lemma linearIndependent_of_mem_fixedPeriods {c : Chart} (hc : c.IsChartOf (Γ :=
   refine ker_eq_bot.mp (bot_unique
     (le_of_fixed_mem_of_saturated (Γ := Δ) le_top h_sat (fun a ha g ↦ ?_) fun a ha hinv ↦ ?_))
   · -- The relations are stable under `Δ`, as the `y i` are fixed.
-    show toGp g • a ∈ ker φ
+    change toGp g • a ∈ ker φ
     rw [mem_ker, ← eventually_tensorAction_eq hfix a g, mem_ker.mp ha, map_zero]
   -- The coefficients of an invariant relation lie in `W[1/p]`.
   have hcoef (t : n) : ∃ (m : ℕ) (b : WittFq c.f),
@@ -411,7 +415,7 @@ lemma linearIndependent_of_mem_fixedPeriods {c : Chart} (hc : c.IsChartOf (Γ :=
         ← mul_assoc, Finsupp.linearCombination]
     exact periodTensorMap_injective (by rw [h_image, mem_ker.mp ha, smul_zero, map_zero])
   have hb₀ (t : n) : b t = 0 := by
-    simpa [WittVector.p_nonzero] using Fintype.linearIndependent_iff.mp hy_indep _ hrel t
+    simpa [WittVector.p_ne_zero] using Fintype.linearIndependent_iff.mp hy_indep _ hrel t
   ext t
   have hp : (p : Bmax) ≠ 0 := (NeZero.of_faithfulSMul ℚ_[p] Bmax p).out
   simpa [hp, hb₀] using hb t

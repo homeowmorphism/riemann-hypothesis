@@ -1,4 +1,6 @@
-import Lib.Weil.Periods.BesselIntegral
+module
+
+public import Lib.Weil.Periods.BesselIntegral
 
 /-!
 # Integrals over a quotient as finite sums over cosets with controlled multiplicity
@@ -33,6 +35,8 @@ Notions from other files:
 
 See `New.UpperBound.Seesaw.SeesawIdentity` for related work.
 -/
+
+@[expose] public section
 
 open MeasureTheory Measure Subgroup QuotientGroup MulAction Set Pointwise ProbabilityTheory
 
@@ -171,7 +175,7 @@ lemma exists_finset_coverMultiplicity_dvd_pow {S A J : Subgroup (Gf E ι)} [hA :
   -- `T` is finite: it lies in the image of the compact set `A * D` modulo the open subgroup `J`.
   obtain ⟨T, mem_T⟩ : ∃ T : Finset (Gf E ι ⧸ J),
       ∀ t : Gf E ι ⧸ J, t ∈ T ↔ ∃ p : S, ↑p ∈ A ∧ p⁻¹ • t ∈ C := by
-    refine Finite.exists_finset
+    refine Finite.exists_finset (s := {t | ∃ p : S, ↑p ∈ A ∧ p⁻¹ • t ∈ C})
       ((finite_quotient_image_of_isCompact hJ.isOpen (hA.isCompact.mul hD_compact)).subset ?_)
     intro t ⟨p, hp, hpt⟩
     obtain ⟨d, hd, hd_eq⟩ := hC hpt
@@ -217,7 +221,7 @@ lemma lintegral_indicator_inv_coverMultiplicity {S A J : Subgroup (Gf E ι)} [hA
   have : DiscreteTopology (Gf E ι ⧸ J) := discreteTopology hJ.isOpen
   set R : Set S := {u | u⁻¹ • t ∈ T}
   have hR_meas : MeasurableSet R := (T.finite_toSet.isClosed.preimage
-    ((continuous_subtype_val.comp continuous_inv).smul continuous_const)).measurableSet
+    ((continuous_subtypeVal.comp continuous_inv).smul continuous_const)).measurableSet
   -- The multiplicity is constant on the orbit of `t`, so the integrand is the constant
   -- `1 / coverMultiplicity S A T t` on `R` and zero off `R`.
   trans ((coverMultiplicity S A T t : NNReal)⁻¹ : NNReal) * η R

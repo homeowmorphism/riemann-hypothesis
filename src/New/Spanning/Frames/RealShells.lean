@@ -1,6 +1,8 @@
-import New.Spanning.Bessel.Orthonormality
-import New.Spanning.Frames.RealPlaceGauge
-import New.Spanning.Frames.Shells
+module
+
+public import New.Spanning.Bessel.Orthonormality
+public import New.Spanning.Frames.RealPlaceGauge
+public import New.Spanning.Frames.Shells
 
 /-!
 # Cut Bessel functions at ℂ: integration of the local estimates over shells
@@ -49,6 +51,8 @@ Notions from other files:
   a < j. A normalised integral is an integral over G₁ times this density and
   `New.Floors.IsCutBessel.formConst`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -144,17 +148,6 @@ lemma isHead_gauge_iff (hF : IsCutBessel F rep ρ s b F₀ f) (hL : ρ ≤ L) :
     (hF.gauge hL).IsHead j p ↔ ∀ l ≤ j, ‖(∏ a ∈ range l, p a).val‖⁻¹ ≤ L := by
   simp only [IsHead, hF.mem_ofSize_gauge, Units.val_inv_eq_inv_val, norm_inv, pow_one]
 
-/-- If the orbital integral J(γ) = ∫ F(y) ⊗ F(γ⁻¹y)^* dy of a cut Bessel function `F` of box size
-`ρ` is not zero, then all leading minors of the matrix `realFrameGram γ` of the products
-`h(f_a, γ f_b)` have modulus at most `ρ ^ (9 * 𝔰.n)`, where f is the frame (e₀, …, e_{ϱ-1}, z).
--/
-theorem norm_leadingMinor_le_of_besselOrbitalIntegral_ne_zero (hF : IsCutBessel F rep ρ s b F₀ f)
-    {γ : 𝔰.G₁} (hγ : besselOrbitalIntegral volume F γ ≠ 0) (j : Fin (𝔰.n + 1)) :
-    ‖leadingMinor (realFrameGram γ) j‖ ≤ ρ ^ (9 * 𝔰.n) :=
-  hF.mem_ofSize_gauge le_rfl |>.1 <|
-    (hF.gauge le_rfl).leadingMinor_mem_ofSize_of_besselOrbitalIntegral_ne_zero
-      hF.isCut_complexData hγ j
-
 /-- The exponent `s` is at least `10 ^ 10 * 𝔰.n ^ 4`, since the hypotheses carried by `hF` give
 `s + 3 𝔰.n + 6 ≥ 𝔰.n ^ 7` and `𝔰.n > 10 ^ 8`. -/
 lemma mul_pow_four_le_s (hF : IsCutBessel F rep ρ s b F₀ f) : 10 ^ 10 * 𝔰.n ^ 4 ≤ s := by
@@ -230,9 +223,9 @@ lemma pairingNormSq_le [Nonempty I] (hF : IsCutBessel F rep ρ s b F₀ f) :
     hF.complexData.pairingNormSq F ≤ hF.haarRatio ^ 2 * card I := by
   -- The integral over `y` is at most `haarRatio * ‖F x‖ ^ 2`, as `∫ F ⊗ F^* ≤ 1` on the quotient.
   have h_cut : hF.complexData.IsCut F := hF.isCut_complexData
-  have h_meas : Measurable fun g : 𝔰.G₁ ↦ ‖F g‖ₑ ^ 2 := h_cut.stronglyMeasurable.enorm.pow_const 2
+  have h_meas : Measurable fun g : 𝔰.G₁ ↦ ‖F g‖ₑ ^ 2 := h_cut.stronglyMeasurable.eNorm.pow_const 2
   have h_inv : besselU.FixesLeft fun g : 𝔰.G₁ ↦ ‖F g‖ₑ ^ 2 := fun u hu g ↦ by
-    simp [h_cut.map_unipotent_mul u hu, enorm_smul, ← ofReal_norm (wave _)]
+    simp [h_cut.map_unipotent_mul u hu, eNorm_smul, ← ofReal_norm (wave _)]
   set μ : Measure 𝔰.G₁ := hF.complexData.quotientMeasureFrom 0
   -- `h_unfold` turns integrals of invariant functions against `quotientMeasureFrom 0` into
   -- `haarRatio` times integrals over the quotient.
@@ -244,7 +237,7 @@ lemma pairingNormSq_le [Nonempty I] (hF : IsCutBessel F rep ρ s b F₀ f) :
       ∫⁻ y, ‖inner ℂ v (F y)‖ₑ ^ 2 ∂μ ≤ hF.haarRatio * ‖v‖ₑ ^ 2 := by
     have h_meas_inner : Measurable fun y : 𝔰.G₁ ↦ ‖inner ℂ v (F y)‖ₑ ^ 2 := by fun_prop
     have h_inv_inner : besselU.FixesLeft fun y : 𝔰.G₁ ↦ ‖inner ℂ v (F y)‖ₑ ^ 2 := fun u hu g ↦ by
-      simp [h_cut.map_unipotent_mul u hu, enorm_mul, ← ofReal_norm (wave _)]
+      simp [h_cut.map_unipotent_mul u hu, eNorm_mul, ← ofReal_norm (wave _)]
     have h_quot : ∫⁻ y, ‖inner ℂ v (F y)‖ₑ ^ 2 ∂besselQuotMeasure ≤ ‖v‖ₑ ^ 2 :=
       hF.toIsCutPair.lintegral_sq_inner_cut_le hF.irreducible v
     grw [h_unfold _ h_meas_inner h_inv_inner, h_quot]
@@ -293,7 +286,7 @@ lemma floorForm_eq_zero_of_lt (hF : IsCutBessel F rep ρ s b F₀ f) (hj : j ≤
       ρ ^ (9 * 𝔰.n) < ‖(∏ a ∈ range l, q a).val‖) {ω : 𝔰.G₁ → ℂ} (hω : ∀ x : 𝔰.G₁, ‖ω x‖ ≤ 1) :
     hF.complexData.floorForm j p q F ω = 0 := by
   have h_modulus (x : 𝔰.G₁) : hF.complexData.formIntegrandL1Norm j p q F x ω = 0 :=
-    le_zero_iff.1 ((hF.isCut_complexData.formIntegrandL1Norm_le_formMajorant hω).trans_eq
+    nonpos_iff_eq_zero.1 ((hF.isCut_complexData.formIntegrandL1Norm_le_formMajorant hω).trans_eq
       (hF.formMajorant_eq_zero_of_lt hj hl h_big x))
   have h_le : ‖hF.complexData.floorForm j p q F ω‖ₑ ≤ hF.complexData.headDensity j p q *
       ∫⁻ x, hF.complexData.formIntegrandL1Norm j p q F x ω ∂hF.complexData.groupMeasure :=
@@ -724,7 +717,7 @@ lemma norm_floorForm_le [Nonempty I] (hF : IsCutBessel F rep ρ s b F₀ f) (hj 
   rw [← ofReal_le_ofReal_iff bound_nonneg]
   calc
     _ = card I * (‖(hF.formConst : ℂ)‖ₑ * ‖hF.complexData.floorForm j p q F ω‖ₑ) := by
-      rw [ofReal_mul (Nat.cast_nonneg _), ofReal_natCast, ofReal_norm, enorm_mul]
+      rw [ofReal_mul (Nat.cast_nonneg _), ofReal_natCast, ofReal_norm, eNorm_mul]
     _ ≤ card I * (‖(hF.formConst : ℂ)‖ₑ * (hF.complexData.headDensity j p q *
         ∫⁻ x, hF.complexData.formIntegrandL1Norm j p q F x ω ∂hF.complexData.groupMeasure)) := by
       grw [enorm_floorForm_le]

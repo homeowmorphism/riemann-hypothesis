@@ -1,4 +1,6 @@
-import Lib.Adelic.Adeles.AdditiveCharacter
+module
+
+public import Lib.Adelic.Adeles.AdditiveCharacter
 
 /-!
 # Principal ideles and a majorant on the complex torus
@@ -16,6 +18,8 @@ Notions from other files:
   chosen embeddings.
 * `New.ratAdeles E`: the image of E under `New.toAdele`, a lattice in the adeles.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -62,7 +66,7 @@ lemma integrable_prod_inv_one_add_log_sq [Fintype ι] :
     exact h_eval.norm.log
   have h_polar : Continuous polar.uncurry := by
     rw [Units.isOpenEmbedding_val.isInducing.continuous_iff]
-    simp only [polar]
+    simp only [polar, Function.comp_def, Function.uncurry_def, IsUnit.unit_spec]
     fun_prop
   -- `L` turns multiplication by `polar t 1` into translation by `t`
   have h_conj (t : ι → ℝ) : Function.Semiconj L (polar t 1 * ·) (t + ·) := by

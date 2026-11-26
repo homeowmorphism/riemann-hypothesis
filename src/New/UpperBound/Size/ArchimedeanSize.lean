@@ -1,8 +1,10 @@
-import New.Reduction.PrimeSums
-import New.Spanning.Unfolding.FillingAdmissible
-import New.UpperBound.Divisibility.ChainDatumExpansion
-import New.UpperBound.Objects.RowChain
-import New.UpperBound.Size.Estimates
+module
+
+public import New.Reduction.PrimeSums
+public import New.Spanning.Unfolding.FillingAdmissible
+public import New.UpperBound.Divisibility.ChainDatumExpansion
+public import New.UpperBound.Objects.RowChain
+public import New.UpperBound.Size.Estimates
 
 /-!
 # Archimedean size of the composite lift, and passage to target forms by the good projection
@@ -43,6 +45,8 @@ which gives the size side of the product formula. Related work on algebraic modu
 on lattice classes: Gross, Algebraic modular forms, 1999; Greenberg–Voight, Lattice methods for
 algebraic modular forms on classical groups, 2014.
 -/
+
+@[expose] public section
 
 /-!
 ## Archimedean size bound for the composite of theta lifts on source forms
@@ -108,7 +112,7 @@ lemma mul_jetSize_sub_mainPrimeSum_sub_le {P : Parameters} (D : Data P) :
   set G : ℝ := log (D.M * D.rootDisc / (2 * Real.pi))
   -- The lower end of the window for `log N`.
   have level : D.m * (w + G) - (G + 15 / 2 * D.logB) ≤ log D.N := by
-    grw [← D.log_N_mem_Icc_logLevelTarget.1, logLevelTarget]
+    grw [← D.log_N_mem_Icc_logLevelTarget.1, logLevelTarget, New.Parameters.logLevelMin]
     linarith
   have h_stirling : D.m * (1 + log D.a / 2) ≤ D.a * D.logB := D.le_of_hasLogBound
   have h_size : G ≤ 23 * D.logB := le_of_abs_le D.abs_log_M_mul_rootDisc_le
@@ -301,7 +305,7 @@ lemma sum_rowSizeSum_le {P : Parameters} (D : Data P) :
     grw [D.jetSize_le_add (D.diagramWeight_le_rowMainLength_add_rowSlack hj τ i),
       D.rowMainLength_add_rowSlack_le τ i, h_box]
   have h_first : ∑ τ : D.Φ, D.jetSize (D.columnCount τ 1) = #D.aPlaces * D.jetSize D.a := by
-    simp [columnCount, apply_ite D.jetSize, D.jetSize_zero]
+    simp [columnCount, apply_ite D.jetSize, D.jetSize_zero, Finset.univ_inter]
   let main : ℝ :=
     ∑ τ : D.Φ, D.jetSize (D.columnCount τ 1) + (D.k - 1) * ∑ τ : D.Φ, D.jetSize (D.weight τ)
   let slack : ℝ := D.f * (25 * D.logB * (D.natB + D.offWeight + D.n D.m * D.halfGap ^ 2))
@@ -403,7 +407,7 @@ lemma weylNormSq_restrictedChain_le {P : Parameters} {D : Data P} {Ψ : D.Transl
       2 * (D.m * exp (30 * D.logX) + exp (60 * D.logX) + D.m * exp (50 * D.logX)) +
       32 * (D.f * D.a * D.logB) ≤ D.errorUnit / 2 :=
     D.le_of_hasLogBound
-  have hx (k : ℕ) : D.x ^ k = exp (k * D.logX) := (exp_nat_mul _ _).symm
+  have hx (k : ℕ) : D.x ^ k = exp (k * D.logX) := (exp_natCast_mul _ _).symm
   calc weylNormSq (σ ∘ (restrictedChain TameChar.one Ψ φ).val y)
     _ ≤ exp (D.x ^ 70 - (∑ τ : D.Φ, D.branchExponent τ : ℝ) * log D.N) *
         size D.m (ψ.val (D.borderU y)) ^ 2 := by
@@ -415,7 +419,7 @@ lemma weylNormSq_restrictedChain_le {P : Parameters} {D : Data P} {Ψ : D.Transl
     _ = exp (D.x ^ 70 - (#D.aPlaces * D.a - D.f * (D.m * D.halfGap)) * log D.N +
         2 * (D.m * D.x ^ 30 + (D.x ^ 60 +
           (D.m * D.x ^ 50 + (∑ j ∈ range D.m, D.rowSizeSum j) / 2 + B / 2)))) := by
-      simp [R, ← exp_nat_mul, ← exp_sum, sum_add_distrib, ← sum_div, ← exp_half, ← exp_add]
+      simp [R, ← exp_natCast_mul, ← exp_sum, sum_add_distrib, ← sum_div, ← exp_half, ← exp_add]
     _ ≤ exp (B + (D.mainAmount - D.m * D.totalRemainder +
         2 * ∑ p ∈ D.smallNonsplitPrimes, D.gain p * log p + D.errorUnit)) := by
       refine exp_le_exp.2 ?_

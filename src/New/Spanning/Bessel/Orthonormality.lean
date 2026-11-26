@@ -1,6 +1,8 @@
-import Lib.DiscreteSeries.Bessel.SchurBound
-import Lib.DiscreteSeries.Bessel.UnipotentHaarMeasure
-import New.Spanning.Bessel.Basic
+module
+
+public import Lib.DiscreteSeries.Bessel.SchurBound
+public import Lib.DiscreteSeries.Bessel.UnipotentHaarMeasure
+public import New.Spanning.Bessel.Basic
 
 /-!
 # Normalisation of a Bessel function and of its cut
@@ -33,6 +35,8 @@ Notions from other files:
 
 See `New.Spanning.Bessel.CutTailBound` for related work.
 -/
+
+@[expose] public section
 
 open Matrix MeasureTheory Complex Subgroup ComplexConjugate
 
@@ -98,7 +102,7 @@ lemma New.IsBesselFunction.integral_mul_conj_eq {𝔰 : Shape} {I : Type} [Finty
       simp [R, hW.map_unitary_mul, mulVec, dotProduct, Finset.sum_mul, Finset.mul_sum, mul_assoc,
         mul_comm (conj (W y _))]
     calc (R * M * star R) p q
-        = ∑ l, ∑ k, R p k * M k l * conj (R q l) := by simp [mul_apply, Finset.sum_mul]
+        = ∑ l, ∑ k, R p k * M k l * conj (R q l) := by simp [Matrix.mul_apply, Finset.sum_mul]
       _ = ∫ y, ∑ l, ∑ k, R p k * (W y k * conj (W y l)) * conj (R q l) ∂besselQuotMeasure := by
         simp (disch := fun_prop) only [M, of_apply, integral_finsetSum, integral_mul_const,
           integral_const_mul]
@@ -145,7 +149,7 @@ lemma New.IsCutPair.integrable_cut {𝔰 : Shape} {I : Type} [Fintype I] [Decida
     exact (le_mul_of_one_le_left' h_one_le_weight).trans (hA.pow_mul_enorm_le .cut y)
   have h_fin : ∫⁻ y, A y ∂besselQuotMeasure < ⊤ := by
     obtain rfl | ha := eq_or_ne a 0
-    · have h_zero (y : 𝔰.G₁) : A y = 0 := le_zero_iff.1 (hA.le_bound y)
+    · have h_zero (y : 𝔰.G₁) : A y = 0 := nonpos_iff_eq_zero.1 (hA.le_bound y)
       simp [h_zero]
     · have h_mul : a * ∫⁻ y, A y ∂besselQuotMeasure < ⊤ :=
         hA.bound_mul_lintegral_le.trans_lt (by finiteness)

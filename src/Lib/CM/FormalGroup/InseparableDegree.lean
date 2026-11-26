@@ -1,5 +1,8 @@
-import Lib.CM.FormalGroup.PrimeNotation
-import Lib.CM.Integrality.IsogenyIntegrality
+module
+
+public import Lib.CM.FormalGroup.PrimeNotation
+public import Lib.CM.Integrality.IsogenyIntegrality
+public import TauCeti.RingTheory.PowerSeries.Substitution
 
 /-!
 # The inseparable degree
@@ -31,27 +34,11 @@ varieties, arXiv 1311.5454, Theorem 1.1; Bluher, Formal groups, elliptic curves,
 of Couveignes, ANTS-III, LNCS 1423 (1998), 3.2 and 6.1 (numbering of arXiv math/9708215).
 -/
 
+@[expose] public section
+
 open PowerSeries IsLocalRing ComplexConjugate
 
 namespace New
-
-/-- Over a field, the order of `f(g)` is the product of the orders of `f` and `g`, for a power
-series `g` without constant term. -/
-lemma order_subst {k : Type*} [Field k] {g : k⟦X⟧} (hg : constantCoeff g = 0) (f : k⟦X⟧) :
-    order (subst g f : k⟦X⟧) = f.order * g.order := by
-  have hg_subst : HasSubst g := .of_constantCoeff_zero' hg
-  obtain rfl | hf := eq_or_ne f 0
-  · rw [← coe_substAlgHom hg_subst, map_zero, order_zero,
-      ENat.top_mul (order_ne_zero_iff_constCoeff_eq_zero.2 hg)]
-  -- Write `f = X ^ n * u` with `u(0) ≠ 0`; then `f(g) = g ^ n * u(g)`, and `u(g)` is a unit.
-  have hu : IsUnit (divXPowOrder f) :=
-    isUnit_iff_constantCoeff.2 (Ne.isUnit (mt constantCoeff_divXPowOrder_eq_zero_iff.1 hf))
-  have hu_subst : order (subst g (divXPowOrder f) : k⟦X⟧) = 0 := by
-    simpa only [← coe_substAlgHom hg_subst] using order_zero_of_isUnit (hu.map _)
-  have h_eq : (subst g f : k⟦X⟧) = g ^ f.order.toNat * subst g (divXPowOrder f) := by
-    conv_lhs => rw [← X_pow_order_mul_divXPowOrder (f := f)]
-    rw [subst_mul hg_subst, subst_pow hg_subst, subst_X hg_subst]
-  rw [h_eq, order_mul, order_pow, hu_subst, add_zero, nsmul_eq_mul, coe_toNat_order hf]
 
 variable {p : ℕ} [Fact p.Prime]
 
@@ -119,7 +106,7 @@ lemma reducedOrder_subst {T : ℂ_[p]⟦X⟧} (hT : T ∈ C.integralSeriesRing) 
         (.of_constantCoeff_zero' hy₀)]
   rw [h_comp, reducedOrder_subst_translatedY, reducedOrder_subst_translatedY,
     show map (residue (valRingCp p)) (subst u g) = subst (u.map _) (g.map _) from map_subst hu g,
-    order_subst (by simp [← coeff_zero_eq_constantCoeff_apply, hu₀])]
+    PowerSeries.order_subst (by simp [← coeff_zero_eq_constantCoeff_apply, hu₀]), mul_comm]
 
 /-- A series in `C.integralSeriesRing = 𝒪[[y]]` whose constant coefficient has norm one has the
 reduced order (the order in `y` modulo the maximal ideal) zero. -/
@@ -137,7 +124,7 @@ lemma reducedOrder_eq_one {T : ℂ_[p]⟦X⟧} (hT : T ∈ C.integralSeriesRing)
   obtain ⟨u, rfl⟩ := C.exists_eq_subst_of_mem_integralSeriesRing hT
   rw [constantCoeff_subst_eq C.constantCoeff_taylorVia_translatedY] at hT₀
   rw [coeff_one_subst C.constantCoeff_taylorVia_translatedY, coeff_one_taylorVia_translatedY,
-    mul_one] at hT₁
+    mul_one, Algebra.algebraMap_self_apply] at hT₁
   rw [reducedOrder_subst_translatedY, ← Nat.cast_one, order_eq_nat]
   have hu₁ : IsUnit (coeff 1 u) := isUnit_integer_iff_norm_eq_one.2 hT₁
   simp [show constantCoeff u = 0 from Subtype.ext hT₀, hu₁]

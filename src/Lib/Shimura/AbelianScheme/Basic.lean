@@ -1,5 +1,7 @@
-import Lib.General.Geometry.LineBundles
-import Lib.General.Groups.CongruenceSubgroups
+module
+
+public import Lib.General.Geometry.LineBundles
+public import Lib.General.Groups.CongruenceSubgroups
 
 /-!
 # Abelian schemes: base change, finite kernels and constant functions
@@ -30,6 +32,8 @@ Notions from other files:
 
 Known; see `Lib.Shimura.AbelianScheme.IsogenyFlatness` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -206,6 +210,24 @@ def ParallelogramLaw : Prop :=
 
 end Pic
 
+namespace Variety
+
+open Pic
+
+variable {R : CommRingCat} {A : Over (Spec R)} [IsLocalRing R] [AddObj A] {c : Pic A.left}
+
+omit [AddObj A] in
+/-- Over a local ring, a class pulls back to zero along a point that comes from a section. -/
+@[simp]
+lemma atPoint_toUnit_comp_eq_zero {T : Over (Spec R)} (z : 𝟙_ (Over (Spec R)) ⟶ A) :
+    c.atPoint (toUnit T ≫ z) = 0 := by
+  simp [Pic.atPoint, c.pull_comp, eq_zero_of_isLocalRing]
+
+@[simp]
+lemma atPoint_zero {T : Over (Spec R)} : c.atPoint (T := T) 0 = 0 := atPoint_toUnit_comp_eq_zero _
+
+end Variety
+
 end New
 
 end AbelianScheme
@@ -350,6 +372,7 @@ variable {R : Type} [CommRing R] {A B : Over (Spec ⟨R⟩)} [AddObj B] {f : A �
 omit [AddObj B] in
 /-- If `A` is locally of finite presentation over `Spec R` and `B` is locally of finite type over
 `Spec R`, then every morphism `f : A ⟶ B` over `Spec R` is locally of finite presentation. -/
+@[stacks 02FV "first assertion, over an affine base"]
 lemma locallyOfFinitePresentation_left [hB : LocallyOfFiniteType B.hom]
     [h : LocallyOfFinitePresentation A.hom] :
     LocallyOfFinitePresentation f.left := by

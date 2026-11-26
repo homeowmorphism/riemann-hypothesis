@@ -1,5 +1,7 @@
-import New.Derivatives.Divisibility.NullFrames
-import New.Derivatives.FormalGroup.ThetaProducts
+module
+
+public import New.Derivatives.Divisibility.NullFrames
+public import New.Derivatives.FormalGroup.ThetaProducts
 
 /-!
 # Divisibility of the jets of a series with the normal form along products of minors
@@ -55,6 +57,8 @@ entre nombres de Bernoulli–Hurwitz dans le cas supersingulier, 1990; Fujiwara,
 special values of real analytic Eisenstein series, 1988; Bannai–Kobayashi–Yasuda, Radius of
 convergence of the p-adic sigma function, 2017.
 -/
+
+@[expose] public section
 
 open Finset MvPolynomial Matrix Fintype
 
@@ -224,8 +228,8 @@ lemma jet_columnDetProd_subst [DecidableEq Φ] (i' : WeylIndex n' κ) (c : Φ �
     ext b k : 1
     rw [Matrix.mul_assoc, diagonal_mul, AlgHom.mapMatrix_apply, map_apply, of_apply,
       linSubst_directionSubst_X]
-    simp only [newDirection, dotProduct, mul_apply, of_apply, RingHom.mapMatrix_apply, map_apply,
-      transpose_apply, map_sum, map_mul, smul_eq_C_mul, sum_mul]
+    simp only [newDirection, dotProduct, Matrix.mul_apply, of_apply, RingHom.mapMatrix_apply,
+      map_apply, transpose_apply, map_sum, map_mul, smul_eq_C_mul, sum_mul]
     exact congrArg _ (sum_comm.trans (sum_congr rfl fun k' _ ↦ sum_congr rfl fun a _ ↦ by ring))
   have h_poly : linSubst (directionSubst c (newDirection g y)) (columnDetProd R i') =
       (∏ τ : Φ, ∏ h : Fin (card n'), ∏ j : Fin (κ τ h),

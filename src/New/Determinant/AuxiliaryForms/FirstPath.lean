@@ -1,6 +1,8 @@
-import New.Determinant.AuxiliaryForms.DeepLevelVanishing
-import New.Determinant.AuxiliaryForms.GridFirstColumns
-import New.Determinant.Chain.ChainNorms
+module
+
+public import New.Determinant.AuxiliaryForms.DeepLevelVanishing
+public import New.Determinant.AuxiliaryForms.GridFirstColumns
+public import New.Determinant.Chain.ChainNorms
 
 /-!
 # The maps `Θ^♭` and `res^♭`, and the first path
@@ -39,6 +41,8 @@ Notions from other files:
 
 See `New.Determinant.AuxiliaryForms.DeepLevelVanishing` for related work.
 -/
+
+@[expose] public section
 
 namespace New.Data
 
@@ -120,21 +124,12 @@ lemma formRep_transposedChain_eq_self (z : Bool) (ϑ : D.MFoldTwist) {i : ℕ} (
     obtain ⟨-, h_arrow⟩ := (isEdgeFamily_grid_succ_right (z := z) id zero_le hi_lt).isArrow_modDatum
       (i := ϑ) (S := D.gridSpace 0 z 0 i) (T := D.gridSpace 0 z 0 (i + 1))
       (Ψ := Exchange.pointDatum (triangleModulus z ϑ).ResidueRing)
-    let transposedLift : D.GridForm z 0 (i + 1) →ₗ[ℂ] D.GridForm z 0 i :=
-      Exchange.modTransposedLift (D.gridSpace 0 z 0 i) (D.gridSpace 0 z 0 (i + 1))
-        (gridChar ϑ (!z) i)
-        (D.gridHarmonic 0 false (!z) i z 0 i 0 (i + 1))
-        (Exchange.pointDatum (triangleModulus z ϑ).ResidueRing)
-        (D.gridKernel z 0 (i + 1) true) (D.gridKernel z 0 i true)
     -- As `(u, 1)` fixes the datum, `u` fixes every transposed lift.
     have h_datum := D.pairWeil_gridChar_modDatum_eq_self z ϑ i hu (u' := 1) (map_one _)
-    have h_law : (D.gridSpace 0 z 0 i).formRep (D.gridKernel z 0 i true) u.val (transposedLift x) =
-        transposedLift x := by
-      simpa using! h_arrow.formRep_formLift_of_eq_smul (c := 1)
-        ((h_datum _ _).trans (one_smul ℂ _).symm) x
-    have h_weight :
-        pointTransposedLift ϑ z i x = (triangleGLCard z ϑ i : ℂ) • transposedLift x := rfl
-    rw [h_weight, map_smul, h_law]
+    simp only [pointTransposedLift, LinearMap.smul_apply, map_smul]
+    apply congrArg ((triangleGLCard z ϑ i : ℂ) • ·)
+    simpa using! h_arrow.formRep_formLift_of_eq_smul (c := 1)
+      ((h_datum _ _).trans (one_smul ℂ _).symm) x
   rw [transposedChain_of_lt ϑ hi_lt, LinearMap.comp_apply, h_pointLift_fixed]
 
 /-- The space `TriangleForm z 0 i` consists of forms on `Y_i` for `z = false` and of conjugate forms

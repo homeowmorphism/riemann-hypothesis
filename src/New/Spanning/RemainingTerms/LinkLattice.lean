@@ -1,6 +1,8 @@
-import New.Spanning.RemainingTerms.Discriminants
-import New.Spanning.RemainingTerms.OrthogonalLifts
-import New.Spanning.Unfolding.ReducedPoints
+module
+
+public import New.Spanning.RemainingTerms.Discriminants
+public import New.Spanning.RemainingTerms.OrthogonalLifts
+public import New.Spanning.Unfolding.ReducedPoints
 
 /-!
 # The lattice of a link
@@ -31,6 +33,8 @@ Notions from other files:
 * `New.Filling.exists_lifts_linkDiscSq_le`: the discriminant of `L¹`.
 * `New.Filling.exists_hasLevelLifts_linkDiscSq_le`: the discriminant of `L⁺_γ`.
 -/
+
+@[expose] public section
 
 namespace New.Filling
 
@@ -647,7 +651,7 @@ lemma IsOrthogonalLift.eq_mul_of_isotropicRows_mul_eq_zero {σ : Type}
   have h_above (a : Fin 𝔰.ϱ) (ha : ¬a.1 < j) (b : σ) : d a b = 0 := by
     have h_row (x : IndexNotBelow j) : u (.inl a) (.inl x) = if ⟨a, ha⟩ = x then 1 else 0 :=
       (hu.apply_inl ⟨a, ha⟩).1 x
-    rw [hd, Matrix.sub_apply, mul_apply]
+    rw [hd, Matrix.sub_apply, Matrix.mul_apply]
     simp [h_row, apply_ite (algebraMap E (𝔸f E))]
   have h_orth : (isotropicRows (finAdeleMatrix (S.frameProducts γ)))ᴴ * d = 0 := by
     have h_shared :
@@ -663,7 +667,7 @@ lemma IsOrthogonalLift.eq_mul_of_isotropicRows_mul_eq_zero {σ : Type}
   have h_padded : (isotropicRows (finAdeleMatrix Y))ᴴ * d = 0 := by
     rw [← h_orth]
     refine Matrix.ext fun a b ↦ ?_
-    rw [mul_apply, mul_apply]
+    rw [Matrix.mul_apply, Matrix.mul_apply]
     refine Finset.sum_congr rfl fun x _ ↦ ?_
     by_cases hx : x.1 < j
     · simp [Y, paddedLeading, hx]
@@ -720,7 +724,7 @@ lemma hasLevelLifts_of_col_mem (hj : S.HasCellRank j γ) {ρ : Type} [Fintype ρ
       S.classCoord c * finAdeleMatrix u.toCols₁ = fromRows (finAdeleMatrix u.toCols₁.toRows₁)
         0 := by
     rw [hu.toCols₁_eq_fromRows, classCoord_eq_fromBlocks]
-    ext (a | a) b <;> simp [mul_apply, Matrix.one_apply]
+    ext (a | a) b <;> simp [Matrix.mul_apply, Matrix.one_apply]
   have h_new : S.classCoord c * finAdeleMatrix (fromCols t u.toCols₁) *
       fromRows w (-ι.submatrix (fun a : IndexNotBelow j ↦ a.1) id) =
         fromRows (S.ideleM • (of ω)ᵀ) n.toRows₂ := by

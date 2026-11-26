@@ -1,4 +1,6 @@
-import Lib.DiscreteSeries.FlenstedJensen.SquareIntegrability
+module
+
+public import Lib.DiscreteSeries.FlenstedJensen.SquareIntegrability
 
 /-!
 # The idempotent e_λ, the operator π(e_λ), and rigidity of highest vectors of type Λ
@@ -44,6 +46,8 @@ Known; see `Lib.DiscreteSeries.Rigidity.HighestVectorsAndFiltration`,
 `Lib.DiscreteSeries.Theta.LocalCorrespondence` and `Lib.DiscreteSeries.FlenstedJensen.PsiKTypes` for
 sources.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -219,7 +223,7 @@ theorem exists_integration_by_parts (hg : l.HasLargeGap A) (hu : IsUnitaryRep A 
       simpa [intervalIntegral.integral_of_le] using intervalIntegral.integral_eq_sub_of_hasDerivAt
         (fun t _ ↦ h_deriv g t) ((h_cont g).intervalIntegrable 0 1)
     rw [← add_eq_zero_iff_eq_neg, ← integral_add (h_int f _) (h_int _ _)]
-    calc ∫ g : USign ε, F' g = ∫ t in Set.Ioc (0 : ℝ) 1, ∫ g : USign ε, F' g := by simp
+    calc ∫ g : USign ε, F' g = ∫ t in Set.Ioc (0 : ℝ) 1, ∫ g : USign ε, F' g := by simp [Set.univ_inter]
       _ = ∫ g : USign ε, ∫ t in Set.Ioc (0 : ℝ) 1, F' (g * expU (t • Y)) :=
         (integral_skew_product (fun t ↦ map_mul_right_eq_self volume (expU (t • Y)))
           (hF'.comp_snd _)).2.symm

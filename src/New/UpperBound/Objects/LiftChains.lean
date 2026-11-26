@@ -1,9 +1,11 @@
-import Lib.General.LinearAlgebra.BlockEmbeddings
-import Lib.Shimura.HeckeTower.HeckeData
-import Lib.Weil.CompactLift.ThetaKernelDefs
-import New.Reduction.Data.Sizes
-import New.UpperBound.Objects.LabelsAndIndexTypes
-import New.UpperBound.Objects.LiftLawsModuloN
+module
+
+public import Lib.General.LinearAlgebra.BlockEmbeddings
+public import Lib.Shimura.HeckeTower.HeckeData
+public import Lib.Weil.CompactLift.ThetaKernelDefs
+public import New.Reduction.Data.Sizes
+public import New.UpperBound.Objects.LabelsAndIndexTypes
+public import New.UpperBound.Objects.LiftLawsModuloN
 
 /-!
 # Chains of theta lifts, jointly invariant combinations, and free levels
@@ -34,6 +36,8 @@ Notions from other files:
   inside the finite adelic group.
 * `New.Data.n`: The rank 𝗇_j = k + j(t + 1) of X_j.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -188,13 +192,6 @@ linear map `jetMap` between the Weyl modules of stages `j` and `j + 1` that belo
 def kernelProduct (Φ : (j : ℕ) → S j) (φ : AlgForm (n 0) κ (e 0)) (g : ∀ j : ℕ, Gf E (n j))
     (m : ℕ) : WeylIndex (n m) κ → ℂ :=
   compUpTo (fun j ↦ (k j).jetMap ((k j).ω (g j, g (j + 1)) (Φ j))) m (φ.val (g 0))
-
-omit [∀ j, IsLevel (K j)] in
-/-- The product of `m + 1` kernels is the last kernel applied to the product of the first `m`. -/
-lemma kernelProduct_succ (Φ : ∀ j : ℕ, S j) (φ : AlgForm (n 0) κ (e 0))
-    (g : ∀ j : ℕ, Gf E (n j)) (m : ℕ) :
-    kernelProduct k Φ φ g (m + 1) =
-      (k m).jetMap ((k m).ω (g m, g (m + 1)) (Φ m)) (kernelProduct k Φ φ g m) := rfl
 
 omit [Module ℚ M] [Module ℂ M] in
 /-- A sum over tuples of `m + 1` double cosets, sorted by the last one. For a tuple `c` of classes
@@ -500,7 +497,8 @@ instance isConjApart_chosenPlace : IsConjApart D.chosenPlace where
 chosen places. -/
 lemma range_chosenPlace : Set.range D.chosenPlace = {w : FinPlace D.E | D.IsChosen w} := by
   ext w
-  rw [Set.mem_ofPred, isChosen_iff]
+  change w ∈ Set.range D.chosenPlace ↔ D.IsChosen w
+  rw [Set.mem_range, isChosen_iff]
   refine ⟨?_, fun ⟨i, hw⟩ ↦ ⟨⟨i, w, hw⟩, rfl⟩⟩
   rintro ⟨⟨i, w, hw⟩, rfl⟩
   exact ⟨i, hw⟩
@@ -594,7 +592,7 @@ instance : D.HasLogUpper (P.q₂ D.towerExp) (D.logB / 9) := by
   -- `q₂` is at most a fixed power of `x`, and `log x ≤ log x₁` is negligible against `log b`.
   have h_scale : D.logX ≤ D.logX₁ := by grind [D.scale_inequalities]
   have h_pow : D.x ^ (33 * (P.q₀ * P.d)) ≤ exp (D.logB / 9) := by
-    rw [← exp_nat_mul, exp_le_exp]
+    rw [← exp_natCast_mul, exp_le_exp]
     calc _ ≤ (33 * (P.q₀ * P.d) : ℕ) * D.logX₁ := by gcongr
       _ ≤ D.logB / 9 := D.le_of_hasLogBound
   exact hasLogUpper_of_le_of_nonneg (D.q₂_le.trans h_pow) (Nat.cast_nonneg _)
@@ -616,7 +614,7 @@ lemma log_chosenGroupOrder_le : log D.chosenGroupOrder ≤ D.x ^ 32 := by
         log_le_log (Nat.cast_pos.2 (NeZero.pos _)) (Nat.cast_le.2 h_order)
     _ = (D.r * D.t) ^ 2 * D.f * log D.M := by simp
     _ ≤ exp (32 * D.logX) := D.le_of_hasLogBound
-    _ = D.x ^ 32 := exp_nat_mul D.logX 32
+    _ = D.x ^ 32 := exp_natCast_mul 32 D.logX
 
 /-- The bound `log chosenGroupOrder ≤ D.x ^ 32 = exp (32 * D.logX)`, as a logarithmic upper
 bound. -/

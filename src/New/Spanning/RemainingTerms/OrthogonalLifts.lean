@@ -1,4 +1,6 @@
-import New.Spanning.RemainingTerms.BorderedDeterminant
+module
+
+public import New.Spanning.RemainingTerms.BorderedDeterminant
 
 /-!
 # Orthogonal lifts and the two isotropic lists of a link
@@ -33,6 +35,8 @@ Notions from other files:
   `New.Filling.isotropicRowsIndex_mul_dvd_submoduleIndex`: the discriminant of the two lists, and
   a divisor of the index attached to the classes of the `e_a` and `k e_a`, `a < j`.
 -/
+
+@[expose] public section
 
 namespace New.Filling
 
@@ -356,7 +360,7 @@ lemma toRows₂_gram_framePair_isotropicFramePair (k : S.GFin) :
   rcases b with b | b
   · simp [frameGram, splitGram, Matrix.mul_apply, Matrix.one_apply, apply_ite star]
   · have h_form : k.val.valᴴ * (S.latticeMiddle (𝔸f E)).splitGram * k.val.val =
-        (S.latticeMiddle (𝔸f E)).splitGram := k.2
+        (S.latticeMiddle (𝔸f E)).splitGram := mem_unitaryGroupOf_iff.1 k.2
     refine (congrFun₂ h_form _ _).trans ?_
     cases a using lastCases <;> simp
 

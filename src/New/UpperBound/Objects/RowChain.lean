@@ -1,4 +1,6 @@
-import New.UpperBound.Objects.Rows
+module
+
+public import New.UpperBound.Objects.Rows
 
 /-!
 # The chain of theta lifts ι_μ along the spaces Y_j: level, character and 𝖦-equivariance
@@ -28,6 +30,8 @@ Notions from other files:
 * `New.Data.pointDatumY`: the finite datum on Hom(Y_j, Y_{j+1}), the indicator of the inclusion
   modulo the level places and the vacuum elsewhere.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -440,7 +444,7 @@ lemma lowerChain_principalRep (ϑ : D.TameChar) (s : D.chosenGL)
     rw [h_row x a b (Fin.ne_zero_of_lt hab), ite_eq_right fun h_eq : a = b ↦ hab.ne (by rw [h_eq])]
   have h_block (x : (D.levelPlaces ϑ).ChosenIndex ⊕ (D.levelPlaces ϑ).TwistIndex)
       (l : Fin D.m) : (g x).val.toSquareBlock (blockNumber D.m) l.succ = 1 := by
-    simp +contextual [← ext_iff, one_apply, toSquareBlock_def, h_row]
+    simp +contextual [← ext_iff, Matrix.one_apply, toSquareBlock_def, h_row]
   -- So all the character values in the law of the chain are 1.
   have h_scalar : ∏ x : (D.levelPlaces ϑ).ChosenIndex ⊕ (D.levelPlaces ϑ).TwistIndex,
       ∏ l : Fin D.m, chainTamePart ϑ l ((D.levelPlaces ϑ).placeAt x)

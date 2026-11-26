@@ -1,5 +1,8 @@
-import Lib.Cohomology.Hodge.Site
-import Lib.PadicComparison.Descent.AlmostDescent
+module
+
+public import Lib.Cohomology.Hodge.Site
+public import Lib.PadicComparison.Descent.AlmostDescent
+import TauCeti.RingTheory.MvPolynomial.RegularSequence
 
 /-!
 # Vanishing of Hodge cohomology with supports below the depth, and Zariski descent
@@ -26,6 +29,8 @@ Notions from other files:
 
 Known; see `Lib.Cohomology.Hodge.FixedPointFormula` for sources.
 -/
+
+@[expose] public section
 
 open CategoryTheory Function TensorProduct Ideal RingTheory.Sequence MvPolynomial Functor RingHom
   IsLocalization.Away ConcreteCategory TrivSqZeroExt IsLocalizedModule LinearMap Localization Fin
@@ -273,20 +278,8 @@ sequence. -/
 lemma isWeaklyRegular_X_castAdd (e : ℕ) :
     IsWeaklyRegular (MvPolynomial (Fin (d + e)) k)
       (List.ofFn (X (R := k) ∘ castAdd (n := d) e)) := by
-  refine ⟨fun i hi_len ↦ (isSMulRegular_quotient_iff_mem_of_smul_mem ..).mpr fun q hq ↦ ?_⟩
-  have hi : i < d + e := by grind
-  have h_vars : {r : MvPolynomial (Fin (d + e)) k |
-      r ∈ (List.ofFn (X (R := k) ∘ castAdd (n := d) e)).take i} =
-      X '' castAdd e '' {j : Fin d | j < i} := by
-    grind -ring -linarith [List.mem_take_iff_getElem]
-  -- Membership in the ideal of the variables below `i` is read off the monomials, and
-  -- multiplying by the `i`-th variable does not change the exponents below `i`.
-  rw [smul_eq_mul, mul_top, ofList, h_vars, mem_ideal_span_X_image] at hq ⊢
-  intro m hm
-  have h_mem : Finsupp.single ⟨i, hi⟩ 1 + m ∈
-      ((List.ofFn (X (R := k) ∘ castAdd (n := d) e))[i] • q).support := by
-    simp_all
-  exact (hq _ h_mem).imp (by grind -linarith [Finsupp.add_apply])
+  rw [← List.map_ofFn]
+  exact isWeaklyRegular_map_X _ (List.nodup_ofFn.2 (castAdd_injective d e))
 
 /-- Let `c = (A, M)` be a pair over `k` and `x_1, …, x_{2d}` étale coordinates on `A`, that is,
 the `k`-algebra map `polyEval x : k[X_1, …, X_{2d}] → A` sending `X_i` to `x_i` is étale. Then
@@ -300,7 +293,7 @@ lemma hodge_vanishing_along_diagonal {x : Fin (d + d) → c.baseAlg} (hx_etale :
   -- It is the image of the first `d` variables under a flat map: a linear change of variables
   -- `σ` followed by the étale map `polyEval x`.
   let σ : MvPolynomial (Fin (d + d)) k →ₐ[k] MvPolynomial (Fin (d + d)) k :=
-    bind₁ (append (X ∘ castAdd d - X ∘ natAdd d) (-X ∘ natAdd d))
+    aeval (append (X ∘ castAdd d - X ∘ natAdd d) (-X ∘ natAdd d))
   -- on the variables `σ` is the involution `(u, v) ↦ (u - v, -v)` of the two halves
   have hσ_X (i : Fin (d + d)) : σ (σ (X i)) = X i := by
     -- without `-natAdd_eq_addNat` the lemma `append_right` would not apply

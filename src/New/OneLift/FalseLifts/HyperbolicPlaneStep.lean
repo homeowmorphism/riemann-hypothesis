@@ -1,7 +1,9 @@
-import Lib.DiscreteSeries.Bruhat.ComplexPlace
-import Lib.SiegelWeil.Formula.LagrangianZeroTerms
-import New.OneLift.ComparisonOperator.GluedLattices
-import New.OneLift.FalseLifts.BottomOfTower
+module
+
+public import Lib.DiscreteSeries.Bruhat.ComplexPlace
+public import Lib.SiegelWeil.Formula.LagrangianZeroTerms
+public import New.OneLift.ComparisonOperator.GluedLattices
+public import New.OneLift.FalseLifts.BottomOfTower
 
 /-!
 # Vanishing of theta descents from W to W plus hyperbolic planes
@@ -47,6 +49,8 @@ Notions from other files:
 
 See `New.OneLift.FalseLifts.PeriodsOfFalseLifts` for related work.
 -/
+
+@[expose] public section
 
 namespace New.SiegelWeil
 
@@ -462,7 +466,7 @@ lemma descentsVanish_add_planes {A : Set (FinPlace E)} (hA : A.IsConjDisjoint)
   have hχ : CharUnramifiedAt χ.baseChange.finPart (star w) := fun u hu ↦ by
     simp [hχ_eq, ha u hu, charUnramifiedAt_upsilon _ u hu]
   have hφ : projOn (W'.hom V) {star w} φ = φ := by
-    rw [projOn_integrated, projOn_schrodingerOp_vacElem _ (by simpa [or_comm] using hw_off)]
+    rw [projOn_integrated, projOn_schrodingerOp_vacElem _ (by simpa [or_comm, and_comm] using hw_off)]
   have h_card : card m = card r + 2 * (l + 1) := by rw [D.card_eq, hl]
   -- Here `|X|⁻¹ = √q ^ d` with `d = r' + 2 (t' - 1)`, and both exponents needed are at most `d`.
   have h_one_le : 1 ≤ √(w.q : ℝ) := one_le_sqrt.2 (mod_cast w.one_lt_q.le)

@@ -1,5 +1,7 @@
-import Lib.Adelic.AutomorphicForms.HeckeEigenforms
-import Lib.GaloisRep.BaseChange.CommutingHeckeFamilies
+module
+
+public import Lib.Adelic.AutomorphicForms.HeckeEigenforms
+public import Lib.GaloisRep.BaseChange.CommutingHeckeFamilies
 
 /-!
 # Matching unit pairs at congruence levels and at unramified places of a step
@@ -35,6 +37,8 @@ Notions from other files:
 
 Known; see `Lib.GaloisRep.BaseChange.PrimeDegreeTransfer` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Matching pairs at a congruence level over a profinite ring
@@ -534,7 +538,7 @@ lemma eventually_mem_kerCompNorm_of_apply_localNorm_eq_one {A : Set (FinPlace E'
   rintro ⟨y, d⟩ ⟨-, hd, h_notMem⟩
   refine isOpen_ne.mem_nhds fun h_eq ↦
     h_notMem (mem_of_locIdele_mem hμ.isClopen_kerCompNorm.isClosed fun u ↦ ?_)
-  show μ (Units.map (adeleNorm E E') (locIdele u (ideleAt u d))) = 1
+  change μ (Units.map (adeleNorm E E') (locIdele u (ideleAt u d))) = 1
   rw [adeleNorm_locIdele]
   by_cases hu : u ∈ A
   · exact hA u hu _ (mem_idelesUnitOff.1 hd u (notMem_empty u))
@@ -622,7 +626,7 @@ is in its field. -/
 lemma isIntegrallyClosedIn_Ô : IsIntegrallyClosedIn (Ô E') (𝔸f E') := by
   refine Subring.isIntegrallyClosedIn_iff.mpr fun x hx ↦ mem_Ô.mpr fun u ↦ ?_
   exact (Valuation.integer.integers (v.comap (evalAt u))).mem_of_integral
-    (hx.map_of_comp_eq (Subring.inclusion (iInf_le _ u)) 1 rfl)
+    (hx.map_of_comp_eq (Subring.inclusion fun _ hy ↦ mem_Ô.1 hy u) 1 rfl)
 
 /-- The ring homomorphism from the integral finite adeles of `E` to those of `F` induced by an
 embedding `f : E → F`. -/
@@ -632,10 +636,9 @@ noncomputable def intAdeleMap {F : Type} [Field F] [NumberField F] (f : E →+* 
 /-- For a ring endomorphism `f` of `E`, the `i`-th iterate of `intAdeleMap f` is the restriction of
 `adeleMap f ^ i` to the integral adeles. -/
 @[simp] lemma intAdeleMap_iterate (i : ℕ) (x : Ô E) :
-    ((intAdeleMap f)^[i] x : 𝔸f E) = (adeleMap f ^ i) x := by
-  induction i generalizing x with
-  | zero => rfl
-  | succ i ih => exact ih (intAdeleMap f x)
+    ((intAdeleMap f)^[i] x : 𝔸f E) = (adeleMap f ^ i) x :=
+  Function.Semiconj.iterate_right (f := Subtype.val) (ga := intAdeleMap f) (gb := adeleMap f)
+    (fun _ ↦ rfl) i x
 
 omit [CMType E] [CMType E'] in
 /-- If `σ` moves the place `u`, then `σ` is not in the inertia group of `u`. -/
@@ -695,7 +698,7 @@ lemma isMatchingLevel_congruenceLevel {m : Ô E'} {k : 𝔸f E'} (hmk : m * k = 
   have h_stable (g : Gf E' n) : galoisGf σ g ∈ L ↔ g ∈ L :=
     galoisGf_mem_localLevel_congruenceLevel_iff hmk hk_fixed S g
   have h_open : L.IsOpen := by
-    show IsOpen {g : Gf E' n | g ∈ L}
+    change IsOpen {g : Gf E' n | g ∈ L}
     simp only [mem_L_iff_entries]
     exact isOpen_Ô.matrix.preimage_of_continuous
   have mem_L_iff_lift (g : Gf E' n) : g ∈ L ↔ ∃ Y : Matrix n n (Ô E'),
@@ -769,7 +772,7 @@ lemma comap_localLevel_congruenceLevel_le {H : Subgroup (Gf E n)} {m : Ô E'} {k
   let Y : Matrix n n (𝔸f E') := k • ((baseChangeGf g : Gf E' n).val.val - 1)
   have hY_int (i j : n) : Y i j ∈ Ô E' := by
     refine mem_Ô.2 fun u ↦ ?_
-    show k u * ((baseChangeGf g : Gf E' n).val.val - 1) i j u ∈ LocInt u
+    change k u * ((baseChangeGf g : Gf E' n).val.val - 1) i j u ∈ LocInt u
     simpa only [atPlace_sub_one_apply] using (mem_congruenceLevel.1 (h_at u)).right i j
   have h_eq : (baseChangeGf g : Gf E' n).val.val - (m : 𝔸f E') • Y = 1 := by
     rw [smul_smul, hmk, one_smul, sub_sub_self]
@@ -849,7 +852,7 @@ lemma exists_isBaseChangeLevel {H : Subgroup (Gf E n)} (hH : H.IsOpen) :
   obtain ⟨S₀, hS₀_good, hS₀_le⟩ := exists_inf_trivialOn_le hH
   let A : Set (FinPlace E') := placesAbove E' {w | IsStepUnramifiedAt E' μ w ∧ w ∉ conjClosure S₀}
   have hA_unram (u : FinPlace E') (hu : u ∈ A) : IsStepUnramifiedPlace μ u :=
-    isStepUnramifiedPlace_of_mem_placesAbove (fun w hw ↦ hw.left) hu
+    isStepUnramifiedPlace_of_mem_placesAbove (by exact fun w hw ↦ hw.left) hu
   have hA_off (u : FinPlace E') (hu : u ∈ A) : u.below E ∉ (S₀ : Set (FinPlace E)) := by
     rcases hu with ⟨-, h_notMem⟩ | ⟨-, h_notMem⟩
     · exact fun hS₀ ↦ h_notMem (.inl hS₀)

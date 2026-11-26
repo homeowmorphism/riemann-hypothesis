@@ -1,5 +1,7 @@
-import Lib.GaloisRep.Pseudocharacter.SemisimpleRepresentations
-import Lib.General.NumberTheory.PadicLimitsValuation
+module
+
+public import Lib.GaloisRep.Pseudocharacter.SemisimpleRepresentations
+public import Lib.General.NumberTheory.PadicLimitsValuation
 
 /-!
 # Spanning criteria, limits of traces and pseudorepresentations
@@ -42,6 +44,8 @@ pseudo-caractères, J. Algebra 180 (1996); K. Conrad, Compact subgroups of GL_n(
 
 See also `Lib.GaloisRep.WeightCongruence`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -137,9 +141,9 @@ lemma New.Selmer.IsLatticeIn.span_range_eq_top_of_map_pow_eq_map_conj {G n : Typ
     (toLinAlgEquiv'.toRingHom.comp (residue _).mapMatrix).toMonoidHom.comp u
   obtain ⟨v, hv⟩ : ∃ v : n → ResidueField O, HasEigenvector (τ γ) (residue O ζ) v := by
     refine ((hasEigenvalue_iff_isRoot_charpoly (τ γ) _).2 ?_).exists_hasEigenvector
-    show (toLin' ((u γ).map (residue O))).charpoly.IsRoot (residue O ζ)
+    change (toLin' ((u γ).map (residue O))).charpoly.IsRoot (residue O ζ)
     rw [charpoly_toLin', charpoly_map]
-    exact .map (.of_map hζ_u O.val.subtype_injective)
+    exact .map (residue O) (.of_map hζ_u O.val.subtype_injective)
   -- Iterating `h_tame`: conjugation by `φ ^ k` raises `R γ` to the power `q ^ k`.
   have h_conj (k : ℕ) : R (γ * φ ^ k) = R (φ ^ k * γ ^ q ^ k) := by
     simpa [map_mul, map_pow] using mul_pow_eq_pow_mul_pow_pow_of_pow_eq_inv_mul_mul
@@ -163,7 +167,7 @@ lemma New.Selmer.IsLatticeIn.span_range_eq_top_of_map_pow_eq_map_conj {G n : Typ
         ∑ a : Fin (card n), (∑ k, c (a, k) * μ l ^ (k : ℕ)) • (τ φ ^ (a : ℕ)) v = 0 := by
       apply hφ_inj l
       simpa [w, sum_prod_type, Finset.sum_smul, mul_smul, (h_eig l).pow_apply,
-        ← mul_apply (_ ^ (l : ℕ)), pow_mul_comm _ l] using
+        ← Module.End.mul_apply (_ ^ (l : ℕ)), pow_mul_comm _ l] using
         LinearMap.congr_fun hc ((τ φ ^ (l : ℕ)) v)
     -- The eigenvectors are independent, so a polynomial of degree `< card n` vanishes at all `μ l`.
     have h_poly (l : Fin (card n)) : ∑ k, c (a, k) * μ l ^ (k : ℕ) = 0 := linearIndependent_iff.mp
@@ -398,7 +402,7 @@ lemma exists_isApproximatingMonoid_of_mem_uniformClosure (hf : f ≠ 0)
     simpa [hTy ⟨η, _⟩, hTf, hz, ← dist_eq_norm, mul_comm, ← mul_assoc] using h_bound
   refine ⟨s, fun η j ↦ a η j * (y η j).val z, N.topologicalClosure,
     ⟨isClosed_closure, tendstoUniformly_iff.2 fun ε hε ↦ ?_⟩, fun i ↦ y i.fst i.snd,
-    subset_closure⟩
+    fun _ hp ↦ subset_closure hp⟩
   filter_upwards [eventually_lt_atBot (⟨ε, hε⟩ : Set.Ioi (0 : ℝ))] with η hη p
   exact (le_on_closure (h_dist η) (by fun_prop) (by fun_prop) p.prop).trans_lt hη
 

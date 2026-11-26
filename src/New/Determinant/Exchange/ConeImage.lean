@@ -1,6 +1,8 @@
-import Lib.Adelic.Witt.SmoothWitt
-import Lib.SiegelWeil.Tower.LargeSideConstantTerm
-import Lib.Weil.MixedModel.TargetZeroTerm
+module
+
+public import Lib.Adelic.Witt.SmoothWitt
+public import Lib.SiegelWeil.Tower.LargeSideConstantTerm
+public import Lib.Weil.MixedModel.TargetZeroTerm
 
 /-!
 # The image of the cone integral
@@ -39,6 +41,8 @@ place `w`. The word real refers to the components at the infinite places of `E`.
 See `New.Determinant.Exchange.TheoremForPartners` for related work.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New.Exchange
@@ -56,7 +60,7 @@ lemma lineVector_ne_zero (w : InfinitePlace E) : lineVector X w ≠ 0 := by
   intro h_zero
   have h_dual : ((X.kCoord * X.kAdelic) () ()).1 w = 1 := by simp [X.coord_mul_frame]
   have h_entry (i : r') : (X.kAdelic i ()).1 w = 0 := congrFun h_zero i
-  simp [mul_apply, Prod.fst_sum, h_entry] at h_dual
+  simp [Matrix.mul_apply, Prod.fst_sum, h_entry] at h_dual
 
 lemma sum_norm_sq_lineVector_pos (w : InfinitePlace E) : 0 < ∑ i : r', ‖lineVector X w i‖ ^ 2 := by
   obtain ⟨i, hi⟩ : ∃ i, lineVector X w i ≠ 0 := Function.ne_iff.1 (lineVector_ne_zero X w)
@@ -71,7 +75,7 @@ lemma lineVector_isotropic (w : InfinitePlace E) :
     simp [← lCoord.eq_1, X.coord_mul_frame]
   have h_real : (atRealPlace X.kAdelic w)ᴴ * signMatrix t' * atRealPlace X.kAdelic w = 0 := by
     simp [gram_atRealPlace, h_gram]
-  simpa [mul_apply, dotProduct, mulVec, lineVector, signMatrix, diagonal, mul_assoc] using
+  simpa [Matrix.mul_apply, dotProduct, mulVec, lineVector, signMatrix, diagonal, mul_assoc] using
     congrFun₂ h_real () ()
 
 variable [WeilData E]
@@ -119,7 +123,8 @@ lemma sum_norm_sq_conePoint (κ : maxCompact E t') (a : (InfinitePlace E → ℂ
   let K : Matrix r' r' ℂ := ↑(maxCompactInf κ w)⁻¹
   let y : r' → ℂ := a.val w • lineVector X w
   have h_unitary : Kᴴ * K = 1 := by
-    simpa [K] using mem_U.1 (inv_mem (maxCompact_fst_mem_maxCompactU κ w))
+    simpa [K, star_eq_conjTranspose] using
+      mem_unitaryGroupOf_iff.1 (inv_mem (maxCompact_fst_mem_maxCompactU κ w))
   have h_dot : star (K *ᵥ y) ⬝ᵥ K *ᵥ y = star y ⬝ᵥ y := by
     rw [star_mulVec, ← dotProduct_mulVec, mulVec_mulVec, h_unitary, one_mulVec]
   calc ∑ i, ‖(K *ᵥ y) i‖ ^ 2 = ∑ i, ‖y i‖ ^ 2 := by
@@ -139,7 +144,7 @@ lemma realSlice_eq_slice_conePoint [IsBaseAdapted A] (κ : maxCompact E t')
       (isAdapted_homSource A V').mixedModel.slice (conePoint X (κ, a)) := by
   rw [realSlice]
   congr with q
-  simp [conePoint, matrixToVec, mul_apply, mulVec, dotProduct, lineVector, Prod.fst_sum,
+  simp [conePoint, matrixToVec, Matrix.mul_apply, mulVec, dotProduct, lineVector, Prod.fst_sum,
     G.adeleMatrix_fst]
 
 omit [WeilData E] in
@@ -211,7 +216,7 @@ lemma hasPosMellinTransform_comp_conePoint {β : (InfinitePlace E × r' × Unit 
       mul_le_mul_iff_left₀ (sum_norm_sq_lineVector_pos X w)] using
       hβ_shell (conePoint X (κ, a)) (left_ne_zero_of_mul h_ne) w
   refine ⟨fun z ↦ (hρ_cont z).integrable_of_hasCompactSupport (hρ_supp z), fun z ↦ ?_⟩
-  exact (hρ_cont z).integral_pos_of_hasCompactSupport_nonneg_nonzero (x := 1) (hρ_supp z)
+  exact (hρ_cont z).integral_pos_of_hasCompactSupport_nonneg_ne_zero (x := 1) (hρ_supp z)
     (fun _ ↦ mul_nonneg (hβ_nonneg _) (Real.rpow_nonneg ideleAbs_pos.le z))
     (by simpa [ρ] using hβ_ne_zero)
 
@@ -278,7 +283,9 @@ lemma exists_hasPosMellinTransform_mulVec_eq_smul :
   have h_back : (κw : Matrix r' r' ℂ) *ᵥ y = a.val w • lineVector X w := by
     rw [hy, mulVec_mulVec, Subgroup.coe_inv, Units.mul_inv, one_mulVec]
   have h_iso : star y ⬝ᵥ signMatrix t' *ᵥ y = 0 := by
-    rw [← mem_U.1 κw.prop, ← mulVec_mulVec, ← mulVec_mulVec, ← star_mulVec_dotProduct, h_back]
+    rw [← show κw.val.valᴴ * signMatrix t' * κw.val.val = signMatrix t' from
+        mem_unitaryGroupOf_iff.1 κw.prop,
+      ← mulVec_mulVec, ← mulVec_mulVec, ← star_mulVec_dotProduct, h_back]
     simp [mulVec_smul, lineVector_isotropic X w]
   have h_image : (k w y : Matrix r' r' ℂ) *ᵥ lineVector X w = y := h_carry _ h_ne w h_iso
   rw [Subgroup.coe_mul, Units.val_mul, ← mulVec_mulVec, h_image, h_back]
@@ -313,7 +320,7 @@ lemma exists_slice_eq_smul_realPairWeil [IsBaseAdapted A] (γ : InfinitePlace E 
       Matrix (InfinitePlace E × r' × n) (InfinitePlace E × r' × n) ℂ) := by
     refine contDiff_pi' fun ⟨w, i, a⟩ ↦ contDiff_pi' fun ⟨w', j, b⟩ ↦ ?_
     obtain rfl | h_ne := eq_or_ne w w'
-    · simpa [pairHomInf, blockDiagonal_apply, pairHom, one_apply] using
+    · simpa [pairHomInf, blockDiagonal_apply, pairHom, Matrix.one_apply] using
         (h_entry w i j).mul (contDiff_const (c := (1 : Matrix n n ℂ) a b))
     · simp [pairHomInf, blockDiagonal_apply, h_ne, contDiff_const]
   obtain ⟨v', hv', h_slice⟩ :=
@@ -461,7 +468,7 @@ theorem exists_thetaLarge_cone_eq [IsBaseAdapted A] [IsBaseAdapted X] (μ : Infi
   obtain ⟨B, hB, -, h_image⟩ := exists_thetaLarge_cone_eq_mul A X μ σ hn
   have hB_ne : (B z : ℂ) ≠ 0 := Complex.ofReal_ne_zero.2 (hB z).ne'
   have h_schwartz : IsSchwartzVector ((B z : ℂ)⁻¹ • v) := fun N ↦ by
-    simpa only [fockMoment_smul] using ENNReal.mul_ne_top enorm_ne_top (hv N)
+    simpa only [fockMoment_smul] using ENNReal.mul_ne_top eNorm_ne_top (hv N)
   obtain ⟨v', hv', h_cone⟩ := h_image ((B z : ℂ)⁻¹ • v) h_schwartz
   refine ⟨v', hv', fun 𝔠 y g ↦ ?_⟩
   calc _ = B z * thetaLarge W V 𝔠 ((B z : ℂ)⁻¹ • v) (stdRowDatum σ 𝔠.semilocalChar y) g :=

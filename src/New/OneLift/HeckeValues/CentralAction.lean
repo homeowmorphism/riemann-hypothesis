@@ -1,6 +1,8 @@
-import New.OneLift.ComparisonOperator.GluedLattices
-import New.OneLift.HeckeValues.CharacterLiftNorm
-import New.UpperBound.Size.ShortColumns
+module
+
+public import New.OneLift.ComparisonOperator.GluedLattices
+public import New.OneLift.HeckeValues.CharacterLiftNorm
+public import New.UpperBound.Size.ShortColumns
 
 /-!
 # Central action on lifts from U(1) and a rank-one denominator bound
@@ -25,6 +27,8 @@ to the line of the lift, given a bound `New.Selmer.DenominatorLe` on that line.
 
 See `New.OneLift.HeckeValues.TwistedValueHeights` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -340,7 +344,7 @@ lemma Selmer.DenominatorLe.norm_inner_starProjection_le {ℓ : ℕ} [Fact ℓ.Pr
     h_denom.norm_card_mul_inner_starProjection_le Y h_aut hΞ hΞ'
   rw [map_mul, norm_mul, h_norm, inv_pow, inv_mul_le_iff₀ (by positivity)] at h_bound
   rwa [inner_starProjection_left_eq_right,
-    starProjection_eq_self_iff.2 (starProjection_apply_mem _ Ξ'), exp_add, exp_nat_mul,
+    starProjection_eq_self_iff.2 (starProjection_apply_mem _ Ξ'), exp_add, exp_natCast_mul,
     exp_log hℓ, mul_comm]
 
 end New

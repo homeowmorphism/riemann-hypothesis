@@ -1,5 +1,7 @@
-import Lib.Adelic.Unitary.RationalPoints
-import Lib.General.NumberTheory.SUnitsAndClassNumber
+module
+
+public import Lib.Adelic.Unitary.RationalPoints
+public import Lib.General.NumberTheory.SUnitsAndClassNumber
 
 /-!
 # Transference, first minima and short bases of lattices of hermitian spaces
@@ -49,6 +51,8 @@ transference theorems from generalized tail bounds, SIAM J. Discrete Math. 33 (2
 
 See also `Lib.Adelic.AutomorphicForms.Cuspidality` and `Lib.Adelic.Reduction.FiniteVolume`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -139,9 +143,9 @@ lemma weak_transference (Λ : Submodule ℤ E) [Module.Finite ℝ E] {ρ : ℝ} 
   have h_inverse : A * A'ᵀ = 1 := by
     ext i j
     calc (A * A'ᵀ) i j = innerₗ E (b' j) (b i) := by
-          simp [A, A', mul_apply, ← o.repr.inner_map_map (b' j), PiLp.inner_apply,
+          simp [A, A', Matrix.mul_apply, ← o.repr.inner_map_map (b' j), PiLp.inner_apply,
             -LinearIsometryEquiv.inner_map_map]
-      _ = (1 : Matrix _ _ ℝ) i j := by rw [apply_dualBasis_left h_nondeg b j i, one_apply]
+      _ = (1 : Matrix _ _ ℝ) i j := by rw [apply_dualBasis_left h_nondeg b j i, Matrix.one_apply]
   have det_mul_det : |det A'| * |det A| = 1 := by
     rw [← det_transpose, ← abs_mul, mul_comm, ← det_mul, h_inverse, det_one, abs_one]
   have two_pow_le : (ρ / √(finrank ℝ E) * (2 * finrank ℝ E / ρ / √(finrank ℝ E))) ^ finrank ℝ E

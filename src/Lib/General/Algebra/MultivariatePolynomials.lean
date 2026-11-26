@@ -1,12 +1,13 @@
-import Lib.Cohomology.Etale.Basic
+module
+
+public import Lib.Cohomology.Etale.Basic
 
 /-!
 # Multivariate polynomials: cost of vanishing, homogenization, Nullstellensatz, Hensel
 
 This file collects lemmas on polynomials in several variables and on algebras of finite type. They
-cover commuting partial derivatives, generation by products of polynomials in two sets of variables,
-the cost of monomials of polynomials that vanish to high order, and homogenization along a linear
-form.
+cover generation by products of polynomials in two sets of variables, the cost of monomials of
+polynomials that vanish to high order, and homogenization along a linear form.
 
 ## Main definitions and results
 
@@ -38,18 +39,7 @@ to order d at all these points then has a monomial of weighted degree at least d
 Combinatorial Nullstellensatz (1999); Ball–Serra, Punctured combinatorial Nullstellensätze (2009).
 -/
 
-/-! ## Partial derivatives of multivariate polynomials commute -/
-
-/-- The formal partial derivatives of a polynomial in several variables commute. -/
-lemma New.pderiv_comm {σ A : Type*} [CommRing A] (a b : σ) (p : MvPolynomial σ A) :
-    (p.pderiv b).pderiv a = (p.pderiv a).pderiv b := by
-  classical
-  ext m
-  -- Both coefficients are the same multiple of the coefficient of `p` at `m + eₐ + e_b`.
-  obtain rfl | h_ne := eq_or_ne a b
-  · rfl
-  · simp [MvPolynomial.coeff_pderiv, add_right_comm m (Finsupp.single a 1), h_ne, h_ne.symm,
-      mul_right_comm]
+@[expose] public section
 
 /-! ## Polynomials in two covering sets of variables -/
 
@@ -101,7 +91,7 @@ lemma New.bind₁_monomial_mem_vanishingIdeal_pow {K ι : Type} [Field K] [Finty
     (hγ : d ≤ γ.degree) : bind₁ φ (monomial γ 1) ∈ vanishingIdeal K {w} ^ d := by
   classical
   have h_vars : idealOfVars ι K ≤ (vanishingIdeal K {w}).comap (bind₁ φ) := by
-    simp [Ideal.span_le, hφ, Set.range_subset_iff]
+    simp [Ideal.span_le, hφ, Set.range_subset_iff, bind₁_X_right]
   have h_mem : monomial γ 1 ∈ idealOfVars ι K ^ d := (mem_pow_idealOfVars_iff d _).2 (by simpa)
   exact le_comap_pow _ d (pow_right_mono h_vars d h_mem)
 
@@ -123,7 +113,7 @@ lemma New.exists_forall_coeff_translate_eq {K ι S : Type} [Field K] [Fintype ι
   refine ⟨p, fun t γ ↦ ?_⟩
   have h_jet : (bind₁ (X + C ∘ z t) (p - q t)).coeff γ = 0 :=
     New.coeff_translate_eq_zero_of_mem_vanishingIdeal_pow (hp t) (hΓ γ γ.property)
-  simpa [q, bind₁_bind₁, coeff_sum, sub_eq_zero] using h_jet
+  simpa [q, bind₁_bind₁, coeff_sum, sub_eq_zero, bind₁_X_right, bind₁_X_left] using h_jet
 
 /-- A submodule that contains the monomials occurring in `p` contains `p`. -/
 lemma New.mem_of_forall_monomial_mem {K ι : Type} [Field K] {N : Submodule K (MvPolynomial ι K)}

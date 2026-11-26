@@ -1,7 +1,9 @@
-import Lib.SiegelWeil.OneVector.SiegelClassSum
-import New.Spanning.Frames.TopFloor
-import New.Spanning.MainTerm.GlobalToLocal
-import New.Spanning.Unfolding.ReducedGroups
+module
+
+public import Lib.SiegelWeil.OneVector.SiegelClassSum
+public import New.Spanning.Frames.TopFloor
+public import New.Spanning.MainTerm.GlobalToLocal
+public import New.Spanning.Unfolding.ReducedGroups
 
 /-!
 # Siegel's formula as an upper bound, and domination of class sums by the density at the last entry
@@ -47,6 +49,8 @@ Notions from other files:
 
 See `New.Spanning.MainTerm.EnergyEstimate` for related work.
 -/
+
+@[expose] public section
 
 namespace New.Filling
 
@@ -205,7 +209,7 @@ lemma normDensity_indicator_eq_mul [WeilData E] (hψ : P.ψ = S.charOnPlaces T) 
   rw [normDensity]
   refine integral_eq_mul_of_section P.skewMeasure (by fun_prop) (by fun_prop)
     localFrequency_adelicFrequency_add
-    (SemilocalField.isOpen_O.preimage continuous_subtype_val).measurableSet skew_vol fun b z hz ↦ ?_
+    (SemilocalField.isOpen_O.preimage continuous_subtypeVal).measurableSet skew_vol fun b z hz ↦ ?_
   rw [integral_withDensity_eq_integral_smul (.indicator (by fun_prop) L_meas), lattice_eq,
     ← setIntegral_indicator L_meas]
   -- the vector: `adeleOfLocal T` is a section of `evalPlaces T`
@@ -438,14 +442,14 @@ lemma IsFillingData.enorm_normDensity_le_mul_lintegral_normFiberMeasure [WeilDat
     simpa using idealZeta_intAdeles_pow_le 𝔰.ϱ h_degree
   have h_card : 2 * (𝔰.ϱ + 2 * 𝔰.ϱ + 4 + 1) ≤ card 𝔰.κ := by
     simpa using show 2 * (𝔰.ϱ + 2 * 𝔰.ϱ + 4 + 1) ≤ 𝔰.k by omega
-  rw [normDensity_indicator_eq_mul hF.psi_eq hΨ hβ, enorm_mul]
+  rw [normDensity_indicator_eq_mul hF.psi_eq hΨ hβ, eNorm_mul]
   gcongr
   · -- the integral of Gauss sums off `T`
-    grw [enorm_integral_le_lintegral_enorm, setLIntegral_le_lintegral, ← h_zeta]
+    grw [eNorm_integral_le_lintegral_eNorm, setLIntegral_le_lintegral, ← h_zeta]
     exact lintegral_gauss_sum_le_idealZeta
       (le_two_of_pow_le_ofReal (idealZeta_intAdeles_pow_le 𝔰.ϱ h_degree)) h_card _
   · simpa only [one_mulVec, hδβ] using enorm_localDensity_le
-      (P.isDisintegration_normFiberMeasure hF.two_le_card) conjTranspose_one hF.psi_add_star hΨ
+      (P.isDisintegration_normFiberMeasure F.two_le_card) conjTranspose_one hF.psi_add_star hΨ
         h_supp δβ
 
 omit [Fact (↑S.ideleM⁻¹ ∈ integralOff T)] ok in
@@ -489,8 +493,8 @@ lemma IsFillingData.classes_eq_and_eq_of_inv_mul_mem_congruenceSubgroup (hF : S.
   have same_z : FloorGroups.orbitPoint 𝔰.top γ₁⁻¹ = FloorGroups.orbitPoint 𝔰.top γ₂⁻¹ := by
     simpa [funext_iff, Unique.forall_iff, FloorGroups.orbitPoint,
       apply_eq_one_apply_of_mem_floorGroup hγ₁,
-      apply_eq_one_apply_of_mem_floorGroup hγ₂, h_col, frameGram, splitGram, mul_apply, middleGram,
-      Nat.Prime.ne_zero] using h_tail
+      apply_eq_one_apply_of_mem_floorGroup hγ₂, h_col, frameGram, splitGram, Matrix.mul_apply,
+      middleGram, Nat.Prime.ne_zero] using h_tail
   have fixes : γ₁⁻¹ * γ₂ ∈ floorGroup 𝔰.n :=
     partialUnitriangularGroup_inf_floorGroup_last.le (inv_mul_mem_of_orbitPoint_eq hγ₁ hγ₂ same_z)
   have level : S.translateByClassReps c₁' c₂' (γ₁⁻¹ * γ₂) ∈ S.principalLevel := by
@@ -793,15 +797,15 @@ theorem IsFillingData.siegel_sum_le_lintegral_sphere (hT_N : (S.N : E)⁻¹ ∈ 
     _ ≤ ‖C * normDensity f β‖ₑ := by
       -- each pair `z ∈ s` has norm `β` and is integral off `T`, so it is a term of the class sum
       rw [← h_siegel]
-      simp_rw [classSum_sourceLevel_eq_sum, ← NNReal.coe_sum, enorm_eq_nnnorm, nnnorm_real,
-        nnnorm_eq, ofNNReal_finsetSum, ENNReal.coe_tsum (h_summable _)]
+      simp_rw [classSum_sourceLevel_eq_sum, ← NNReal.coe_sum, eNorm_eq_nnNorm, nnNorm_real,
+        nnNorm_eq, ofNNReal_finsetSum, ENNReal.coe_tsum (h_summable _)]
       grw [← ENNReal.tsum_prod.trans (tsum_fintype _), ← ENNReal.sum_le_tsum s]
       gcongr with z hz
       have h_norm_eq : star z.2 ⬝ᵥ z.2 = β := by simp [β, ← h_norm z hz, Nat.Prime.ne_zero]
       grw [ite_eq_left h_norm_eq, ← vectorOfLastEntry_evalPlaces]
       exact (ite_eq_left (h_int z hz)).ge
     _ ≤ ‖C‖ₑ * (.ofReal (1 + S.b⁻¹ ^ 6) * volÔ E ^ 𝔰.k * I) := by
-      rw [enorm_mul]
+      rw [eNorm_mul]
       gcongr
       exact hF.enorm_normDensity_le_mul_lintegral_normFiberMeasure
         (Ψ_lc.continuous.comp isClosedEmbedding_vectorOfLastEntry.continuous)
@@ -948,7 +952,7 @@ theorem IsFillingData.sum_mul_norm_sum_cosetAmplitude_sq_le_lastEntryDensity
       _ = _ := by
         -- almost every point of the sphere lies on the top quadric, where `Ψ_eq` gives `Ψ`
         rw [h_sphere, lintegral_congr_ae
-          ((P.ae_vectorOfLastEntry_mem_lastVectorQuadric piNAt_mul_star hF.two_le_card _).mono
+          ((P.ae_vectorOfLastEntry_mem_lastVectorQuadric piNAt_mul_star F.two_le_card _).mono
             fun _ ↦ Ψ_eq _)]
         rfl
   -- pass to real numbers and cancel the constants

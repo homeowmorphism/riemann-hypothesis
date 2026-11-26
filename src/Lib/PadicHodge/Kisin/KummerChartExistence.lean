@@ -1,5 +1,7 @@
-import Lib.PadicHodge.Crystalline.HodgeTateForms
-import Lib.PadicHodge.Kisin.Charts
+module
+
+public import Lib.PadicHodge.Crystalline.HodgeTateForms
+public import Lib.PadicHodge.Kisin.Charts
 
 /-!
 # Witt coefficients, the Frobenius group action and existence of Kummer charts
@@ -32,6 +34,8 @@ Notions from other files:
 Known; see `Lib.PadicHodge.Kisin.PeriodMatrixFrame` and `Lib.PadicHodge.PeriodRings.DeRhamPeriods`
 for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -232,7 +236,7 @@ lemma exists_smul_teichmuller_eq (C : Subgroup (Gp p)) [hC : IsClosed (C : Set (
     refine Set.inter_subset_inter_right _ fun g h_next ↦ ?_
     have h_eq : ((g • b u (n + 1) : PadicAlgCl p) : ℂ_[p]) = (v.untiltRoot (n + 1)).val := h_next
     -- `↓`: with the plain lemma simp unfolds one Frobenius too many on each side
-    simpa [← smul_coe_Cp, hb, untiltRoot, ↓Function.iterate_succ',
+    simpa [← UniformSpace.Completion.algEquiv_smul_coe, hb, untiltRoot, ↓Function.iterate_succ',
       ← untilt_iterate_frobeniusEquiv_symm_pow (_^[n] _) 1] using congrArg (· ^ p) h_eq
   have hX_ne (n : ℕ) : (X n).Nonempty := by
     have h_pow_eq : b v n ^ (p ^ n * e) = b u n ^ (p ^ n * e) := by simp [hb_pow, hv]
@@ -252,7 +256,7 @@ lemma exists_smul_teichmuller_eq (C : Subgroup (Gp p)) [hC : IsClosed (C : Set (
   erw [map_pow, pow_one, ← coeff_tiltMap _ (mk_untiltRoot ..), ← mk_untiltRoot]
   have hg_n : ((g • b u n : PadicAlgCl p) : ℂ_[p]) = (v.untiltRoot n).val := (hg n).right
   have h_root_eq : g • untiltRoot n u = untiltRoot n v :=
-    Subtype.ext (by simpa [← hb, smul_coe_Cp] using hg_n)
+    Subtype.ext (by simpa [← hb] using hg_n)
   exact congrArg _ h_root_eq
 
 /-- A Kummer chart for j : Γ → G_p with open image: a chart S = Λ⟦z⟧ ⊂ A_inf, Λ = W(𝔽_{p^f}), and a
@@ -386,7 +390,7 @@ lemma exists_kummerChart (Γ : Type) [Group Γ] [𝒥 : OverGp Γ p] :
     simp [pow_eq_pow_of_modEq ((Nat.modEq_sub one_le).pow _) hζ]
   -- `κ` is the inclusion of the integers of `K` in those of `ℂ_[p]`
   let κ : valRingBelow (localFieldOf Γ) (intQpBar p) →+* valRingCp p :=
-    ((algebraMap ..).comp (localFieldOf Γ).val.toRingHom).restrict _ _ (by simp [← coe_nnnorm])
+    ((algebraMap ..).comp (localFieldOf Γ).val.toRingHom).restrict _ _ (by simp [← coe_nnNorm])
   -- `ev : Λ⟦X⟧ → A_inf` has `θ (ev X) = π`; each unit series `A` with `θ (ev A) = v` gives a chart
   obtain ⟨ev, h_evX, h_chart⟩ :=
     exists_chart_of_pow_mul_eq_neg f (v.map κ) (by simpa using congrArg κ hv)

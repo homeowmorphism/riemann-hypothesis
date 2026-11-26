@@ -1,6 +1,8 @@
-import Lib.PadicComparison.Completion
-import Lib.PadicComparison.Descent.TestCovers
-import Lib.PadicHodge.PeriodRings.CrystallineRings
+module
+
+public import Lib.PadicComparison.Completion
+public import Lib.PadicComparison.Descent.TestCovers
+public import Lib.PadicHodge.PeriodRings.CrystallineRings
 
 /-!
 # The ring R[1/p] of a p-adic test and the square-zero extension W(R♭)[1/p]/(ker θ)²
@@ -27,6 +29,8 @@ Notions from other files:
 
 Known; see `Lib.PadicComparison.HodgeTate.PeriodMap` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -112,7 +116,7 @@ lemma thetaGeneric_algebraMap_ainf (a : Ainf) :
 /-- `θ` kills the element `μ = [ε] - 1` of `A_inf`. -/
 lemma thetaGeneric_mu :
     c.thetaGeneric (algebraMap Ainf (Localization.Away (p : WittVector p c.TiltRing)) mu) = 0 := by
-  simp [thetaGeneric_algebraMap_ainf, mu]
+  simp [thetaGeneric_algebraMap_ainf, mu_eq]
 
 /-- For a p-adic test with ring R, the quotient B = W(R^♭)[1/p]/(ker θ)², where
 θ: W(R^♭)[1/p] → R[1/p]. -/
@@ -429,7 +433,7 @@ lemma isLeftRegular_xi {p : ℕ} [ThePrime p] (c : PadicTest) :
       (algebraMap Ainf (WittVector p c.TiltRing) xi).coeff 0 ^ p ^ j * y.coeff 0 = 0 := by
     simpa [← smul_eq_mul, hx] using
       (iterate_verschiebung_mul_coeff (algebraMap Ainf (WittVector p c.TiltRing) xi) y 0 j).symm
-  show tiltMap c.structureMap pFlat ^ p ^ j * y.coeff 0 = tiltMap c.structureMap pFlat ^ p ^ j * 0
+  change tiltMap c.structureMap pFlat ^ p ^ j * y.coeff 0 = tiltMap c.structureMap pFlat ^ p ^ j * 0
   rw [mul_zero]
   -- The zeroth coordinate of `ξ` in `W(R♭)` is the image of `pFlat`.
   have h_xi_coeff : (algebraMap Ainf (WittVector p c.TiltRing) xi).coeff 0 =

@@ -1,5 +1,7 @@
-import Lib.ClassField.HeckeCharacter.SplitTameCharacters
-import Lib.General.LinearAlgebra.TensorChains
+module
+
+public import Lib.ClassField.HeckeCharacter.SplitTameCharacters
+public import Lib.General.LinearAlgebra.TensorChains
 
 /-!
 # Direct and mirror data modulo `N`, and the operator `Up`
@@ -32,6 +34,8 @@ Notions from other files:
 * `liftIntegralFn r f` is `S ↦ f (r S)` on integral matrices `S` and zero elsewhere.
 * `compUpTo f j` is the composite `f (j - 1) ∘ ⋯ ∘ f 0` of a chain of linear maps.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -163,7 +167,7 @@ lemma exists_GL_last_col_and_row {R : Type*} [CommRing R] :
   refine ⟨fun y ↦ if h : IsUnit (y (.inr ())) then mk'' _ (det_unit y h) else 1, fun y h ↦ ?_⟩
   -- The second factor has the last basis vector as its last column, and the last row of the first
   -- factor is `u` times that vector.
-  constructor <;> ext a <;> simp [h, mul_apply, ← mul_assoc]
+  constructor <;> ext a <;> simp [h, Matrix.mul_apply, ← mul_assoc]
 
 /-- For `y` with unit last entry, an integral invertible matrix whose last column and last row are
 both `y` modulo `N`. -/
@@ -284,7 +288,7 @@ lemma gluedDatum_eq_sum (T : Matrix n' (n ⊕ Unit) (LocProd P))
     (R : Matrix (n'' ⊕ Unit) n' (LocProd P)) :
     Λ.gluedDatum T R = ∑ y : n' → P → ZMod N, Λ.lastColDatum y T * Λ.charDatum y R := by
   simp only [gluedDatum, lastColDatum, liftFn_apply]
-  split_ifs <;> simp
+  split_ifs <;> simp [-transpose_of]
 
 open scoped Classical in
 /-- The vectors modulo `N` that are non-zero at every place of `P`. -/
@@ -475,35 +479,6 @@ lemma directDatum_mul_mul_of_mem_mirabolic {g : GL (n ⊕ Unit) (LocProd P)}
           then 1 else 0) T := (congrFun (liftFn_comp_mul _ a b) T).symm
     _ = Λ.directDatum T := by simp only [h_col, directDatum, lastColDatum]
 
-/-- Let `g` and `h` lie in `mirabolic`, that is, they are integral invertible matrices at `P` whose
-last column is the last basis vector modulo `N`, and let `D = diagNInv = diag (1, …, 1, N⁻¹)`. Then
-`T ↦ mirrorDatum (D⁻¹ T)` is invariant under `T ↦ h⁻¹ T g`. -/
-lemma mirrorDatum_mul_mul_of_mem_mirabolic {g : GL (n ⊕ Unit) (LocProd P)}
-    {h : GL (n' ⊕ Unit) (LocProd P)}
-    (hg : g ∈ Λ.mirabolic) (hh : h ∈ Λ.mirabolic)
-    (T : Matrix (n' ⊕ Unit) (n ⊕ Unit) (LocProd P)) :
-    Λ.mirrorDatum ((Λ.diagNInv (n := n'))⁻¹.val * (h⁻¹.val * T * g.val)) =
-      Λ.mirrorDatum ((Λ.diagNInv (n := n'))⁻¹.val * T) := by
-  obtain ⟨a, ha_fix, rfl⟩ := mem_mirabolic.1 hg
-  -- In a basis of the enlarged target lattice, that is, after conjugation by `diagNInv`, the matrix
-  -- `h⁻¹` is integral and fixes the last-coordinate form modulo `N`.
-  obtain ⟨b, hb_row, hb⟩ : ∃ b : GL (n' ⊕ Unit) (O (F := LocProd P)),
-      (Λ.reductionGL b).val (.inr ()) = lastBasisVector ∧
-        inclGL b = Λ.diagNInv⁻¹ * h⁻¹ * Λ.diagNInv :=
-    exists_inclGL_eq_conj_diagNInv (inv_mem hh)
-  have h_corner (T' : Matrix (n' ⊕ Unit) (n ⊕ Unit) (P → ZMod N)) :
-      ((Λ.reductionGL b).val * T' * (Λ.reductionGL a).val) (.inr ()) ⬝ᵥ lastBasisVector =
-        T' (.inr ()) ⬝ᵥ lastBasisVector := by
-    rw [Units.smul_def, smul_eq_mulVec] at ha_fix
-    rw [mul_apply_eq_vecMul, mul_apply_eq_vecMul, ← dotProduct_mulVec, ha_fix, hb_row,
-      single_one_vecMul, row_def]
-  have h_move : (Λ.diagNInv (n := n'))⁻¹.val * (h⁻¹.val * T * (inclGL a).val) =
-      (inclGL b).val * ((Λ.diagNInv (n := n'))⁻¹.val * T) * (inclGL a).val := by
-    simp [hb, Matrix.mul_assoc]
-  rw [h_move]
-  refine (congrFun (liftFn_comp_mul _ a b) _).symm.trans ?_
-  simp only [h_corner, mirrorDatum, charDatum]
-
 /-! ## The operator `Up` -/
 
 /-- `Up` preserves the vectors fixed by `mirabolic`, the group of integral invertible matrices at
@@ -530,7 +505,7 @@ lemma mirabolic_fix_upOperator
       rw [map_mul, map_mul, map_inv, mul_smul, mul_smul, inv_smul_eq_iff,
         lastRowColGL_smul_lastBasisVector hy,
         lastRowColGL_smul_lastBasisVector (by rwa [h_last])]
-    rw [← π.ρ.inv_apply_eq_iff, ← Module.End.mul_apply, ← Module.End.mul_apply, ← map_mul,
+    rw [← π.ρ.inv_apply_eq_iff, ← mul_apply_eq_comp, ← mul_apply_eq_comp, ← map_mul,
       ← map_mul]
     exact hφ _ h_mem
   -- So `g` permutes the terms of the sum that defines `Up`, by `y ↦ k y`.
@@ -665,7 +640,7 @@ lemma inclGL_lastColDatum (H : LiftLaw π π' L γ) (k : GL (n' ⊕ Unit) (O (F 
     change reductionGL k • Tᵀ (.inr ()) = reductionGL k • y ↔ _
     rw [smul_left_cancel_iff]
   refine .trans ?_ (H.integral_equivariant 1 k _ φ)
-  simp only [lastColDatum, map_one, Units.val_one, Matrix.mul_one, h_col, Module.End.one_apply]
+  simp only [lastColDatum, map_one, Units.val_one, Matrix.mul_one, h_col, one_apply_eq_self]
 
 end
 
@@ -682,7 +657,7 @@ lemma charDatum_inclGL (H : LiftLaw π π' L γ) (k : GL (n ⊕ Unit) (O (F := L
       (T * (reductionGL k).val) (.inr ()) ⬝ᵥ y = T (.inr ()) ⬝ᵥ reductionGL k • y :=
     (dotProduct_mulVec (T (.inr ())) (reductionGL k).val y).symm
   refine .trans ?_ (H.integral_equivariant k 1 _ φ)
-  simp only [charDatum, map_one, Units.val_one, Matrix.one_mul, h_pair, Module.End.one_apply]
+  simp only [charDatum, map_one, Units.val_one, Matrix.one_mul, h_pair, one_apply_eq_self]
 
 open scoped Classical in
 /-- Let the lift `L Ψ : π → π'` be linear in its datum `Ψ` and obey the lift law; in particular
@@ -722,7 +697,7 @@ lemma mirror_eq_upOperator_direct (H : LiftLaw π π' L γ) (hφ : φ ∈ ramifi
       (if IsUnit (y (.inr ())) then psiN (y (.inr ())) else 0) • L (lastColDatum y) φ :=
     (H.mirrorDatum_eq_unitCorner hφ).trans (liftFn_comp_eq_sum_smul (fun T ↦ Tᵀ (.inr ()))
       fun y ↦ if IsUnit (y (.inr ())) then psiN (y (.inr ())) else 0)
-  rw [h_sort, upOperator, Module.End.mul_apply]
+  rw [h_sort, upOperator, mul_apply_eq_comp]
   congr 1
   simp only [ite_smul, zero_smul, ← sum_filter, LinearMap.sum_apply, LinearMap.smul_apply]
   exact sum_congr rfl fun y hy ↦ by rw [h_term y (mem_filter.1 hy).2]
@@ -746,13 +721,13 @@ lemma mirror_eq_direct_upOperator (H : LiftLaw π π' L γ) (hφ : φ ∈ ramifi
       (vecMul_injective_of_isUnit (reductionGL (lastRowColGL y)).isUnit).eq_iff'
         (lastBasisVector_vecMul_lastRowColGL hy)
     rw [← H.integral_equivariant (lastRowColGL y) 1]
-    simp only [lastRowDatum, map_one, Units.val_one, Matrix.one_mul, h_row, Module.End.one_apply]
+    simp only [lastRowDatum, map_one, Units.val_one, Matrix.one_mul, h_row, one_apply_eq_self]
   have h_sort : L mirrorDatum φ = ∑ y : n ⊕ Unit → P → ZMod N,
       (if IsUnit (y (.inr ())) then psiN (y (.inr ())) else 0) •
         L (liftFn fun T ↦ if T (.inr ()) = y then 1 else 0) φ :=
     (H.mirrorDatum_eq_unitCorner hφ).trans (liftFn_comp_eq_sum_smul (fun T ↦ T (.inr ()))
       fun y ↦ if IsUnit (y (.inr ())) then psiN (y (.inr ())) else 0)
-  rw [h_sort, upOperator, Module.End.mul_apply, ← H.diagNInv_lastRowDatum]
+  rw [h_sort, upOperator, mul_apply_eq_comp, ← H.diagNInv_lastRowDatum]
   congr 1
   simp only [ite_smul, zero_smul, ← sum_filter, LinearMap.sum_apply, LinearMap.smul_apply,
     map_sum, map_smul]
@@ -908,7 +883,7 @@ lemma compUpTo_gluedLift_eq_smul (law : ∀ j : ℕ, LiftLaw (π j) (π (j + 1))
     -- Move the `Up` of the last double lift through the earlier lifts to the source.
     have h_up : upOperator (π (2 * q)) (directLifts (2 * q)) = (∏ l ∈ range (2 * q), γ l) •
         compUpTo (fun l ↦ L l directDatum) (2 * q) ((upOperator (π 0) ^ (q + 1)) φ) := by
-      rw [pow_succ', Module.End.mul_apply]
+      rw [pow_succ', mul_apply_eq_comp]
       exact upOperator_compUpTo_direct π law (upOperator_pow_mem_ramified hφ q) (2 * q)
     -- The scalar of the last double lift, with the cost of moving its `Up` to the source.
     have h_scalar : (d q * #(primitiveVectors (P := P) (N := N) (X (2 * q + 1) ⊕ Unit)) •

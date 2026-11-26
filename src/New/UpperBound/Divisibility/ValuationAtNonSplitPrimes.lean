@@ -1,5 +1,7 @@
-import New.UpperBound.Divisibility.ChainValuation
-import New.UpperBound.Objects.CharactersAtLevel
+module
+
+public import New.UpperBound.Divisibility.ChainValuation
+public import New.UpperBound.Objects.CharactersAtLevel
 
 /-!
 # Valuations of lifts at non-split primes
@@ -42,6 +44,8 @@ Notions from other files:
 
 See `New.UpperBound.Divisibility.ValuationAtLevel` for related work.
 -/
+
+@[expose] public section
 
 /-! ## One lift, evaluated at a neighbor -/
 
@@ -244,9 +248,10 @@ lemma IsMarked.sum_neighborExponent_mul_lastEntry_eq_zero (hΛ : D.IsMarked Λ) 
   rw [← hΛ.sum_inducedPlace_sub_star_eq_zero (j + 1) fun c w ↦ #(J w) * ((D.n j / 2 : ℤ) - c)]
   refine sum_congr rfl fun τ _ ↦ ?_
   by_cases h_mem : inducedPlace τ ∈ Λ
-  · simp [lastEntry, neighborExponent, markedIndices, h_mem, hΛ.star_notMem _ h_mem]
+  · simp [lastEntry, neighborExponent, markedIndices, h_mem, hΛ.star_notMem _ h_mem,
+      Finset.univ_inter _]
   · by_cases h_star_mem : star (inducedPlace τ) ∈ Λ <;>
-      simp [lastEntry, neighborExponent, markedIndices, h_mem, h_star_mem]
+      simp [lastEntry, neighborExponent, markedIndices, h_mem, h_star_mem, Finset.univ_inter _]
 
 /-- Let `Λ` be a marked set of primes, let `J l` be sets of at most `r` indices in `X_{j+1}` at the
 primes `l` of `Λ`, and let `T` be a filling of the diagrams `D.columnCount`. Summed over the boxes
@@ -387,7 +392,6 @@ by a power of the splitting character fixed by the rank, is unramified. -/
 lemma IsMarked.charUnramifiedAt_rankTwist (hQ : p.Coprime ϑ.normQ)
     {Λ : Finset (FinPlace D.E)} (hΛ : D.IsMarked Λ) {l : FinPlace D.E} (hl : l ∈ Λ) (j k : ℕ) :
     CharUnramifiedAt (rankTwist (D.chainChar ϑ j) (D.X k)).baseChange.finPart l := by
-  have hl_split : star l ≠ l := hΛ.isSplit hl
   obtain ⟨h_level, h_piM, h_piMBar, h_N⟩ := hΛ.notMem_asIdeal hQ hl
   have h_notMem_Q : l ∉ ϑ.Q ∧ star l ∉ ϑ.Q :=
     not_or.1 fun h_mem ↦ h_level (D.normQ_mem_and_notMem_of_mem_Q ϑ h_mem).left
@@ -404,7 +408,6 @@ lemma IsWeakChainDatum.projOn_translateDatum_eq_self (H : IsWeakChainDatum ϑ Ψ
     (hΛ : D.IsMarked Λ) {l : FinPlace D.E} (hl : l ∈ Λ)
     {x : D.Translations} (hx : x ∈ Ψ.support) (j : ℕ) :
     Space.projOn (homX j) {l} (D.translateDatum x j).val = (D.translateDatum x j).val := by
-  have hl_split : star l ≠ l := hΛ.isSplit hl
   obtain ⟨h_level, h_piM, h_piMBar, h_N⟩ := hΛ.notMem_asIdeal hQ hl
   -- It suffices that `l` and `star l` avoid the level, and that neither is a chosen place.
   refine D.projOn_translateDatum (D.mem_integralAfter_of_mem_admissibleTranslations
@@ -967,7 +970,7 @@ lemma IsWeakChainDatum.exists_lift_eq_chain_scaledHeckeOperator (H : IsWeakChain
           simp [s, rpow_sub, NeZero.pos, norm_p_eq_inv, div_eq_mul_inv, mul_comm]
         have hc_norm : ‖ιₚ (c i)‖ ≤ 1 := hc hj i
         grw [map_mul, norm_mul, hc_norm, one_mul, hs, ← rpow_add (mod_cast hp.1.pos)]
-      simp only [List.map_cons, List.sum_cons, Module.End.mul_apply, LinearMap.sum_apply,
+      simp only [List.map_cons, List.sum_cons, mul_apply_eq_comp, LinearMap.sum_apply,
         LinearMap.smul_apply, map_sum, map_smul]
       refine sum_mem fun i hi ↦ smul_mem_raises _ (h_coset i (mem_Iic.1 hi)) ?_
       exact (h_scalar i).trans_eq (by simp [β, add_assoc])
@@ -1014,7 +1017,7 @@ theorem IsWeakChainDatum.gaugeLe_scaledHeckeOperator_pow (H : IsWeakChainDatum �
     induction j with
     | zero => rfl
     | succ j ih =>
-      rw [pow_succ', Module.End.mul_apply, ← t_lift j x hx, ← ih]
+      rw [pow_succ', mul_apply_eq_comp, ← t_lift j x hx, ← ih]
       simp [chain, compUpTo]
   have h_comb : restrictedChain ϑ Ψ ((Y ^ D.m) v) =
       D.restrictToY (chainCombination ϑ Ψ (fun x j ↦ t j (D.translateDatum x j)) D.m v) := by

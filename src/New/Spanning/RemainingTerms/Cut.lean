@@ -1,5 +1,7 @@
-import New.Spanning.RemainingTerms.LinkLattice
-import New.Spanning.RemainingTerms.LinkVectors
+module
+
+public import New.Spanning.RemainingTerms.LinkLattice
+public import New.Spanning.RemainingTerms.LinkVectors
 
 /-!
 # The cut: from the lattice of a link to the vectors common to two links
@@ -36,6 +38,8 @@ Notions from other files:
 * `New.Filling.termsOver`: `S.termsOver c s c'` is the block of rational `γ` whose matrix in the
   bases of the lattices of `c` and `c'` is integral with reduction `s`.
 -/
+
+@[expose] public section
 
 open Matrix Submodule Module Finset Fin Fintype Pointwise
 
@@ -89,11 +93,11 @@ lemma toRows_classCoord_mul {γ : S.G E} {ρ : Type} [Fintype ρ] (c : S.Classes
   classical
   have h_middle : (finAdeleMatrix t * w).toRows₂.toRows₁ = fromRows p 0 := by
     rw [← hp]
-    simp [← ext_iff, linkMatrix, mul_apply, Matrix.one_apply]
+    simp [← ext_iff, linkMatrix, Matrix.mul_apply, Matrix.one_apply]
   have h_block (q : Matrix 𝔰.BesselIndex τ (𝔸f E)) :
       q.toRows₂.toRows₁ = fromRows p 0 →
         (S.classCoord c * q).toRows₂.toRows₁ = S.classCoordX₀ c * p := by
-    simp +contextual [← ext_iff, classCoord_eq_fromBlocks, mul_apply]
+    simp +contextual [← ext_iff, classCoord_eq_fromBlocks, Matrix.mul_apply]
   rw [Matrix.mul_assoc, h_block _ h_middle]
 
 end
@@ -336,7 +340,7 @@ lies in `X₀`: its `z`-coordinate is zero. -/
 lemma toRows₁_mul_eq_fromRows_zero {m : Matrix (𝔰.MiddleIndex ⊕ 𝔰.MiddleIndex) τ E}
     (hm_forms : zRowBlockDiagonal (S.ratMiddle E) * m = 0) (a : Matrix τ τ (𝔸f E)) :
     (finAdeleMatrix m * a).toRows₁ = fromRows (finAdeleMatrix m.toRows₁.toRows₁ * a) 0 := by
-  simp_all [← ext_iff, mul_apply, middleGram, Nat.Prime.ne_zero]
+  simp_all [← ext_iff, Matrix.mul_apply, middleGram, Nat.Prime.ne_zero]
 
 omit [HasPrimitiveRoot5040 E] in
 /-- Let the columns of `m` lie in the link of `γ`, and let both `z`-forms vanish on them. Their Gram
@@ -348,7 +352,7 @@ lemma gram_linkMetric_eq_gram_toRows₁ {m : Matrix (𝔰.MiddleIndex ⊕ 𝔰.M
   -- the mean of the forms on the two halves where the `z`-forms vanish.
   classical
   have h_isotropic : mᴴ * S.linkForm * m = 0 := gram_linkForm_eq_zero_of_le_link hm_link hm_link
-  simp_all [← ext_iff, linkMetric, mul_apply, middleGram, add_neg_eq_zero, ← two_mul,
+  simp_all [← ext_iff, linkMetric, Matrix.mul_apply, middleGram, add_neg_eq_zero, ← two_mul,
     Nat.Prime.ne_zero, Matrix.one_apply, Matrix.mul_add, Matrix.add_mul]
 
 end
@@ -661,7 +665,7 @@ lemma HasIntegralLifts.isIntMatrix_linkForm {c c' : S.Classes} {s : S.ResidueGL}
   let J : Matrix 𝔰.BesselIndex 𝔰.BesselIndex (𝔸f E) := (S.latticeMiddle (𝔸f E)).splitGram
   have hJ_int : IsIntMatrix (Ô E) J := S.isUnimodular_latticeMiddle.splitGram.isIntMatrix
   have hk_congr : IsIntMatrix (Ô E) (S.ideleM⁻¹ • (k - 1)) := by
-    have h_one : γ * γ'⁻¹ ∈ S.termsOver c 1 c := by simpa using termsOver.mul hγ (.inv hγ')
+    have h_one : γ * γ'⁻¹ ∈ S.termsOver c 1 c := by simpa using termsOver.mul hγ (termsOver.inv hγ')
     have h_level : S.translateByClassReps c c (γ * γ'⁻¹) ∈ unitaryLevel (Ô E) S.ideleM J :=
       S.principalLevel_eq_unitaryLevel.le h_one
     exact h_level.right

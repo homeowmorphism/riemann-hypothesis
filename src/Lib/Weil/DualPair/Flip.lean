@@ -1,4 +1,6 @@
-import Lib.Weil.DualPair.KernelLaws
+module
+
+public import Lib.Weil.DualPair.KernelLaws
 
 /-!
 # Flipping a dual pair by adjoints: Weil actions and theta kernels modulo ideals
@@ -47,6 +49,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.DualPair.ThetaLiftConvergence` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -238,11 +242,13 @@ lemma flipCoords_map_schrodingerOp {A : Set (FinPlace E)} (hA : A.IsConjDisjoint
   have h_apply (y : a × n → 𝔸f E) :
       (flipCoords (s := s) hc ht).finEquiv y = matrixToVec ((c : 𝔸f E) • (vecToMatrix y)ᴴ) := rfl
   have hA_star : (star ⁻¹' A).IsConjDisjoint := by
+    open scoped Pointwise in
     simpa [Set.IsConjDisjoint, Set.preimage_preimage] using Disjoint.symm hA
   -- The finite part carries the part at the conjugate of a set of places to the part at that set.
   have h_idem (B : Set (FinPlace E)) (y : a × n → 𝔸f E) :
       (flipCoords (s := s) hc ht).finEquiv (idem (star ⁻¹' B) • y) =
         idem B • (flipCoords (s := s) hc ht).finEquiv y := by
+    open scoped Pointwise in
     simp [h_apply, matrixToVec, vecToMatrix, _root_.funext_iff, mul_left_comm, star_idem]
   have h_conjClosure : (star ⁻¹' A).conjClosure = star ⁻¹' A.conjClosure := by
     simp [Set.conjClosure]
@@ -453,7 +459,7 @@ private lemma Modulus.flipCoords_map_vacTranslate {c : (Ô E)ˣ}
   rw [vacTranslate, h_vec, ← apply_finVec, map_rho, map_vacElem, ← projOn_vacElem (S := 𝔪.places),
     ← 𝔪.schrodingerOp_char_eq_translate_projOn, projOn_vacElem]
   congr with x
-  simp [y, vecToMatrix, trace, mul_apply, dotProduct, sum_prod_type, mul_left_comm (x _),
+  simp [y, vecToMatrix, trace, Matrix.mul_apply, dotProduct, sum_prod_type, mul_left_comm (x _),
     ← Finset.mul_sum, matrixToVec]
 
 /-- Flip of a pair. Let c be a unit of Ô with c̄c = −1, T a space of rank m, V a space with the

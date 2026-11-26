@@ -1,5 +1,7 @@
-import New.Congruences.Lifting.CupOrthogonalityBounds
-import New.Congruences.LocalLoss.Basic
+module
+
+public import New.Congruences.Lifting.CupOrthogonalityBounds
+public import New.Congruences.LocalLoss.Basic
 
 /-!
 # Crystalline cocycles and the defect of a crystalline lattice at a place above ℓ
@@ -37,6 +39,8 @@ Notions from other files:
 
 See `New.Congruences.LocalLoss.CrystallineDefect` for related work.
 -/
+
+@[expose] public section
 
 /-!
 ## Rank of crystalline cocycles and a length bound
@@ -185,17 +189,18 @@ divides this number, then `n ≤ crystallineLoss h b ℓ`. -/
 lemma New.Selmer.le_crystallineLoss_of_pow_dvd {ℓ h b n : ℕ} [ThePrime ℓ]
     (hn : ℓ ^ n ∣ (2 * b)! * (∏ k ∈ Ioc (b - 30 * h ^ 3) (b + 30 * h ^ 3), k) ^ h ^ 3) :
     n ≤ crystallineLoss h b ℓ := by
-  rwa [crystallineLoss, ← padicValNat_dvd_iff_le (by simp [factorial_ne_zero, prod_eq_zero_iff])]
+  rwa [crystallineLoss, Nat.padicValNat_def,
+    ← multiplicity_dvd_iff_le (by simp [factorial_ne_zero, prod_eq_zero_iff])]
 
 /-- The bound `2 b < ℓ (crystallineLoss h b ℓ + 1)` on the crystalline loss `crystallineLoss h b ℓ`,
 the `ℓ`-adic valuation of `(2 b)! (∏ k) ^ h³`, where `k` runs over the positive integers in
 `(b - 30 h³, b + 30 h³]`. The factor `(2 b)!` alone gives it. -/
 lemma New.Selmer.two_mul_lt_mul_crystallineLoss_succ {ℓ : ℕ} [hp : ThePrime ℓ] (h b : ℕ) :
     2 * b < ℓ * (crystallineLoss h b ℓ + 1) := by
-  have h_val : padicValNat ℓ (2 * b)! ≤ crystallineLoss h b ℓ :=
-    le_crystallineLoss_of_pow_dvd (pow_padicValNat_dvd.mul_right _)
-  have h_div : 2 * b / ℓ ≤ padicValNat ℓ (2 * b)! := by
-    rw [← padicValNat_mul_div_factorial, padicValNat_factorial_mul]
+  have h_val : multiplicity ℓ (2 * b)! ≤ crystallineLoss h b ℓ :=
+    le_crystallineLoss_of_pow_dvd ((pow_multiplicity_dvd ℓ _).mul_right _)
+  have h_div : 2 * b / ℓ ≤ multiplicity ℓ (2 * b)! := by
+    rw [← multiplicity_mul_div_factorial, multiplicity_factorial_mul]
     exact Nat.le_add_left _ _
   calc 2 * b < ℓ * (2 * b / ℓ + 1) := lt_mul_div_succ _ hp.out.pos
     _ ≤ ℓ * (crystallineLoss h b ℓ + 1) := by grw [h_div, h_val]
@@ -344,7 +349,9 @@ lemma New.Selmer.CrystallineSizes.differentBound_mul_add_log_le {ℓ : ℕ} [The
     natLog_lt_of_two_mul_log_lt h_sizes.log_lt hH
   have h_bracket : ℓ.log (h ^ 3) + 1 + k.differentBound ≤ h := by
     have h_cube : ℓ.log (h ^ 3) < m := h_log (by omega)
-    have h_val : padicValNat ℓ k.e < m := (padicValNat_le_nat_log k.e).trans_lt (h_log (by omega))
+    have h_val : padicValNat ℓ k.e < m := by
+      rw [Nat.padicValNat_def]
+      exact (multiplicity_le_nat_log k.e).trans_lt (h_log (by omega))
     grw [KummerChart.differentBound, ite_le_sup]
     omega
   have h_last : ℓ.log (2 * (b + δ + 5 * (2 * G))) ≤ h * G :=

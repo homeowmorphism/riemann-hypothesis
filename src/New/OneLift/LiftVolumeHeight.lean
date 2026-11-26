@@ -1,5 +1,7 @@
-import New.OneLift.ComparisonOperator.GluingMaps
-import New.OneLift.HeckeValues.TwistedValueHeights
+module
+
+public import New.OneLift.ComparisonOperator.GluingMaps
+public import New.OneLift.HeckeValues.TwistedValueHeights
 
 /-!
 # The cost of one lift: a height bound for Z_j(1)/Z_j(ξ^j)
@@ -38,6 +40,8 @@ Related work: Böcherer–Dummigan–Schulze-Pillot, Yoshida lifts and Selmer gr
 Special L-values and Selmer groups of Siegel modular forms of genus 2, 2018; Hida, Congruences of
 cusp forms and special values of their zeta functions, 1981.
 -/
+
+@[expose] public section
 
 namespace New.Data
 
@@ -210,7 +214,7 @@ lemma heckeValueProd_div_eq (j : D.LiftIndex) (ϑ : D.Twist) :
   obtain ⟨C, hC⟩ : ∃ C : ℂ, ∀ ϑ : D.Twist,
       (‖Rows.twistFactor j ϑ‖ : ℂ) ^ 2 = C / heckeValueProd j ϑ := exists_norm_twistFactor_sq_eq j
   have hC_ne : C ≠ 0 := fun h ↦ by simpa [h, twistFactor_ne_zero] using hC 1
-  rw [hC, hC, div_div_div_cancel_left' _ _ hC_ne]
+  rw [hC, hC, div_div_div_cancel_left₀ _ _ hC_ne]
 
 /-- The adjoint of the gluing map `glue j ϑ` takes the lift of `y` at the twist `ϑ` to
 `c′_ϑ⁻¹ Θ° y`, where `c′_ϑ = twistFactor j ϑ` and `Θ° = periodLift j`. -/
@@ -461,7 +465,7 @@ lemma card_prod_mul_card_tightFrameIndex_mul_sq_le (j : D.LiftIndex) :
       _ ≤ exp A := M_pow_denominatorExponent_sq_mul_le_exp j
   have h_root : N * D.chosenGroupOrder ≤ exp (A / 2) := by
     refine le_of_sq_le_sq ?_ (exp_pos _).le
-    rwa [← exp_nat_mul, Nat.cast_two, mul_div_cancel₀ _ two_ne_zero]
+    rwa [← exp_natCast_mul, Nat.cast_two, mul_div_cancel₀ _ two_ne_zero]
   have h_card : N ≤ exp (A / 2) := (le_mul_of_one_le_right (Nat.cast_nonneg _) h_aut).trans h_root
   have h_pow_x_le : 6 * D.x ^ 999 ≤ A / 2 := by simpa [hA] using D.le_of_hasLogBound
   calc
@@ -472,7 +476,7 @@ lemma card_prod_mul_card_tightFrameIndex_mul_sq_le (j : D.LiftIndex) :
     _ ≤ exp (A / 2) * exp A * (exp (D.x ^ 999) * exp (D.x ^ 999) ^ 2) ^ 2 := by
       grw [h_classes, h_card, card_columnFilling_colsMinus_le, hookNumberMinus_le]
     _ = exp (A / 2 + A + 6 * D.x ^ 999) := by
-      simp only [← exp_nat_mul, ← exp_add]
+      simp only [← exp_natCast_mul, ← exp_add]
       ring_nf
     _ ≤ exp (2 * A) := exp_le_exp.2 (by linarith)
 
@@ -538,7 +542,7 @@ lemma normSqAt_comparisonOp_le (j : D.LiftIndex) (φ : (D.descentPair (1 : D.Twi
     _ ≤ exp (2 * A) * (exp (2 * A) * S) := by
       grw [normSqAt_glue_le, h_tupleNormSq, card_prod_mul_card_tightFrameIndex_mul_sq_le]
     _ = _ := by
-      simp only [S, ← exp_nat_mul, ← mul_assoc, ← exp_add]
+      simp only [S, ← exp_natCast_mul, ← mul_assoc, ← exp_add]
       ring_nf
 
 /-- The operators `U_ϑ = comparisonOp j ϑ = n_Aut hk² glue_ϑ glue_ϑ*` on the forms on `V_j`, one for
@@ -697,7 +701,7 @@ lemma IsComparisonOperator.norm_map_det_liftCompression_le {j : D.LiftIndex}
     (σ : ℂ ≃+* ℂ) :
     ‖σ (liftCompression U 1).det‖ ≤
       exp (finrank ℂ (D.goodForms (D.spaceW j)) * (3 * (D.f * D.m * D.b * D.logB ^ 2))) := by
-  rw [exp_nat_mul, ← finrank_range_goodLift j 1]
+  rw [exp_natCast_mul, ← finrank_range_goodLift j 1]
   refine norm_map_det_le_pow σ.toRingHom _ fun α z hz ↦ ?_
   have hz_pos : 0 < normSqAt z.1 σ := normSqAt_pos (Subtype.coe_ne_coe.2 hz.2) σ
   -- `U_1 z` is orthogonal to the false lifts, so projecting it does not raise its norm at `σ`.

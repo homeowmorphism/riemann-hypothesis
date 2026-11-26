@@ -1,4 +1,6 @@
-import New.Determinant.Exchange.MatchingPartners
+module
+
+public import New.Determinant.Exchange.MatchingPartners
 
 /-!
 # Criteria for a function with a matched function to lie in a stable space; vanishing of lifts
@@ -38,6 +40,8 @@ Notions from other files:
 * `New.Space.Splitting.partialMean`: the mean of a Fourier coefficient over the shifts of one more
   isotropic vector; `New.Space.Splitting.ShearInvariant` is its invariance under local shears.
 -/
+
+@[expose] public section
 
 /-! ## Stable spaces containing a standard datum -/
 
@@ -166,6 +170,7 @@ lemma match_mem_of_stdColDatum
       IsLocallyConstant fun (k : intGL n V.O) (y : Matrix n b F) ↦ p ((d * k : GL n F).val * y) :=
     isLocallyConstant_curry (hP_le hp) (fun (k : intGL n V.O) y ↦ d.val * (k : GL n F).val * y)
       (fun k y ↦ (k : GL n F).inv * d.inv * y) (fun k y ↦ by simp [Matrix.mul_assoc])
+      (hg := by simp only [Units.inv_eq_val_inv]; fun_prop)
   -- The integral `I y` of `‖p (d * k * y)‖` over `k` is constant where `Ψ y ≠ 0`: these `y` are in
   -- the orbit of `x`.
   let I (y : Matrix n b F) : ℝ := ∫ k : intGL n V.O, ‖p ((d * k : GL n F).val * y)‖ ∂.haar
@@ -184,7 +189,7 @@ lemma match_mem_of_stdColDatum
     simp [hd, hp_eq, hsx, hx, hr, invOnUnits, Matrix.mul_sub, Matrix.sub_mul, Matrix.mul_assoc,
       stdColDatum]
   have h_pos : 0 < I x :=
-    (h_translates.comp fun f ↦ ‖f x‖).continuous.integral_pos_of_hasCompactSupport_nonneg_nonzero
+    (h_translates.comp fun f ↦ ‖f x‖).continuous.integral_pos_of_hasCompactSupport_nonneg_ne_zero
       (.of_compactSpace _) (fun _ ↦ norm_nonneg _) (norm_ne_zero_iff.2 h_one)
   -- The weighted translate is a nonnegative multiple of `Ψ`, point by point.
   have key_eq (k : intGL n V.O) (y : Matrix n b F) :
@@ -245,7 +250,7 @@ lemma sum_mul_addChar_lift_eq_zero {R : Type} [CommRing R] [Fintype R] [Decidabl
     _ = matrixFourier φ (fun r ↦ η r.det) (T.map π) := by
       refine sum_congr rfl fun r _ ↦ congrArg _ ?_
       -- the pairing of `T` with the lift of `r` reduces to that of `T.map π` with `r`
-      simpa [trace, mul_apply, ← congrFun₂ (hl r)] using (hφπ (T * l r).trace).symm
+      simpa [trace, Matrix.mul_apply, ← congrFun₂ (hl r)] using (hφπ (T * l r).trace).symm
     -- The transform at `T.map π` is a constant times `η⁻¹ (det (T.map π))`.
     _ = 0 := by simp [h_fourier _, MulChar.inv_apply_eq_inv', h_det]
 
@@ -279,8 +284,8 @@ lemma IntegralFrame.stdColDatum_mul_sub_smul (A : IntegralFrame F n m b) (r : Ma
     ⟨of fun i j ↦ ⟨(A.dualL * x) i j, h_blocks.isIntMatrix_dualL.mul hx i j⟩, rfl⟩
   let N : Matrix b b V.O := r * k - (⟨V.ϖ.1, ϖ_mem⟩ : V.O) • u
   have hN : A.dualL * y = N.map Subtype.val := by
-    simp [N, hy, ← Matrix.mul_assoc, h_blocks.dualL_mul_L, ← hk, ← hu, ← Matrix.ext_iff, mul_apply,
-      Matrix.mul_sub]
+    simp [N, hy, ← Matrix.mul_assoc, h_blocks.dualL_mul_L, ← hk, ← hu, ← Matrix.ext_iff,
+      Matrix.mul_apply, Matrix.mul_sub]
   have hϖ : hχ.reduction ⟨V.ϖ.1, ϖ_mem⟩ = 0 :=
     (hχ.reduction_surjective_and_eq_zero_iff.right _).2 (by simp)
   have hN_red : N.map hχ.reduction = r.map hχ.reduction * k.map hχ.reduction := by
@@ -334,7 +339,7 @@ lemma IntegralFrame.match_mem_of_isPrimitiveMatrix_vanishing
   let l (r : Matrix b b R) : Matrix b b V.O := if r = 1 then 1 else r.map (surjInv h_surj)
   have hl (r : Matrix b b R) : (l r).map π = r := by
     ext i j
-    by_cases hr : r = 1 <;> simp [l, hr, one_apply, apply_ite π, surjInv_eq h_surj]
+    by_cases hr : r = 1 <;> simp [l, hr, Matrix.one_apply, apply_ite π, surjInv_eq h_surj]
   let f (r : Matrix b b R) : Matrix n b F → ℂ := η r.det • S (V.ϖ.inv • (l r).map Subtype.val)
   have h_avg : ∑ r, f r ∈ P := by
     refine h_kill _ (sum_mem fun r _ ↦ M.smul_mem _ (h_shear_mem _)) ?_
@@ -506,7 +511,8 @@ lemma New.Exchange.SplitTameChar.isIntMatrix_glue_hermitian {E : Type} [Field E]
     · exact Q_int i j ⟨v, hv⟩ trivial
     · rw [← hQ]
       exact (v_star_apply ..).trans_le (Q_int j i ⟨star v, hv⟩ trivial)
-  exact add_mem (P_int i j) (by simpa [e, ← idem_compl, idem_mul_mem_Ô] using entry_int)
+  exact add_mem (P_int i j)
+    (by simpa [e, ← idem_compl, idem_mul_mem_Ô, or_iff_not_imp_left] using entry_int)
 
 /-- The pairs `(T, q)` of an index `T` and a point `q` of `GL_b(𝔸)` at which vanishing at self-dual
 lattices is tested, for a hermitian space `V'` over the CM field `E` with form `V'.J`, signs `t'`
@@ -672,6 +678,7 @@ lemma New.Exchange.IsEquivariantLift.exists_linear_partialMean
     ← partialMean_lineShift_symm_mul hD (h_lift.isAutFunction hΨ) (e • N) (ν⁻¹ * x),
     mul_inv_cancel_left]
 
+open scoped Pointwise in
 /-- Invariance under shears. Let `𝒟` be an equivariant lift on `M` and `f = 𝒟 Ψ₀`, where `Ψ₀ ∈ M` is
 the standard datum of the adapted splitting `D` (frame orthonormal at infinity and integral at the
 finite places): `y ↦ χ⁻¹(det (dualL y))` on integral `y` with unit determinant, 0 elsewhere, for the

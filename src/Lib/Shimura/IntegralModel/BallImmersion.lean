@@ -1,6 +1,8 @@
-import Lib.Shimura.IntegralModel.UniversalFamily
-import Lib.Shimura.TraceFormula.DefiniteTrace
-import Lib.Shimura.Uniformisation.ModelExists
+module
+
+public import Lib.Shimura.IntegralModel.UniversalFamily
+public import Lib.Shimura.TraceFormula.DefiniteTrace
+public import Lib.Shimura.Uniformisation.ModelExists
 
 /-!
 # Balls immerse; holomorphy, arcs and complex points of the covers
@@ -41,6 +43,8 @@ Notions from other files:
 Known; see `Lib.Shimura.IntegralModel.TowerExistence` and `Lib.Shimura.ThetaModuli.UniversalFamily`
 for sources.
 -/
+
+@[expose] public section
 
 open Filter in
 /-- Let `g` be a function on a complex normed space whose derivative has the derivative `D₂` at
@@ -94,7 +98,7 @@ lemma ModuliPoint.isLevelIso_act_of_inv_eq {a a' : ModuliPoint E D.Index ν} {g 
       (a.act g).IsLevelIso K z a' := by
   refine ⟨?_, by simpa [act] using h_refl, fun j ↦ by simp [act, h_P]⟩
   -- The level part `a'.frame⁻¹ * z * (a.frame * g)` is `g⁻¹ * g = 1`.
-  show a'.frame⁻¹ * toFinGL z * (a.frame * g.val) ∈ K
+  change a'.frame⁻¹ * toFinGL z * (a.frame * g.val) ∈ K
   simp [← mul_assoc, ← h_x]
 
 /-- Balls immerse. Let `f` be an analytic family of theta tori over `f.domain`, and `X` a theta
@@ -140,8 +144,6 @@ lemma AnalyticFamily.isHolomorphicImmersionAt_of_holomorphicAt {f : AnalyticFami
     -- So the `k`-th multiple of the section is the zero section over `x b'`.
     have h_mul_eq (b' : BallBase D.Index) :
         ψ (b', (k : ℂ)⁻¹ • T l b') ≫ (k • 𝟙 X.total).left = x b' ≫ (X.levelPoints 0).left := by
-      have h_exp_zero : (m b').uniformisation.expMap (T l b') = 0 :=
-        ((m b').uniformisation.eq_zero_iff (T l b')).mp (h_lattice b')
       simp_all [← (x _).isGroupBaseChange.nsmul_id_comp, ← comp_left_assoc, ← map_nsmul,
         ← Nat.cast_smul_eq_nsmul ℂ, ψ, ← (x _).isGroupBaseChange.pullSection_comp, comp_nsmul]
     have h_still :
@@ -345,7 +347,7 @@ lemma exists_arc (C : U.GraphClosure γ ν) (z : C.scheme.left) :
   -- In each family some member `b k` is generic: its point specialises to those of all members.
   choose b hb_mem hb using fun k ↦ exists_generic_member C.scheme.hom
     ((f k).domain.isOpen.prod isOpen_univ)
-    ((f k).isConnected.prod isConnected_univ) fun p hp ↦ C.holomorphicAt_point 0 p hp.1
+    ((f k).isConnected.prod isConnected_univ) fun p hp ↦ C.holomorphicAt_point 0 p (Set.mem_prod.1 hp).1
   have h_dense : IsDenseFamily fun k ↦ (C.point ((f k).ballPoint 0 (b k))).left := by
     intro w
     refine C.isSeparatingFamily.right.induction_on w isClosed_closure fun a ↦ ?_

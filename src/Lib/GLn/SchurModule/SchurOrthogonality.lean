@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.FlenstedJensen.PsiKTypes
-import Lib.GLn.SchurModule.GramMatrix
+module
+
+public import Lib.DiscreteSeries.FlenstedJensen.PsiKTypes
+public import Lib.GLn.SchurModule.GramMatrix
 
 /-!
 # Algebraic representations of GL(n) on unitary groups: Schur orthogonality
@@ -39,6 +41,8 @@ Notions from other files:
 
 Known; see `Lib.GLn.SchurModule.SchurNorm` and `Lib.GLn.SchurModule.MinorBasis` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -303,7 +307,7 @@ lemma schur_orthogonality (e : Φ → ℤ) (f : (WeylIndex n κ → ℂ) →ₗ[
       simpa [← conjTranspose_map (conj : ℂ → ℂ) fun _ ↦ rfl, Matrix.map_mul] using
         congrArg (Matrix.map · conj) (hg τ)
     let u : Φ → USign (1 : n → ℤˣ) := fun τ ↦ U.of (by simp) ((g τ).map conj) (h_conj_unitary τ)
-    show B * schur κ g = schur κ g * B
+    change B * schur κ g = schur κ g * B
     simpa [u, smul_left_cancel_iff, weylRep, Function.comp_def] using h_comm u
   obtain ⟨z, rfl⟩ : B ∈ Set.range (scalar _) := mem_range_scalar_of_commute_schur h_commute
   -- The trace of the integrand is `gramForm a c` at every point, and the group has volume one.

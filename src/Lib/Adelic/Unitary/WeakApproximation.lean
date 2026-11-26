@@ -1,4 +1,6 @@
-import Lib.Adelic.Unitary.GramMatrix
+module
+
+public import Lib.Adelic.Unitary.GramMatrix
 
 /-!
 # Closed matrix embedding of adelic unitary groups, discrete rational points, weak approximation
@@ -42,6 +44,8 @@ diagonal form, and this form is the identity at all finite places, so every spac
 shares one adelic group.
 -/
 
+@[expose] public section
+
 /-! ## Closed embedding into matrices and discreteness of rational points -/
 
 namespace New
@@ -57,7 +61,7 @@ lemma G.isClosedEmbedding_adeleMatrix : IsClosedEmbedding
   -- `adeleMatrix` is `toUnitary` followed by the closed embedding of the unitary group of
   -- `stdForm E s` into matrices, so it suffices that `toUnitary` and its inverse are continuous.
   have h_emb : IsClosedEmbedding fun u : U (stdForm E s) ↦ (u.val : Matrix n n (𝔸 E)) :=
-    U.isClosedEmbedding_coe isUnit_stdForm
+    Matrix.unitaryGroupOf.isClosedEmbedding_val isUnit_stdForm
   have h_symm : Continuous (toUnitary.symm : U (stdForm E s) → G E s) :=
     .prodMk (continuous_pi fun w ↦ continuous_map (continuous_apply w).fst')
       (continuous_map continuous_snd)
@@ -84,7 +88,7 @@ instance {E : Type*} [Field E] [CMType E] (W : Space E n 1) : DiscreteTopology W
     (.cocompact (Gf E n)) := by
     simpa [← Filter.coprod_cocompact, Function.comp_def] using h_emb
   -- `W.Γf` is the range of `W.embFin γ = (W.ratEmbed γ).2`.
-  refine continuous_subtype_val.discrete_of_tendsto_cofinite_cocompact
+  refine continuous_subtypeVal.discrete_of_tendsto_cofinite_cocompact
     (.mono_left ?_ (Set.rangeFactorization_surjective (f := W.embFin)).le_map_cofinite)
   exact h_fin
 
@@ -183,12 +187,10 @@ lemma _root_.New.cayleyTransform_map {K L : Type*} [Field K] [Field L] (φ : K �
 /-- The Cayley transform is continuous where `1 + A` is invertible. -/
 lemma _root_.New.continuousAt_cayleyTransform {K : Type*} [NormedField K] {A : Matrix n n K}
     (hA : (1 + A).det ≠ 0) : ContinuousAt cayleyTransform A := by
-  have h_eq : (cayleyTransform : Matrix n n K → Matrix n n K) =
-      fun X ↦ (1 - X) * ((1 + X).det⁻¹ • (1 + X).adjugate) := by
-    ext1 X
-    simp [cayleyTransform, inv_def]
-  rw [h_eq]
-  fun_prop (disch := exact hA)
+  have h_inv : ContinuousAt Ring.inverse (1 + A).det := by
+    simpa only [Ring.inverse_eq_inv'] using continuousAt_inv₀ hA
+  exact (continuousAt_const.sub continuousAt_id).mul
+    ((continuousAt_matrix_inv _ h_inv).comp (continuousAt_const.add continuousAt_id))
 
 /-- The part of a rational matrix `C` that is skew for the form `J = V.J`, namely
 `(C - J⁻¹ Cᴴ J) / 2`. -/
@@ -279,7 +281,8 @@ lemma eventually_tendsto_cayleyMap (g : G E s) (e : 𝔸 E) {K : Type*} [NormedF
       cayleyTransform_map, map_ofNat]
   have gram : φ (star c.1) • γᴴ.map f * J * φ c • γ.map f = J := by
     have h_gram : γᴴ.map f * J * γ.map f = J := by
-      simpa [J, φ, γ, coe_comp] using congrArg (map · f) (V.toRatCoords g).prop
+      simpa [J, φ, γ, coe_comp, star_eq_conjTranspose] using
+        congrArg (map · f) (mem_unitaryGroupOf_iff.1 (V.toRatCoords g).prop)
     simp [smul_smul, mul_comm (φ c), h_norm, h_gram]
   obtain ⟨h_det_star, skew⟩ := cayleyTransform_mul_eq_neg gram hJ h_det
   have u_value : u (γ.map f) (γᴴ.map f) = C := by

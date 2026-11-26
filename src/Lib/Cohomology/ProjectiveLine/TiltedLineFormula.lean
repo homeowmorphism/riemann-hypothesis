@@ -1,5 +1,7 @@
-import Lib.Cohomology.ProjectiveLine.PerfectLine
-import Lib.Cohomology.ProperBaseChange.Theorem
+module
+
+public import Lib.Cohomology.ProjectiveLine.PerfectLine
+public import Lib.Cohomology.ProperBaseChange.Theorem
 
 /-!
 # Leray–Hirsch bases and the projective line formula for the tilted theory
@@ -53,6 +55,8 @@ VI.8.
 
 See also `Lib.Cohomology.ProjectiveLine.ConstantLineFormula`.
 -/
+
+@[expose] public section
 
 /-! ## Leray–Hirsch bases over the special fibre and at points of tests -/
 
@@ -241,7 +245,10 @@ lemma exists_isLerayHirschBasis_of_isCohomDense [InvertsPrime A ℓ] (M : Torsio
     pullbackAlong oneLocConst i.snd.toTotalH
   -- `{j} ∩ u.support` is empty if `u j = 0`, and `{j}` with `u j ≠ 0` otherwise.
   have hj : LinearIndepOn (ZMod ℓ) u ({j} ∩ u.support) := by
-    by_cases h_uj : u j = 0 <;> simp [h_uj]
+    by_cases h_uj : u j = 0
+    · simp [h_uj]
+    · rw [Set.singleton_inter_of_mem (Function.mem_support.2 h_uj)]
+      exact .singleton h_uj
   obtain ⟨b, -, h_jb, h_span, h_indep⟩ := exists_linearIndepOn_extension hj (Set.subset_univ _)
   -- Every class of the point is pulled back along `oneLocConst`
   -- (`TorsionCoeff.pullbackAlong_oneLocConst_surjective`), so the `u i` span.
@@ -482,7 +489,7 @@ lemma isCohomEquiv_pushout_desc {i : W' ⟶ W} [Mono i] {δ' : W' ⟶ W'} {δ : 
     (isCohomEquiv_iff_subsingleton (.map ⟨exact_cokernel g⟩ Φ)).2 hg
   have h_sq : IsPushout i δ' (pushout.inr δ' i) (pushout.inl δ' i) :=
     (IsPushout.of_hasPushout δ' i).flip
-  let e := cokernel.map i (pushout.inl δ' i) δ' (pushout.inr δ' i) h_sq.w
+  let e := cokernel.map i (pushout.inl δ' i) δ' (pushout.inr δ' i) h_sq.w.symm
   have h_iso : IsIso e := isIso_cokernel_map_of_isPushout h_sq
   have h_inl : IsCohomEquiv F (Φ.map (pushout.inl δ' i)) :=
     h_eqv (pushout.inl δ' i) fun k ↦
@@ -652,7 +659,7 @@ lemma etaAt_swap (x : TotalH (abTensor S (freeAb (projLineAlong g))) Θ.functor)
     rw [h_cut r fun _ _ ↦ rfl]
     refine h_cut q fun c hc ↦ ?_
     ext s
-    show _ ⊗ₜ FreeAbelianGroup.of (q.val c) = _ ⊗ₜ FreeAbelianGroup.of (r.val c)
+    change _ ⊗ₜ FreeAddCommGroup.of (q.val c) = _ ⊗ₜ FreeAddCommGroup.of (r.val c)
     rw [hJ c hc]
   -- Taking `r` to be the base point, where both `x` and `η` vanish, kills the diagonal terms.
   have h_diag (q : (projLineAlong g).sections) : o q q = 0 := by
@@ -853,11 +860,12 @@ open Period in
 private lemma exists_tilt_lift_compatibleRootsOfUnity [Algebra A ℂ_[ℓ]] :
     ∃ χ : Multiplicative ℚ →* OFlat, ∀ s : Multiplicative ℚ,
       ((χ s).untilt : ℂ_[ℓ]) = algebraMap A ℂ_[ℓ]
-        ((compatibleRootsOfUnity (A := A)).val s : A) := by
-  have h_root : (compatibleRootsOfUnity (A := A)).val (.ofAdd 1) = 1 :=
-    (compatibleRootsOfUnity (A := A)).property.left
+        ((compatibleRootsOfUnity (ℓ := ℓ) (A := A)).val s : A) := by
+  have h_root : (compatibleRootsOfUnity (ℓ := ℓ) (A := A)).val (.ofAdd 1) = 1 :=
+    (compatibleRootsOfUnity (ℓ := ℓ) (A := A)).property.left
   let a : Multiplicative ℚ →* ℂ_[ℓ] :=
-    (algebraMap A ℂ_[ℓ]).toMonoidHom.comp ((Units.coeHom A).comp compatibleRootsOfUnity.val)
+    (algebraMap A ℂ_[ℓ]).toMonoidHom.comp
+      ((Units.coeHom A).comp (compatibleRootsOfUnity (ℓ := ℓ)).val)
   exact exists_tilt_lift_of_character a (by simp [a, h_root])
 
 open AddMonoidAlgebra Period freeAb in
@@ -915,8 +923,8 @@ lemma exists_isTodaCancellation_etaClass [Algebra A ℂ_[ℓ]] :
   -- on this square by `exists_isTodaCancellation_etaClass_of_squares`. First, the character `χ` of
   -- `ℚ` with values in the tilt that lifts the roots of unity `compatibleRootsOfUnity`, which are
   -- `1` at `1`.
-  have h_root : (compatibleRootsOfUnity (A := A)).val (.ofAdd 1) = 1 :=
-    (compatibleRootsOfUnity (A := A)).property.left
+  have h_root : (compatibleRootsOfUnity (ℓ := ℓ) (A := A)).val (.ofAdd 1) = 1 :=
+    (compatibleRootsOfUnity (ℓ := ℓ) (A := A)).property.left
   obtain ⟨χ, hχ⟩ := exists_tilt_lift_compatibleRootsOfUnity (A := A)
   -- The row `(1 + x.1 * x.2, x.2)` is the unit `ε x` times the chosen row of its class. `F c x` is
   -- this frame, a unit and a point of `ℙ¹`; it is natural in `c`.
@@ -942,14 +950,12 @@ lemma exists_isTodaCancellation_etaClass [Algebra A ℂ_[ℓ]] :
     .comp (.ofClass (algebraMap ..)) (Perfection.teichmuller₀ ..)
   have ρ_nat (c d : PadicTest) (f : c ⟶ d) (x : PadicTest.tilt c) :
       R.map f (ρ c x) = ρ d (tiltMap f.1 x) := by
-    -- `erw` and `rfl`: these lemmas match `R.map f` and `ρ` only up to unfolding definitions.
-    erw [c.mapGeneric_algebraMap, ← untilt_tiltMap]
-    rfl
+    -- These lemmas match `R.map f` and `ρ` only up to unfolding definitions.
+    exact (c.mapGeneric_algebraMap _ _).trans (congrArg _ (untilt_tiltMap ..).symm)
   have ρ_const (c : PadicTest) (s : OFlat) :
       ρ c (algebraMap _ _ s) = c.genericStructureMap s.untilt := by
-    -- `erw` and `rfl`: as for `ρ_nat`, these lemmas match only up to unfolding definitions.
-    erw [c.genericStructureMap_coe, ← untilt_tiltMap c.structureMap s]
-    rfl
+    -- As for `ρ_nat`, these lemmas match only up to unfolding definitions.
+    exact ((c.genericStructureMap_coe _).trans (congrArg _ (untilt_tiltMap c.structureMap s).symm)).symm
   -- With `X` the untilt of the coordinate, `f` is `[(1, 0)] - [(X, 1)]` on the disc `true` and
   -- `[(1, 0)] - [(1, X)]` on the other one.
   let f : freeAb twoDiscs ⟶ (cocycle (genericTestOver A)).extension.X₂ := desc
@@ -997,7 +1003,7 @@ lemma exists_isTodaCancellation_etaClass [Algebra A ℂ_[ℓ]] :
       obtain ⟨h_unit, h_point⟩ := eq_and_eq_of_smul_unimodularRow_eq h_rows
       have h_frame : v + F c (0, X') = F c (X - 1, 1) :=
         Prod.ext (ULift.down_injective h_unit)
-          ((zero_add _).trans (congrArg FreeAbelianGroup.of h_point))
+          ((zero_add _).trans (congrArg FreeAddCommGroup.of h_point))
       -- `using!`: the two sides of the square are these terms up to unfolding `v`, `X`, `X'`.
       simpa [f, α, -Functor.comp_obj] using! eq_sub_of_add_eq h_frame
   have h_disc : oneSub (discTwist χ) ≫ f = 0 := by
@@ -1019,7 +1025,7 @@ lemma exists_isTodaCancellation_etaClass [Algebra A ℂ_[ℓ]] :
             (((algebraMap OFlat OFlat[ℚ] : OFlat →* OFlat[ℚ])).comp χ * of OFlat ℚ)
             (of OFlat ℚ (.ofAdd s)))) =
           c.genericStructureMap (algebraMap A ℂ_[ℓ]
-              ((compatibleRootsOfUnity (A := A)).val (.ofAdd s) : A)) *
+              ((compatibleRootsOfUnity (ℓ := ℓ) (A := A)).val (.ofAdd s) : A)) *
             ρ c (y.down.hom (of OFlat ℚ (.ofAdd s))) := by
         rw [lift_of, MonoidHom.mul_apply, map_mul, map_mul, ← hχ, ← ρ_const]
         exact congrArg (fun z ↦ ρ c z * _) (y.down.hom.commutes _)

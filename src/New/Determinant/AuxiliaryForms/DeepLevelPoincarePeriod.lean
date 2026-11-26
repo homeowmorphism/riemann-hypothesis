@@ -1,6 +1,8 @@
-import New.Appendix.DiscreteSeries.SteepParameters
-import New.UpperBound.Objects.Columns
-import New.UpperBound.Objects.Parameters
+module
+
+public import New.Appendix.DiscreteSeries.SteepParameters
+public import New.UpperBound.Objects.Columns
+public import New.UpperBound.Objects.Parameters
 
 /-!
 # Steep parameters of Y₀ and Ỹ^0_0; periods of Poincaré series of deep level
@@ -46,6 +48,8 @@ Notions from other files:
   of the ring of integers of `E`.
 -/
 
+@[expose] public section
+
 /-! ## Steepness of the discrete series parameters at infinite places -/
 
 section SteepParameters
@@ -84,7 +88,7 @@ lemma New.Data.abs_targetParameter_sub_lowestKType_le_and_eq {P : Parameters} (D
     | zero => simp
     | succ M ih =>
       rw [Finset.sum_range_succ]
-      grind (splits := 20) [targetParameter_eq]
+      grind [targetParameter_eq]
   -- `entrySign 0 0 i` depends only on the parity of `i`
   have h_sign (i i' : ℕ) : entrySign 0 0 i = entrySign 0 0 i' ↔ i % 2 = i' % 2 := by
     have h_ne : (-1 : ℤˣ) ≠ 1 := by decide

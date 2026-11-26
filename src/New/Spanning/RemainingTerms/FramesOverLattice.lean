@@ -1,4 +1,6 @@
-import New.Spanning.RemainingTerms.FrameParts
+module
+
+public import New.Spanning.RemainingTerms.FrameParts
 
 /-!
 # Counting frames over a lattice of small discriminant
@@ -29,6 +31,8 @@ Notions from other files:
 * `New.genIndex d`: the generalised index of an idele `d`, the inverse of the factor by which `d`
   scales Haar measure.
 -/
+
+@[expose] public section
 
 namespace New.Filling
 
@@ -187,7 +191,7 @@ lemma isIntegral_sharedVectors {γ : S.G E} {s : S.ResidueGL} {c' : S.Classes}
       termsOver.isIntMatrix_translateByClassReps h_over (.inl i) (𝔰.besselFrame b)
     -- The change to the lattice basis keeps the coordinates in the isotropic space.
     rw [frameImage_translateByClassReps, classCoord_eq_fromBlocks] at h_entry
-    simpa [O, mul_apply, Matrix.one_apply] using h_entry
+    simpa [O, Matrix.mul_apply, Matrix.one_apply] using h_entry
   rw [sharedVectors, of_apply]
   split_ifs
   · exact algebraMap_mem_Ô.1 (h_frame.mul hY.adjugate a k)
@@ -243,7 +247,7 @@ private lemma exists_frameImage_mul_eq_of_sub_mem {γ γ' : S.G E} {c' c'' : S.C
   -- The change to the lattice basis keeps the coordinates in the isotropic space.
   have h_diff : (frameImage (S.translateByClassReps c c'' γ').val.val).toRows₁ -
       (frameImage (S.translateByClassReps c c' γ).val.val).toRows₁ = finAdeleMatrix ξ := by
-    simp [ξ, frameImage_translateByClassReps, classCoord_eq_fromBlocks, ← ext_iff, mul_apply,
+    simp [ξ, frameImage_translateByClassReps, classCoord_eq_fromBlocks, ← ext_iff, Matrix.mul_apply,
       Matrix.one_apply]
   have hξ : IsIntMatrix ((Ô E).comap (algebraMap E (𝔸f E)))
       ((S.frameModulus j (S.frameProducts γ))⁻¹ • ξ) := by

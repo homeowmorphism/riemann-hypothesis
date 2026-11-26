@@ -1,7 +1,9 @@
-import New.Spanning.RemainingTerms.ColumnLattice
-import New.Spanning.RemainingTerms.FrameParts
-import New.Spanning.RemainingTerms.LinkLattice
-import New.Spanning.RemainingTerms.SchurTest
+module
+
+public import New.Spanning.RemainingTerms.ColumnLattice
+public import New.Spanning.RemainingTerms.FrameParts
+public import New.Spanning.RemainingTerms.LinkLattice
+public import New.Spanning.RemainingTerms.SchurTest
 
 /-!
 # Schur's test for one orbit
@@ -36,6 +38,8 @@ Notions from other files:
   `New.Filling.tsum_amplitudeMajorant_orbit_le`: the test, and its form as a bound by
   `New.Filling.orbitBound`.
 -/
+
+@[expose] public section
 
 namespace New.Filling
 
@@ -81,7 +85,7 @@ lemma termsOver.of_mem_doubleCoset {δ : S.G E}
     (hδ : δ ∈ doubleCoset γ (S.classUnipotent₀ c) (S.classUnipotent₀ c'))
     (h_over : γ ∈ S.termsOver c s c') : δ ∈ S.termsOver c s c' := by
   obtain ⟨u, ⟨⟨-, hu_over⟩, -⟩, x, ⟨⟨-, hx_over⟩, -⟩, rfl⟩ := mem_doubleCoset.1 hδ
-  simpa using termsOver.mul (.mul hu_over h_over) hx_over
+  simpa using termsOver.mul (termsOver.mul hu_over h_over) hx_over
 
 omit [S.IsAdmissible] in
 /-- For `δ` in the orbit of `γ`, the conjugate of each row `i` of middle coordinates of the frame
@@ -119,7 +123,7 @@ lemma col_frameMiddle_sub_mem {δ : S.G E}
   have h_diff (b : Fin (𝔰.ϱ + 1)) : (frameMiddle (u' * g) - frameMiddle g) i b =
       ∑ a : Fin 𝔰.ϱ, u' (.inr (.inl i)) (eStar a) *
         isotropicRows ((S.latticeMiddle (𝔸f E)).frameGram g) a b := by
-    simp [mul_apply, frameGram, splitGram, h_unipotent, Matrix.one_apply]
+    simp [Matrix.mul_apply, frameGram, splitGram, h_unipotent, Matrix.one_apply]
   rw [frameMiddle, h_frame]
   funext b
   change _ = star ((frameMiddle (u' * g) - frameMiddle g) i b)
@@ -254,7 +258,7 @@ lemma IsLatticeTranslate.frameX₀Part_eq {p p₀ : S.G E} {q : Matrix 𝔰.κ (
   have h_entry : p.1.1 (𝔰.indexX₀ a) (𝔰.besselFrame b) = p₀.1.1 (𝔰.indexX₀ a) (𝔰.besselFrame b) +
       S.M * ∑ l, q a l * S.frameProducts γ (initialIsotropicIndex j l).castSucc b := by
     have h_translate_entry := congrFun₂ hq_eq (.inl (.inl a)) b
-    simpa [mul_apply] using h_translate_entry
+    simpa [Matrix.mul_apply] using h_translate_entry
   have h_term (l : Fin (min 𝔰.ϱ j)) :
       S.M * (Φ v (q a l) * Φ v (S.frameProducts γ (initialIsotropicIndex j l).castSucc b)) *
           S.basisScale v (𝔰.besselFrame b) =
@@ -270,11 +274,11 @@ lemma IsLatticeTranslate.frameX₀Part_eq {p p₀ : S.G E} {q : Matrix 𝔰.κ (
     rw [h_sqrt]
     field_simp
   have h_one : S.basisScale v (𝔰.indexX₀ a) = 1 := by simp [basisScale]
-  rw [conjTranspose_mul, conjTranspose_conjTranspose, Matrix.add_apply, mul_apply]
+  rw [conjTranspose_mul, conjTranspose_conjTranspose, Matrix.add_apply, Matrix.mul_apply]
   simp only [shiftScaling, mul_diagonal, conjTranspose_apply, of_apply, conjColumnsAtInfinity_apply,
     star_star, submatrix_apply, id_eq, ← h_term]
-  simp [frameX₀Part, inclMatrix, mul_apply, Matrix.one_apply, h_entry, add_mul, mul_sum, sum_mul,
-    h_one, -Nat.cast_mul]
+  simp [frameX₀Part, inclMatrix, Matrix.mul_apply, Matrix.one_apply, h_entry, add_mul, mul_sum,
+    sum_mul, h_one, -Nat.cast_mul]
 
 /-- **The shifted points.** Let `p` be a lattice translate of `p₀` by `q`, both with the matrix of
 products `frameProducts γ`. Let `u` lie in `besselU0`, and let `s` be `eichlerShift j x v`. Then the
@@ -297,7 +301,7 @@ lemma frameX₀Part_eichlerShift_inv_mul {p p₀ : S.G E} (hp : S.frameProducts 
       (inclMatrix ℂ (initialIsotropicIndex j))ᴴ * isotropicRows Z = (isotropicRows Z).submatrix
         (initialIsotropicIndex j) id := by
     ext l b
-    simp [inclMatrix, mul_apply, Matrix.one_apply]
+    simp [inclMatrix, Matrix.mul_apply, Matrix.one_apply]
   set Z : 𝔰.FrameMatrix := realFrameGram (S.ratToInf γ v) with hZ
   have h_moved : frameX₀Part ((unipotentOf t * S.eichlerShift j x v)⁻¹ * S.ratToInf p v) =
       frameX₀Part (S.ratToInf p v) + t.1ᴴ * isotropicRows Z +
@@ -326,10 +330,10 @@ lemma frameMiddle_translateByClassReps_sub {p p' : S.G E}
   have hz_eq (b : Fin (𝔰.ϱ + 1)) :
       (p' : Matrix 𝔰.BesselIndex 𝔰.BesselIndex E) 𝔰.z (𝔰.besselFrame b) =
         (p : Matrix 𝔰.BesselIndex 𝔰.BesselIndex E) 𝔰.z (𝔰.besselFrame b) := by
-    simpa [frameGram, splitGram, middleGram, mul_apply, Nat.Prime.ne_zero] using
+    simpa [frameGram, splitGram, middleGram, Matrix.mul_apply, Nat.Prime.ne_zero] using
       congrFun₂ hZ 𝔰.top b
   ext r b
-  simp [frameMiddle_translateByClassReps, hz_eq, mul_apply, mul_sub]
+  simp [frameMiddle_translateByClassReps, hz_eq, Matrix.mul_apply, mul_sub]
 
 end
 
@@ -368,7 +372,7 @@ lemma HasCellRank.exists_isLatticeTranslate (h_rank : S.HasCellRank j γ) {p₀ 
   have h_inv : ξ * ξ' = 1 := by
     ext a b
     have ha : a.val < j.val := a.2.trans_le (min_le_right _ _)
-    simpa [hξ, ξ', paddedLeading, mul_apply, ha, Matrix.one_apply, Fin.ext_iff] using
+    simpa [hξ, ξ', paddedLeading, Matrix.mul_apply, ha, Matrix.one_apply, Fin.ext_iff] using
       congrFun₂ h_rank.paddedLeading_mul_inv (initialIsotropicIndex j a).castSucc
         (initialIsotropicIndex j b).castSucc
   have h_eq : S.frameProducts p = S.frameProducts p₀ := hZ.trans hZ₀.symm
@@ -398,9 +402,9 @@ lemma HasCellRank.exists_isLatticeTranslate (h_rank : S.HasCellRank j γ) {p₀ 
   rw [← hξ, ← h_rational]
   ext (⟨i | i⟩ | i) b
   · simp [hx]
-  · simpa [frameGram, splitGram, middleGram, mul_apply, S.N_prime.ne_zero] using
+  · simpa [frameGram, splitGram, middleGram, Matrix.mul_apply, S.N_prime.ne_zero] using
       congrFun₂ h_eq 𝔰.top b
-  · simpa [frameGram, mul_apply, Matrix.one_apply] using congrFun₂ h_eq i.castSucc b
+  · simpa [frameGram, Matrix.mul_apply, Matrix.one_apply] using congrFun₂ h_eq i.castSucc b
 
 omit [S.IsAdmissible] in
 /-- Let `γ` have cell rank `j` and lie over the block `(c, s, c')`, let `Λ` be the lattice of the
@@ -557,7 +561,7 @@ lemma HasCellRank.exists_majorant_lintegral_le_kernelBound (h_rank : S.HasCellRa
   refine ⟨fun A ↦ φ₀ ((S.shiftScaling j v)ᴴ * of A + 0), h_meas.comp (Continuous.measurable ?_),
     ?_, fun g A hg_gram hg_pair hg_part ↦ h_le g _ hg_gram hg_pair ?_⟩
   · have h_of : Continuous fun A : Fin (min 𝔰.ϱ j) → 𝔰.κ → ℂ ↦ of A := continuous_id
-    show Continuous fun A : Fin (min 𝔰.ϱ j) → 𝔰.κ → ℂ ↦ (S.shiftScaling j v)ᴴ * of A + 0
+    change Continuous fun A : Fin (min 𝔰.ϱ j) → 𝔰.κ → ℂ ↦ (S.shiftScaling j v)ᴴ * of A + 0
     fun_prop
   · -- The change of variables brings in the Jacobian that `kernelBound` carries.
     have h_det : (S.shiftScaling j v)ᴴ.det ≠ 0 := by
@@ -791,7 +795,6 @@ lemma tsum_schurWeight_ratToInf_mul {i : ℕ} {u : S.G E} (hu : u ∈ S.classUni
   conv_lhs => rw [← h_image, tsum_image (S.schurWeight c' · _ _) (by simp)]
   simp [schurWeight, volumeRatio, frameVolume_mul_left, ratToInf_mem_besselU0 hu.2]
 
-set_option synthInstance.maxHeartbeats 200000 in
 /-- **From the lattice to an integral.** Let `γ` have cell rank `j ≥ 1` (`HasCellRank`) and lie in
 `termsOver c s c'`.
 

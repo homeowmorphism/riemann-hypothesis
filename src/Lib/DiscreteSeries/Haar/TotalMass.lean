@@ -1,6 +1,8 @@
-import Lib.Adelic.Witt.WittTheorem
-import Lib.DiscreteSeries.Haar.GramPolar
-import Lib.General.Analysis.PackingAndSobolev
+module
+
+public import Lib.Adelic.Witt.WittTheorem
+public import Lib.DiscreteSeries.Haar.GramPolar
+public import Lib.General.Analysis.PackingAndSobolev
 
 /-!
 # Haar measure on U(J): U(n) has mass one, covering bounds for norm balls
@@ -45,6 +47,8 @@ The volume of a compact Lie group, Invent. Math. 56 (1980); B. Gross, On the mot
 group, Invent. Math. 130 (1997).
 -/
 
+@[expose] public section
+
 /-! ## U(n) has mass one -/
 
 namespace New
@@ -64,7 +68,7 @@ lemma exists_unitary_mulVec_eq [DecidableEq κ]
   obtain ⟨u, hu⟩ : ∃ u : U (1 : Matrix κ κ ℂ),
       (u : Matrix κ κ ℂ) * replicateCol Unit ω = replicateCol Unit v :=
     witt ⟨I, by simp⟩ conjTranspose_one isUnit_one (.of_ne_zero hω) (.of_ne_zero hv)
-      (by simpa [← ext_iff, mul_apply, dotProduct] using h_norm)
+      (by simpa [← ext_iff, Matrix.mul_apply, dotProduct] using h_norm)
   exact ⟨u, by rwa [← replicateCol_mulVec, replicateCol_inj] at hu⟩
 
 /-- For nonempty `κ` with `k` elements, the set `|ω|² < a` in `ℂ ^ κ` is the ball of radius `√a`, of
@@ -147,12 +151,13 @@ theorem HasGramDensity.lintegral_conjTranspose_mulVec {W : Set (Matrix n' n' ℝ
   have h_gram (X : Matrix n' n' ℂ) (w : n' → ℂ) :
       gramCoords 1 ((u : Matrix n n ℂ) * rows (X, w)) = gramCoords 1 X + outerCoords w := by
     have h_sum : (rows (X, w))ᴴ * rows (X, w) = Xᴴ * X + vecMulVec w (star w) := by
-      simp [← ext_iff, rows, mul_apply, ← e.sum_comp, vecMulVec_apply]
+      simp [← ext_iff, rows, Matrix.mul_apply, ← e.sum_comp, vecMulVec_apply]
     rw [gramCoords_U_mul]
     simp [gramCoords, outerCoords, h_sum]
   have h_prod (X : Matrix n' n' ℂ) (w : n' → ℂ) :
       ((u : Matrix n n ℂ) * rows (X, w))ᴴ *ᵥ v = √r • w := by
-    have h_unitary : (u : Matrix n n ℂ)ᴴ * u = 1 := by simpa using mem_U.1 u.property
+    have h_unitary : (u : Matrix n n ℂ)ᴴ * u = 1 := by
+      simpa [star_eq_conjTranspose] using mem_unitaryGroupOf_iff.1 u.property
     rw [← hu, mulVec_mulVec, conjTranspose_mul, Matrix.mul_assoc, h_unitary]
     simp [funext_iff, v₀, rows, mulVec_smul]
   have h_outer (w : n' → ℂ) : r⁻¹ • outerCoords (√r • w) = outerCoords w := by
@@ -247,11 +252,11 @@ lemma apply_gramCoords_joinCol (e : n' ⊕ Unit ≃ n)
   have h_corner : ((joinCol e (Y, v))ᴴ * joinCol e (Y, v)) (e (.inr ())) (e (.inr ())) =
       ‖star v ⬝ᵥ v‖ := by
     rw [norm_of_nonneg' (dotProduct_star_self_nonneg v)]
-    simp [mul_apply, dotProduct]
+    simp [Matrix.mul_apply, dotProduct]
   rw [φ_apply, hermOfReal_gramCoords isHermitian_one]
   refine Prod.ext ?_ (Prod.ext ?_ ?_)
-  · simp [← ext_iff, gramCoords, skewCoords, mul_apply]
-  · simp [funext_iff, mul_apply, mulVec, dotProduct]
+  · simp [← ext_iff, gramCoords, skewCoords, Matrix.mul_apply]
+  · simp [funext_iff, Matrix.mul_apply, mulVec, dotProduct]
   · simp [gramCoords, skewCoords, h_corner]
 
 /-- There is an open set `W` of real `n × n` matrices containing `gramCoords 1 1` on which the Gram
@@ -288,7 +293,7 @@ theorem exists_hasGramDensity :
     have h_one : φ (gramCoords 1 (1 : Matrix n n ℂ)) =
         (gramCoords 1 (1 : Matrix n' n' ℂ), 0, 1) := by
       rw [φ_apply, hermOfReal_gramCoords isHermitian_one]
-      simp [← ext_iff, funext_iff, gramCoords, skewCoords, one_apply]
+      simp [← ext_iff, funext_iff, gramCoords, skewCoords, Matrix.one_apply]
     exact ⟨_, h_open.preimage φ.continuous, by simpa [h_one, outerCoords] using hW_one,
       by simpa only [h_const] using hW.succ e φ_vol (apply_gramCoords_joinCol e φ_apply)⟩
 
@@ -311,13 +316,14 @@ instance isProbabilityMeasure_haarU :
     have hc : c ≠ 0 := by simp [c, volU_pos]
     rw [← ENNReal.mul_left_inj hS_pos hS_fin, ← ENNReal.mul_right_inj hc ENNReal.ofReal_ne_top]
     calc c * (volume (univ : Set (U (1 : Matrix n n ℂ))) * volume S)
-        = c * ∫⁻ t : Matrix n n ℝ in S, ∫⁻ g : U (1 : Matrix n n ℂ), 1 := by simp
+        = c * ∫⁻ t : Matrix n n ℝ in S, ∫⁻ g : U (1 : Matrix n n ℂ), 1 := by
+          simp [Set.univ_inter]
       _ = ∫⁻ Y : Matrix n n ℂ in gramCoords 1 ⁻¹' S, 1 :=
           ((hσ.mono hS (by grind)).lintegral_eq measurable_const).symm
       _ = ∫⁻ Y : Matrix n n ℂ, S.indicator 1 (gramCoords 1 Y) :=
           (lintegral_indicator ((continuous_gramCoords 1).measurable hS.measurableSet) _).symm
       _ = c * (1 * volume S) := by
-          simpa [hS.measurableSet] using hW _ (measurable_one.indicator hS.measurableSet)
+          simpa [hS.measurableSet, Set.univ_inter] using hW _ (measurable_one.indicator hS.measurableSet)
             (support_indicator_subset.trans (by grind))
 
 /-- For all signs equal to one, the unitary group of the sign matrix `signMatrix 1`, which equals

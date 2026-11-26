@@ -1,5 +1,7 @@
-import Lib.Shimura.Uniformisation.HolomorphicFamilies
-import New.Spanning.SecondMoment.PositiveType
+module
+
+public import Lib.Shimura.Uniformisation.HolomorphicFamilies
+public import New.Spanning.SecondMoment.PositiveType
 
 /-!
 # Few translates fill
@@ -22,6 +24,8 @@ Then a few translates `s pr₀ B` span almost all of `T₀`. In this file `‖A�
 Rank bounds from second moments: Welch 1974. Greedy covering with a logarithmic loss: Wolsey, Greedy
 algorithm for the submodular set covering problem, 1982.
 -/
+
+@[expose] public section
 
 open Module LinearMap Finset
 

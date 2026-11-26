@@ -1,7 +1,9 @@
-import Lib.Adelic.AutomorphicForms.PAdicGauge
-import Lib.ClassField.HeckeCharacter.AlgebraicValues
-import Lib.General.LinearAlgebra.TensorChains
-import Lib.Weil.DualPair.WeilAction
+module
+
+public import Lib.Adelic.AutomorphicForms.PAdicGauge
+public import Lib.ClassField.HeckeCharacter.AlgebraicValues
+public import Lib.General.LinearAlgebra.TensorChains
+public import Lib.Weil.DualPair.WeilAction
 
 /-!
 # Graded lattices, integrality away from q and admissible combinations of translates
@@ -48,6 +50,8 @@ Notions from other files:
 See `New.UpperBound.Seesaw.SeesawIdentity` for related work. See
 `Lib.ClassField.Global.CMSplittingCharacters` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -186,7 +190,7 @@ lemma ne_rev_of_not_odd (hs : ¬ Odd s) (c : Fin s) : c ≠ c.rev := by grind
 /-- A ring homomorphism carries `gluedGram p q` to the form with parameters `(f p, f q)`. -/
 lemma map_gluedGram {K L : Type*} [CommRing K] [CommRing L] (f : K →+* L) (p q : K) :
     (gluedGram p q).map f = gluedGram (X := X) (s := s) (f p) (f q) := by
-  ext ((i | i) | b) ((j | j) | c) <;> simp [gluedGram, apply_ite f, diagonal_apply]
+  ext ((i | i) | b) ((j | j) | c) <;> simp [gluedGram, apply_ite f, diagonal_apply, Function.swap]
 
 /-- The matrices `gluedGram p 0` and `gluedGram 0 p` multiply to `1`. -/
 lemma gluedGram_mul_eq_one [Fintype X] {K : Type*} [CommRing K] (p : K) :
@@ -204,17 +208,20 @@ lemma gluedGram_mul_eq_one [Fintype X] {K : Type*} [CommRing K] (p : K) :
     simp only [fromBlocks_multiply, this, fromBlocks_one]
   by_cases hs : Odd s
   · constructor
-    · simp [A, C, J, hs, eq_rev_iff_of_odd hs, ← ext_iff, mul_apply, one_apply, diagonal]
+    · simp [A, C, J, hs, eq_rev_iff_of_odd hs, ← ext_iff, Matrix.mul_apply, Matrix.one_apply,
+        diagonal, Function.swap]
       grind
-    · simp [A, C, J, hs, eq_rev_iff_of_odd hs, ← ext_iff, mul_apply, diagonal, ← Fin.rev_eq_iff]
+    · simp [A, C, J, hs, eq_rev_iff_of_odd hs, ← ext_iff, Matrix.mul_apply, diagonal,
+        ← Fin.rev_eq_iff, Function.swap]
       grind
-  · simp [A, C, J, hs, ne_rev_of_not_odd hs, ← ext_iff, mul_apply, one_apply, diagonal]
+  · simp [A, C, J, hs, ne_rev_of_not_odd hs, ← ext_iff, Matrix.mul_apply, Matrix.one_apply,
+      diagonal, Function.swap]
     grind
 
 /-- A ring homomorphism carries the graded Gram matrix with parameter `r` to the one with `f r`. -/
 lemma map_gradedGram (e : (X ⊕ Unit) ⊕ Fin s ≃ ι) {S : Type*} [CommRing S] (f : S →+* R) (r : S) :
     (gradedGram e r).map f = gradedGram e (f r) := by
-  simp [gradedGram, ← ext_iff, reindex_equiv e, apply_ite f, one_apply]
+  simp [gradedGram, ← ext_iff, reindex_equiv e, apply_ite f, Matrix.one_apply]
 
 /-- The image of the graded Gram matrix `New.gradedGram e N`, with `N` a natural number, under a
 ring homomorphism `f` into a star ring is hermitian. -/
@@ -262,21 +269,23 @@ lemma gram_gradedLatticeBasis_eq_gluedGram (e : (X ⊕ Unit) ⊕ Fin s ≃ ι) {
   have h_X : Tᴴ * T + Zᴴ * G * Z = diagonal (1 ⊕ᵥ fun _ ↦ if Odd s then 0 else 1) := by
     by_cases hs : Odd s
     · simp [T, Z, G, hs, eq_rev_iff_of_odd hs, apply_ite star, diagonal, ← ext_iff,
-        mul_apply]
+        Matrix.mul_apply]
       grind [star_mul, star_one, Units.mul_inv, map_natCast]
-    · simp [T, Z, G, hs, ne_rev_of_not_odd hs, diagonal, ← ext_iff, one_apply, mul_apply]
+    · simp [T, Z, G, hs, ne_rev_of_not_odd hs, diagonal, ← ext_iff, Matrix.one_apply,
+        Matrix.mul_apply]
   have h_mixed : Zᴴ * G * D = C ∧ Dᴴ * G * Z = Cᵀ := by
     by_cases hs : Odd s
-    · simp [Z, D, G, C, hs, eq_rev_iff_of_odd hs, apply_ite star, diagonal, ← ext_iff, mul_apply]
+    · simp [Z, D, G, C, hs, eq_rev_iff_of_odd hs, apply_ite star, diagonal, ← ext_iff,
+        Matrix.mul_apply, Function.swap]
       grind [star_mul, star_one, Units.mul_inv, map_natCast]
-    · simp [Z, C, ne_rev_of_not_odd hs, ← ext_iff, mul_apply]
+    · simp [Z, C, ne_rev_of_not_odd hs, ← ext_iff, Matrix.mul_apply, Function.swap]
   have h_string : Dᴴ * G * D =
       of fun b c ↦ if b = c.rev then (if b = c then -(N : R) else 1) else 0 := by
-    simp [D, G, apply_ite star, diagonal, ← ext_iff, mul_apply]
+    simp [D, G, apply_ite star, diagonal, ← ext_iff, Matrix.mul_apply]
     grind [star_mul, star_one, Units.mul_inv, map_natCast]
   have h_basis : gradedLatticeBasis e a π u = reindex e e (fromBlocks T 0 Z D) := rfl
   have h_form : (gradedGram e (N : S)).map f = reindex e e (fromBlocks 1 0 0 G) := by
-    simp [gradedGram, G, ← ext_iff, reindex_equiv e, apply_ite f, one_apply]
+    simp [gradedGram, G, ← ext_iff, reindex_equiv e, apply_ite f, Matrix.one_apply]
   have h_blocks : (fromBlocks T 0 Z D)ᴴ * fromBlocks 1 0 0 G * fromBlocks T 0 Z D =
       fromBlocks (Tᴴ * T + Zᴴ * G * Z) (Zᴴ * G * D) (Dᴴ * G * Z) (Dᴴ * G * D) := by
     simp [fromBlocks_conjTranspose, fromBlocks_multiply]
@@ -362,7 +371,7 @@ lemma gram_stringFrame_eq_signMatrix {s N : ℕ} (hN : 0 < N) :
   suffices h_entry : ∑ i : Fin s, stringFrame s N i a *
       ((if i = i.rev then -(N : ℂ) else 1) * stringFrame s N i.rev b) = if a = b then σ a else 0 by
     rw [Matrix.mul_assoc]
-    simpa [mul_apply, h_star, signMatrix, diagonal_apply, ← Fin.rev_eq_iff] using h_entry
+    simpa [Matrix.mul_apply, h_star, signMatrix, diagonal_apply, ← Fin.rev_eq_iff] using h_entry
   by_cases ha : a = a.rev
   · simp only [h_col_mid a ha, ite_mul, zero_mul, Fintype.sum_ite_eq', ← ha, hσ_mid a ha]
     by_cases hb : b = b.rev
@@ -386,7 +395,7 @@ lemma gram_stringFrame_eq_signMatrix {s N : ℕ} (hN : 0 < N) :
 /-- For `N = 1` the frame `stringFrame s N` is unitary. -/
 lemma conjTranspose_stringFrame_one_mul_self : (stringFrame s 1)ᴴ * stringFrame s 1 = 1 := by
   ext a b
-  simp [stringFrame, stringSign, mul_add, apply_ite star, one_apply, mul_apply,
+  simp [stringFrame, stringSign, mul_add, apply_ite star, Matrix.one_apply, Matrix.mul_apply,
     Finset.sum_add_distrib]
   split_ifs <;> first | lia | (norm_cast; grind)
 
@@ -410,7 +419,7 @@ lemma exists_conjTranspose_mul_gradedGram_mul_eq_signMatrix (e : (X ⊕ Unit) �
   refine ⟨gradedBlocks e f.symm 1 (stringFrame s N), ?_, fun hN1 ↦ ?_⟩
   · rw [map_gradedGram, map_natCast, gradedGram]
     simp [σ, fromBlocks_conjTranspose, fromBlocks_multiply, gram_stringFrame_eq_signMatrix hN,
-      signMatrix, ← ext_iff, reindex_equiv f.symm, diagonal_apply, one_apply]
+      signMatrix, ← ext_iff, reindex_equiv f.symm, diagonal_apply, Matrix.one_apply]
   · simp [hN1, fromBlocks_conjTranspose, fromBlocks_multiply,
       conjTranspose_stringFrame_one_mul_self]
 

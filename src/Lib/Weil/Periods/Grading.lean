@@ -1,5 +1,7 @@
-import Lib.Adelic.Unitary.RationalPoints
-import Lib.DiscreteSeries.Rigidity.KernelFixes
+module
+
+public import Lib.Adelic.Unitary.RationalPoints
+public import Lib.DiscreteSeries.Rigidity.KernelFixes
 
 /-!
 # Graded hermitian spaces X ⊕ J_s, Bessel subgroups, the map T, and c_λ in a frame
@@ -56,6 +58,8 @@ Known; see `Lib.Weil.Periods.Unfolding` and `Lib.DiscreteSeries.CuspKernel` for 
 Part of a known construction: adelic points of unitary groups in rational coordinates. See
 `Lib.Adelic.Unitary.WeakApproximation`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -139,10 +143,12 @@ of V, acting on X and fixing the string vectors. -/
 def inclX : G E (1 : X → ℤˣ) →* G E ε :=
   ((U.reindex Y.indexEquiv (by
         -- The Gram matrix in the adeles is block diagonal with the standard form on X; the block of
-        -- the string is found by unification. The rewrite has to unfold `gradedGram`, hence `erw`.
+        -- the string is given explicitly. The rewrite has to unfold `gradedGram`, hence `erw`.
         erw [Y.gram_eq, ← submatrix_map]
         aesop (add simp fromBlocks_map))).trans V.toRatCoords.symm).toMonoidHom.comp
-    ((U.sum rfl).comp ((G.toUnitary (s := 1)).toMonoidHom.prod 1))
+    ((U.sum (J' := (of fun a b : Fin s ↦
+        if a = b.rev then (if a = b then -N else 1) else 0).map toAdele) rfl).comp
+      ((G.toUnitary (s := 1)).toMonoidHom.prod 1))
 
 /-- In rational coordinates, `Y.inclX h` is block diagonal: the matrix of `h` on `X` and the
 identity on the string. -/
@@ -238,7 +244,7 @@ lemma Space.mem_Gamma_iff_ratCoordMatrix {g : G E ε} :
 lemma ratCoordMatrix_stdSpace (g : G E (1 : X → ℤˣ)) :
     (stdSpace E X).ratCoordMatrix g = g.adeleMatrix := by
   -- The point of the standard space is the identity.
-  show (1 : Matrix X X (𝔸 E)) * g.adeleMatrix * 1 = g.adeleMatrix
+  change (1 : Matrix X X (𝔸 E)) * g.adeleMatrix * 1 = g.adeleMatrix
   rw [one_mul, mul_one]
 
 namespace Grading
@@ -427,7 +433,7 @@ f(Gr(i, σi)) · A(σi, p), where σ is the dual index `New.Grading.stringRevers
 lemma map_gradedGram_mul_apply {R κ : Type} {M : E} [CommRing R] (f : E →+* R) (A : Matrix ι κ R) :
     ∀ (i : ι) (p : κ), ((gradedGram Y.indexEquiv M).map f * A) i p =
       f (gradedGram Y.indexEquiv M i (Y.stringReversal i)) * A (Y.stringReversal i) p := by
-  simp [gradedGram, mul_apply, reindex_equiv Y.indexEquiv, apply_ite f, ← Fin.rev_eq_iff,
+  simp [gradedGram, Matrix.mul_apply, reindex_equiv Y.indexEquiv, apply_ite f, ← Fin.rev_eq_iff,
     stringReversal, Matrix.one_apply]
 
 /-- The entry a of the row vector y J is y(σa) J(σa, a), with σ the dual index
@@ -530,7 +536,7 @@ lemma submatrix_inl_ratCoordMatrix_unitary {g : G E ε} (hg : g ∈ Y.besselGrou
       grind -funext [star_zero, sum_eq_zero]
     _ = _ := by
       rw [show (V.ratCoordMatrix g)ᴴ * V.J.map toAdele * V.ratCoordMatrix g = V.J.map toAdele from
-        (V.toRatCoords g).2, Y.submatrix_inl_map_J]
+        mem_unitaryGroupOf_iff.1 (V.toRatCoords g).2, Y.submatrix_inl_map_J]
 
 /-- On `New.Grading.besselGroup`, the X-block of the matrix in rational coordinates is
 multiplicative. -/
@@ -670,7 +676,7 @@ lemma ratCoordMatrix_inr (g : Gf E ι) (a b : ι) :
   -- The finite part is `ratCoordMatrixFin_snd`; the infinite part is that of `V.x * V.x⁻¹ = 1`.
   have h_inf : ((V.x.1 * V.x⁻¹.1) a b).1 = ((1 : Matrix ι ι (𝔸 E)) a b).1 := by rw [V.x.mul_inv]
   refine Prod.ext ?_ (by simp [ratCoordMatrixFin_snd (1, g)])
-  simpa [ratCoordMatrix_eq, mul_apply, Prod.fst_sum, funext_iff, apply_ite,
+  simpa [ratCoordMatrix_eq, Matrix.mul_apply, Prod.fst_sum, funext_iff, apply_ite,
     Matrix.one_apply] using h_inf
 
 /-- The finite part x_f of the point of a space (J, x) satisfies x_fᴴ J x_f = 1 over the finite
@@ -754,6 +760,8 @@ variable {ε : n → ℤˣ} {A : ℕ} {J : Matrix n n ℂ}
 `New.DiscreteSeries.SignFrame J ε`, so that pᴴJp = diag(ε). -/
 def DiscreteSeries.frameEquiv : U J ≃ₜ* USign ε :=
   ContinuousMulEquiv.mk (U.conj p.matrix p.gram_eq).symm
+    (continuous_induced_rng.2 ((continuous_const.mul continuous_subtypeVal).mul continuous_const))
+    (continuous_induced_rng.2 ((continuous_const.mul continuous_subtypeVal).mul continuous_const))
 
 /-- The function g ↦ c_λ(p⁻¹gp) on U(J), for l = 2λ and the frame p of
 `New.DiscreteSeries.SignFrame J ε`, so that pᴴJp = diag(ε). -/

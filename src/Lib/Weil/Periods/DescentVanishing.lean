@@ -1,6 +1,8 @@
-import Lib.Adelic.QuotientMeasure.UnfoldingInStages
-import Lib.SiegelWeil.SingularForms.UnimodularCoefficients
-import Lib.Weil.DualPair.ThetaIntegrals
+module
+
+public import Lib.Adelic.QuotientMeasure.UnfoldingInStages
+public import Lib.SiegelWeil.SingularForms.UnimodularCoefficients
+public import Lib.Weil.DualPair.ThetaIntegrals
 
 /-!
 # Vanishing theta descents for unitary groups: Fourier coefficients and periods
@@ -47,6 +49,8 @@ periods of automorphic forms and special values of standard automorphic L-functi
 1501.01565 (2015), Prop. 2.1.1; S. Rallis, On the Howe duality conjecture, Compositio Math. 51
 (1984) 333–399.
 -/
+
+@[expose] public section
 
 /-! ## Vanishing of descents -/
 
@@ -626,7 +630,7 @@ lemma hasIntegrableTerms_hyperbolicSplitting_of_isRapid {Y : G E (1 : n → ℤ�
         ‖(hyperbolicSplitting E n₁).thetaTerm (stdSpace E n) a 1 f g x h * Y h‖ₑ
       = (∑' x : Matrix n n₁ E,
           ‖(hyperbolicSplitting E n₁).thetaTerm (stdSpace E n) a 1 f g x h‖ₑ) * ‖Y h‖ₑ := by
-        simp_rw [enorm_mul, ENNReal.tsum_mul_right]
+        simp_rw [eNorm_mul, ENNReal.tsum_mul_right]
     _ ≤ ENNReal.ofReal (|C| * ‖f‖ * (stdSpace E n).height h ^ N) * ‖Y h‖ₑ := by grw [h_growth f h]
     _ = ENNReal.ofReal (|C| * ‖f‖ * (‖Y h‖ * (stdSpace E n).height h ^ N)) := by
         rw [← ofReal_norm, ← ENNReal.ofReal_mul' (norm_nonneg _), mul_right_comm, mul_assoc]
@@ -784,7 +788,7 @@ lemma DescentsVanish.integral_frameChar_mul_blockPeriod_eq_zero {T : Set (FinPla
   obtain ⟨F_int, F_zero⟩ : Integrable F ν ∧ ∫ g, F g ∂ν = 0 :=
     hkill.integral_frameChar_eq_zero o hs hY_cont hY_inv h₁ u
   have F_cont : Continuous F :=
-    (continuous_subtype_val.comp <| (continuous_apply u).comp <|
+    (continuous_subtypeVal.comp <| (continuous_apply u).comp <|
       (continuous_frameChar T).comp (by fun_prop)).mul (by fun_prop)
   have F_inv : ((stdSpace E n₂).Γ.map (secondBlock o hs)).FixesLeft F := by
     rintro _ ⟨v, hv, rfl⟩ g

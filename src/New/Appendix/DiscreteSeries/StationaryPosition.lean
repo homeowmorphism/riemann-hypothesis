@@ -1,6 +1,8 @@
-import Lib.General.Algebra.ResidueSums
-import Lib.Shimura.Uniformisation.HolomorphicFamilies
-import New.Appendix.DiscreteSeries.Positions
+module
+
+public import Lib.General.Algebra.ResidueSums
+public import Lib.Shimura.Uniformisation.HolomorphicFamilies
+public import New.Appendix.DiscreteSeries.Positions
 
 /-!
 # The stationary position
@@ -29,6 +31,8 @@ Notions from other files:
 * `signMatrix ε` is the diagonal matrix of the signs `ε`, and `formAdjoint ε η A` is the adjoint
   `A†` for the hermitian forms with the signs `ε` and `η`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -248,7 +252,6 @@ lemma isometryScale_mul_alternatingSignForm (h : AreOppositeNodes μ μ') (hL : 
   -- `P = p (μ' j)` is positive and `Q = q' (μ' j)` has the sign `(-1) ^ (L' - 1 - j)`.
   set P : ℝ := (nodal univ μ).eval (μ' j) with hP
   set Q : ℝ := (derivative (nodal univ μ')).eval (μ' j) with hQ
-
   have hP_pos : 0 < P := h.eval_nodal_pos j
   have hQ_sign : 0 < (-1) ^ (L' - 1 - (j : ℕ)) * Q :=
     derivative_nodal_sign_of_strictMono h.strictMono j
@@ -421,7 +424,7 @@ omit [Fintype n] [Fintype m] [DecidableEq m] [Fintype X] in
 `e' (Sum.inl x)` is the basis vector of index `e (Sum.inl x)`. -/
 lemma positionIsometry_apply_inl [DecidableEq X] (i : n) (x : X) :
     positionIsometry e e' μ μ' i (e' (Sum.inl x)) = if i = e (Sum.inl x) then 1 else 0 := by
-  obtain ⟨x' | i, rfl⟩ := e.surjective i <;> simp [positionIsometry, one_apply]
+  obtain ⟨x' | i, rfl⟩ := e.surjective i <;> simp [positionIsometry, Matrix.one_apply]
 
 omit [Fintype n] [DecidableEq n] [Fintype m] [DecidableEq m] [Fintype X] in
 /-- For `j : Fin L'`, the column of index `e' (Sum.inr j)` of `positionIsometry e e' μ μ'` vanishes
@@ -480,7 +483,7 @@ lemma IsSteep.conjTranspose_mul_signMatrix_mul_apply {α β : Type} (hl : IsStee
     (Aᴴ * signMatrix ε * A') a b =
       ∑ x : X, conj (A (e (Sum.inl x)) a) * A' (e (Sum.inl x)) b +
         ∑ i : Fin L, (-1) ^ i.val * (conj (A (e (Sum.inr i)) a) * A' (e (Sum.inr i)) b) := by
-  rw [mul_apply, ← e.sum_comp, Fintype.sum_sum_type]
+  rw [Matrix.mul_apply, ← e.sum_comp, Fintype.sum_sum_type]
   simp [signMatrix, hl.sign_inl, hl.sign_inr, mul_comm, mul_left_comm]
 
 /-- Let `l` be steep, so that through `e : X ⊕ Fin L ≃ n` the signs `ε` are `+1` on `X` and
@@ -659,7 +662,7 @@ lemma exists_intDiagonal_mul_positionIsometry
   refine ⟨C, ?_⟩
   ext i j
   have h_mul : (positionVec e μ μ' d * C) i j = positionVec e μ μ' d i 0 * coeff j := by
-    simp [C, mul_apply]
+    simp [C, Matrix.mul_apply]
   rw [Matrix.add_apply, diagonal_mul, mul_diagonal, h_mul]
   obtain ⟨x' | j, rfl⟩ := e'.surjective j
   · obtain ⟨x | i, rfl⟩ := e.surjective i <;>

@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.Bruhat.BigCell
-import New.Spanning.Unfolding.Terms
+module
+
+public import Lib.DiscreteSeries.Bruhat.BigCell
+public import New.Spanning.Unfolding.Terms
 
 /-!
 # Links of isometries, the link isometry Υ_γ, and invariance under `besselU`
@@ -50,6 +52,8 @@ Notions from other files:
   and `γ f` share a vector with leading coefficients `c` and `1` at `a`.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-!
@@ -75,7 +79,7 @@ lemma splitGram_mulVec (v : 𝔰.BesselIndex → F) :
   simp [funext_iff, splitGram, fromBlocks_mulVec, comp_def]
 
 /-- The matrix `linkMatrix γ` sends `t` to the pair of the middle blocks of `t` and of `γ⁻¹ t`. -/
-@[simp ↓]
+@[simp↓]
 lemma linkMatrix_mulVec {γ : T.G} (t : 𝔰.BesselIndex → F) :
     linkMatrix γ *ᵥ t = (fun b : 𝔰.MiddleIndex ↦ t (inr (inl b))) ⊕ᵥ
       fun b : 𝔰.MiddleIndex ↦ (γ⁻¹.val.val *ᵥ t) (inr (inl b)) := by
@@ -84,7 +88,7 @@ lemma linkMatrix_mulVec {γ : T.G} (t : 𝔰.BesselIndex → F) :
 /-- A vector `t` is orthogonal to `A = ⟨e₁, …, e_ϱ⟩` and to `γ A` (so to the span `A + γ A` of the
 columns of `isotropicFramePair γ`) iff the last `ϱ` coordinates, those at the `e*_a`, of both `t`
 and `γ⁻¹ t` vanish. -/
-@[simp ↓]
+@[simp↓]
 lemma orthogonal_isotropicFramePair_iff {γ : T.G} {t : 𝔰.BesselIndex → F} :
     t ∈ ((isotropicFramePair γ)ᴴ * T.splitGram).mulVecLin.ker ↔
       (∀ a : Fin 𝔰.ϱ, t (eStar a) = 0) ∧ ∀ a : Fin 𝔰.ϱ, (γ⁻¹.val.val *ᵥ t) (eStar a) = 0 := by
@@ -358,9 +362,9 @@ lemma rank_conjTranspose_eq {F m n : Type} [Field F] [StarRing F] [Fintype m] [F
     rank_eq_of_equiv_equiv star (e.submoduleMap W).toAddEquiv star_involutive.bijective
       (e.submoduleMap W).map_smulₛₗ
   calc Aᴴ.rank = (A.map star).rank := rank_transpose (A.map star)
-    _ = finrank F (W.map e.toLinearMap) := by rw [rank_eq_finrank_span_cols, h_span]
+    _ = finrank F (W.map e.toLinearMap) := by rw [← finrank_span_range_col, h_span]
     _ = finrank F W := (congrArg Cardinal.toNat h_rank).symm
-    _ = A.rank := (rank_eq_finrank_span_cols A).symm
+    _ = A.rank := finrank_span_range_col A
 
 /-- The columns of two matrices set side by side span the sum of the two column spaces. -/
 lemma colSpan_fromCols {K m n₁ n₂ : Type*} [CommRing K] [Fintype n₁] [Fintype n₂]
@@ -585,7 +589,7 @@ lemma rank_isotropicFramePair_add_finrank_commonIsotropic (γ : S.G E) :
     (isotropicFramePair γ).rank + finrank E (commonIsotropic γ) = 2 * 𝔰.ϱ := by
   have h_one : finrank E (isotropicSpan (1 : Matrix 𝔰.BesselIndex 𝔰.BesselIndex E)) = 𝔰.ϱ :=
     finrank_isotropicSpan_coe (1 : S.G E)
-  rw [rank, ← colSpan, colSpan_isotropicFramePair, commonIsotropic,
+  rw [← finrank_range_mulVecLin, ← colSpan, colSpan_isotropicFramePair, commonIsotropic,
     Submodule.finrank_sup_add_finrank_inf_eq, h_one, finrank_isotropicSpan_coe, two_mul]
 
 /-- Let `A = ⟨e_1, …, e_ϱ⟩`. The rank of `A + γ A`, which is the column space of
@@ -596,7 +600,7 @@ lemma rank_add_finrank_isotropicPerp (γ : S.G E) :
   have h_unit : IsUnit S.ratGram.det := (isUnit_iff_isUnit_det _).1 Floors.IsHermitianUnit.isUnit
   have h_rank : ((isotropicFramePair γ)ᴴ * S.ratGram).rank = (isotropicFramePair γ).rank := by
     rw [rank_mul_eq_left_of_isUnit_det _ _ h_unit, rank_conjTranspose_eq]
-  rw [← h_rank, Shape.r, ← finrank_fintype_fun_eq_card E]
+  rw [← h_rank, Shape.r, ← finrank_fintype_fun_eq_card E, ← finrank_range_mulVecLin]
   exact ((isotropicFramePair γ)ᴴ * S.ratGram).mulVecLin.finrank_range_add_finrank_ker
 
 /-- The rank of `link γ` plus the rank of `commonIsotropic γ` (the space `I_γ = A ∩ γ A`, with
@@ -747,13 +751,6 @@ theorem linkIsometry_eq_iff {γ γ' : S.G E} :
   · rw [mem_link_iff_linkIsometry, mem_link_iff_linkIsometry, h]
   · obtain ⟨p, hp, rfl⟩ := exists_mem_link_linkSource_eq γ a
     rw [linkIsometry_linkSource hp, linkIsometry_linkSource (h.le hp)]
-
-/-- The link isometry is the same for `u⁻¹ γ u'` as for `γ`, when `u` and `u'` lie in the Bessel
-unipotent group `besselU`, because the two links are equal. -/
-theorem linkIsometry_inv_mul_mul_of_mem_besselU {γ u u' : S.G E} (hu : u ∈ besselU)
-    (hu' : u' ∈ besselU) :
-    linkIsometry (u⁻¹ * γ * u') = linkIsometry γ :=
-  linkIsometry_eq_iff.2 (link_inv_mul_mul_of_mem_besselU hu hu')
 
 /-- The product of two pairs `p`, `q` for the form `S.linkForm = T ⊕ -T`, where `T` is the form of
 `X₀ ⊥ E z_N`, is the difference of the products, in the positive space `X₀ ⊥ E z⁺` with Gram matrix

@@ -1,5 +1,7 @@
-import Lib.GaloisRep.BaseChange.PrimeDegreeTransfer
-import Lib.GaloisRep.Main.SplitCase
+module
+
+public import Lib.GaloisRep.BaseChange.PrimeDegreeTransfer
+public import Lib.GaloisRep.Main.SplitCase
 
 /-!
 # Attached Galois representations in odd rank and their descent along weak base change
@@ -52,6 +54,8 @@ representations II, Camb. J. Math. 1 (2013), Thm 3.2.3; with Labesse, Changement
 séries discrètes (2011), Cor. 5.3, and Barnet-Lamb, Gee, Geraghty, Taylor, Potential automorphy and
 change of weight (2014), Thm 2.1.1.
 -/
+
+@[expose] public section
 
 /-!
 ## Descent along a step of weak base change
@@ -150,13 +154,13 @@ lemma IsWeakBaseChange.attached_comp_stepKerInclusion
   -- polynomial, so the estimate for `r'` above such a place is the estimate wanted.
   let res : Gal(Ω/stepField χ) →* Gal(Ω/E) := AlgEquiv.restrictScalarsHom E
   have h_res : Topology.IsOpenEmbedding res := isOpenEmbedding_galois_restrict res (by simp [res])
-  have h_cont : Continuous (stepKerInclusion χ) := h_res.continuous_iff.2 continuous_subtype_val
+  have h_cont : Continuous (stepKerInclusion χ) := h_res.continuous_iff.2 continuous_subtypeVal
   have h_normal : (stepKerInclusion χ).range.Normal := by
     rw [stepKerInclusion, MonoidHom.range_comp, inclusion_range]
     exact Normal.map inferInstance _ (stepField χ).fixingSubgroupEquiv.surjective
   have h_nondeg : IsTraceNondeg (r'.comp (stepKerInclusion χ)) :=
     hr'.isTraceNondeg.comp (stepKerInclusion χ) h_normal
-  refine ⟨hr'.continuous.comp h_cont, h_nondeg, (isOpen_stepKer χ).isOpenMap_subtype_val,
+  refine ⟨hr'.continuous.comp h_cont, h_nondeg, (isOpen_stepKer χ).isOpenMap_subtypeVal,
     fun η hη ↦ ?_⟩
   -- At most Frobenius data of `L`, `f'` has the polynomial given by `P'`.
   have h_most' : ∀ᶠ y : FrobeniusDatum (stepField χ) in mostFrobenii (stepField χ),
@@ -281,6 +285,7 @@ lemma New.GaloisRep.exists_weak_baseChange {E E' n : Type} [Field E] [CMType E] 
   let π : Representation ℂ Unit ((stdSpace E n).forms κ) :=
     localFormTranslation κ (1 : Unit →* Gf E n)
   have h_id : heckeFun π ⊤ 1 = 1 := by
+    have := QuotientGroup.subsingleton_quotient_top (G := Unit)
     have : Unique (Unit ⧸ (⊤ : Subgroup Unit)) := .mk' _
     simp [heckeFun, finsum_unique, π]
   have h_trace : HasNonzeroTraceAround π (heckeFun π ⊤ 1)
@@ -408,7 +413,6 @@ lemma New.GaloisRep.exists_attached_of_open_subgroups {ℓ : ℕ} [ThePrime ℓ]
   simpa [h_charpoly] using hv B g hv_prime hB g_frob hg ⟨g, g_mem⟩ rfl
 
 open scoped Pointwise in
-
 /-- Let `a` be odd, `E` a CM field containing a primitive 5040th root of unity, and `w` any finite
 place. Then eigenforms of any weight on the standard definite unitary group of rank `a` satisfy
 `New.GaloisRep.SphericalCompat` at `w`: each has an attached representation. If the form is

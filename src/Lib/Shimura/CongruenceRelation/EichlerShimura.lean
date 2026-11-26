@@ -1,4 +1,6 @@
-import Lib.Cohomology.SmoothBaseChange
+module
+
+public import Lib.Cohomology.SmoothBaseChange
 
 /-!
 # The congruence relation and the trivial action of inertia on ℓ-adic cohomology
@@ -37,6 +39,8 @@ XVI 2.2) and 03SN (SGA5 XV); Deligne, Formes modulaires et représentations ℓ-
 355 (1969).
 -/
 
+@[expose] public section
+
 namespace New.Variety.ellAdicCohom
 
 open CategoryTheory AlgebraicGeometry CommRingCat ellAdicPull Comparison
@@ -61,13 +65,6 @@ def frobEnd : U ⟶ U where
     congr 3
     aesop
 
-/-- The value of `New.Variety.ellAdicCohom.frobEnd` at a point x ∈ U(B): the image of x under the
-ring map b ↦ b^(p^j) of B. -/
-lemma frobEnd_app (hU_char : ∀ B : CommRingCat, U B → (p : B) = 0) (j : ℕ) (B : CommRingCat)
-    (x : U B) :
-    (frobEnd hU_char j).app B x = U.map (ofHom (frobPow (hU_char B x) j)) x :=
-  rfl
-
 /-- The absolute Frobenius acts trivially on ℓ-adic cohomology. Let p = 0 in every ring B in which
 U has a point (`hU_char`). Then the endomorphism `New.Variety.ellAdicCohom.frobEnd` of U, which
 moves a point x ∈ U(B) along the ring map b ↦ b^(p^j) of B, pulls back to the identity of
@@ -86,8 +83,8 @@ lemma ellAdicPull_frobEnd (hU_char : ∀ B : CommRingCat, U B → (p : B) = 0) (
   have h_coef : Functor.whiskerRight η (ellAdicCoeff (ℓ := ℓ)) ≫ 𝟙 _ = 𝟙 _ := by
     ext A ⟨⟨y⟩⟩
     -- the coefficients at `A` are functions on `Spec A`, moved along `comap` of `η`
-    congrm ⟨⟨fun i ↦ ⟨_ ∘ ?_, _⟩⟩⟩
-    show PrimeSpectrum.comap (Hom.hom (testIncl.map (η.app A))) = fun q ↦ q
+    congrm ⟨WittVector.mk _ fun i ↦ ⟨_ ∘ ?_, _⟩⟩
+    change PrimeSpectrum.comap (Hom.hom (testIncl.map (η.app A))) = fun q ↦ q
     ext q
     simp [η, q.isPrime.pow_mem_iff_mem, NeZero.pos]
   -- pulling back to the category of points along the tautological point is injective
@@ -155,12 +152,12 @@ lemma congruence_relation [IsProper W.hom] {g : Γ} (hg : IsFrob A (p ^ f) g) {I
   -- the special fibre: the points that kill the maximal ideal of `A`; they have characteristic `p`
   let s₀ : geomPoints R A W ⟶ reprBy (of A) :=
     fibreProd.snd (pointsToBase W.hom) (reprMap (ofHom (algebraMap R A)))
-  let U₀ : Subfunctor (geomPoints R A W) := zeroPoints s₀ (A.valuation · < 1)
+  let U₀ : Subfunctor (geomPoints R A W) := zeroPoints s₀ {a | A.valuation a < 1}
   have h_char (B : CommRingCat) (x : U₀.toFunctor.obj B) : (p : B) = 0 := by
     simpa using x.property p hp
   -- restriction to `U₀` is injective by proper base change
   have h_res : IsCohomEquiv (locConstCoeff ⟨ZMod ℓ⟩) (freeAb.map (mapOnTests U₀.ι)) := by
-    have h_max : (IsLocalRing.maximalIdeal A : Set A) = fun a : A ↦ A.valuation a < 1 :=
+    have h_max : (IsLocalRing.maximalIdeal A : Set A) = {a : A | A.valuation a < 1} :=
       Set.ext A.valuation_lt_one_iff
     unfold U₀
     rw [← h_max]
@@ -187,7 +184,7 @@ lemma congruence_relation [IsProper W.hom] {g : Γ} (hg : IsFrob A (p ^ f) g) {I
       have h_val : A.valuation ((a : Ω) - (σ i a : Ω) ^ (p ^ f) ^ e i) < 1 := by
         simpa [σ] using (hg.pow (e i)).right (σ i a) (by simp)
       have h_zero : ω (a - σ i a ^ (p ^ f) ^ e i) = 0 := z.property _ <| by
-        show A.valuation ((a : Ω) - ((σ i a ^ (p ^ f) ^ e i : A) : Ω)) < 1
+        change A.valuation ((a : Ω) - ((σ i a ^ (p ^ f) ^ e i : A) : Ω)) < 1
         simpa using h_val
       simpa [sub_eq_zero, ← pow_mul'] using h_zero
     -- so `F i z = (Frob (u i w), ω)`, and these points cancel by the congruence relation
@@ -199,7 +196,7 @@ lemma congruence_relation [IsProper W.hom] {g : Γ} (hg : IsFrob A (p ^ f) g) {I
     refine h_cancel.mono fun i i' hij ↦
       h_coinc i i' (baseChangeOf.ext (congrArg ULift.up hij) fun a ↦ ?_)
     -- the ring map of `F i z` is `ω ∘ σ i` followed by the Frobenius of exponent `p ^ (e i * f)`
-    show ω (σ i a) ^ p ^ (e i * f) = ω (σ i' a) ^ p ^ (e i' * f)
+    change ω (σ i a) ^ p ^ (e i * f) = ω (σ i' a) ^ p ^ (e i' * f)
     rw [← h_frob i, ← h_frob i']
 
 /-- Inertia acts trivially. Let Ω be an algebraic closure of ℚ and an R-algebra, A ⊂ Ω a valuation

@@ -1,9 +1,11 @@
-import Lib.Shimura.AbelianScheme.IsogenyFlatness
-import Lib.Shimura.ArcExtension
-import Lib.Shimura.ThetaModuli.ThetaFamilyRigidity
-import Lib.Shimura.Uniformisation.AppellHumbert
-import Lib.Shimura.Uniformisation.BallModel
-import Lib.Shimura.Uniformisation.LieExponential
+module
+
+public import Lib.Shimura.AbelianScheme.IsogenyFlatness
+public import Lib.Shimura.ArcExtension
+public import Lib.Shimura.ThetaModuli.ThetaFamilyRigidity
+public import Lib.Shimura.Uniformisation.AppellHumbert
+public import Lib.Shimura.Uniformisation.BallModel
+public import Lib.Shimura.Uniformisation.LieExponential
 
 /-!
 # Objects modelled on complex tori and their homomorphisms as rational matrices
@@ -47,6 +49,8 @@ Notions from other files:
 Known; see `Lib.Shimura.Uniformisation.AppellHumbert` and `Lib.Shimura.ThetaModuli.UniversalFamily`
 for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Theta uniformisation, Weil pairing and canonical multiplier
@@ -279,7 +283,7 @@ lemma ThetaTori.PeriodMap.exists_uniformisation_of_isSeparatingFamily
             eq_zero_iff := fun z ↦ ⟨h_kill z, h_ker z⟩
             immersive := fun z ↦ ⟨hY.holomorphicAt hN z, h_imm z⟩
             universal := fun γ hγ ↦ ?_ }, hY, rfl, rfl,
-    by simp [← Y.isPeriodMap.finrank_eq_abelianDim, F_equiv.finrank_eq]⟩
+    by simp [← finrank_eq_abelianDim Y.realEquiv, F_equiv.finrank_eq]⟩
   obtain ⟨F', hF'⟩ := u.universal γ hγ
   refine ⟨F_equiv.symm.toContinuousLinearEquiv ∘L F', fun w ↦ ?_⟩
   simp [he, hF']
@@ -325,7 +329,7 @@ lemma exists_unit_on_roots_of_unity (φ : O →+* ℂ) :
     {p : 𝔸f ℚ × 𝔸f ℚ |
       φ (ζ (ψf E t)) = ψf E (t * ι p.fst) ∧ ψf E (t * ι (p.fst * p.snd)) = ψf E t}
   have hC_closed (t : 𝔸f E) : IsClosed (C t) := by
-    apply (isClosed_eq _ (.subtype_val _)).and (isClosed_eq ..) <;> fun_prop
+    apply (isClosed_eq _ (.subtypeVal _)).and (isClosed_eq ..) <;> fun_prop
   have h_fin (U : Finset (𝔸f E)) : ((Ô ℚ : Set _) ×ˢ (Ô ℚ : Set _) ∩ ⋂ t ∈ U, C t).Nonempty := by
     -- All `ψf E t`, `t ∈ U`, are `N`-th roots of unity.
     obtain ⟨N, hN, hU⟩ := exists_forall_mul_mem_Ô fun t : U ↦ (t : 𝔸f E)
@@ -337,7 +341,7 @@ lemma exists_unit_on_roots_of_unity (φ : O →+* ℂ) :
     -- `φ (ζ ω)` is a root of the cyclotomic polynomial, so it and `ω` are powers of each other.
     have hφω : IsPrimitiveRoot (φ (ζ ω)) N := by
       rw [← isRoot_cyclotomic_iff, ← map_cyclotomic N φ]
-      exact (hζω.isRoot_cyclotomic hN.pos).map
+      exact (hζω.isRoot_cyclotomic hN.pos).map φ
     obtain ⟨k, -, hk⟩ := hω.eq_pow_of_pow_eq_one hφω.pow_eq_one
     obtain ⟨l, -, hl⟩ := hφω.eq_pow_of_pow_eq_one hω.pow_eq_one
     refine ⟨(k, l), by simp, Set.mem_biInter fun t ht ↦ ?_⟩
@@ -554,7 +558,7 @@ lemma torsionPoint_comp (m : x.TorusModel Y) (m' : x'.TorusModel Y') {z : GL D.I
   refine denseRange_frameCoords (g := g).induction_on y ⟨?_⟩ fun w ↦ ?_
   · exact IsLocallyConstant.comp₂ isOpen_preimage_torsionClass
       (.comp_continuous isOpen_preimage_torsionClass (by fun_prop))
-      (fun t t' ↦ m.fullStructure.torsionPoint t ≫ ψ = m'.fullStructure.torsionPoint t') Not
+      (fun t t' ↦ m.fullStructure.torsionPoint t ≫ ψ = m'.fullStructure.torsionPoint t') {p | ¬p}
   · simpa [← torsionPoint_frameTorsionClass, frameTorsionClass_apply, frameCoords,
       LinearMap.compLeft, comp_def, RingHom.map_mulVec, π] using h_periods (toRealVectors w)
 
@@ -729,7 +733,7 @@ lemma exists_isIsogenyOfMatrix (z : GL D.Index E) (hz : ratConj z ℓ = ℓ')
   -- `β = D.β`, so `h_riem` compares them.
   have h_char : ∀ l ∈ m.uniformisation.lattice, (m'.χ ∘ F) l = (m.χ ^ μ) l := by
     simp_all [multiplier_eq_canonicalMultiplier, canonicalMultiplier, mul_left_comm, hQ.forall, F,
-      ← Complex.exp_nat_mul, ← mulVec_smul, ext_iff₂, riemannForm_pullForm, PeriodMap.intAction]
+      ← Complex.exp_natCast_mul, ← mulVec_smul, ext_iff₂, riemannForm_pullForm, PeriodMap.intAction]
   -- Pull the theta coordinates of `x'` back along `F`.
   have h_pull :
       HasThetaCoords m.uniformisation.lattice (fun v : V ↦ atGeneric m'.uniformisation.expMap (F v))

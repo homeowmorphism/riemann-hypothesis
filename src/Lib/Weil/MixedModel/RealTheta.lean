@@ -1,5 +1,7 @@
-import Lib.Weil.Construction.ProductsAndTransport
-import Lib.Weil.MixedModel.IsotropicSplitting
+module
+
+public import Lib.Weil.Construction.ProductsAndTransport
+public import Lib.Weil.MixedModel.IsotropicSplitting
 
 /-!
 # Real data, the entire theta function, and the real vacuum in the mixed model
@@ -40,6 +42,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.Fock.OscillatorPair` and `Lib.Weil.MixedModel.ZeroTerm` for sources.
 -/
+
+@[expose] public section
 
 namespace New.Space
 
@@ -123,7 +127,9 @@ variable {E : Type _} [Field E] [CMType E] [WeilData E] {n : Type _} [Fintype n]
 omit [Fintype n] [DecidableEq n] in
 @[fun_prop]
 lemma continuous_realVec :
-    Continuous (realVec : (NumberField.InfinitePlace E × n → ℂ) → n → 𝔸 E) := by continuity
+    Continuous (realVec : (NumberField.InfinitePlace E × n → ℂ) → n → 𝔸 E) := by
+  simp only [realVec, AddMonoidHom.mk'_apply]
+  fun_prop
 
 /-- For f in 𝒮(V), the function Θ_f(y) = θ(ϱ(y)f)·exp(|y|²/2) of a real vector y in Fock
 coordinates, placed in the adelic vectors with finite part zero. -/
@@ -209,35 +215,6 @@ lemma differentiable_entireTheta (hs : s = 1) (h_projReal : V.projReal f = f) :
   exact (eventually_differentiableAt_integral ((integrable_exp_mul_realVac C).mul_const _)
     (fun z ↦ by fun_prop [realVac]) h_dominated).self_of_nhds
 
-/-- Let all signs be +1, let `P` be a complex polynomial in the Fock coordinates, and let `f` be an
-element of 𝒮(V). Then `θ(v_P ⊗ f) = ∫ P(conj y) Θ_f(y) exp(−|y|²) dy`, where
-`v_P(x) = P(ζ(x))·exp(−|x|²/2)`, with ζ the holomorphic coordinates (`holomorphicCoord`), here
-ζ(x) = conj x since all signs are +1, is the polynomial vector (`New.Fock.polyVector`) and
-`v ⊗ f = ∫ v(y) ϱ(y)f dy` (`New.Space.integrated`). Here `Θ_f(y) = θ(ϱ(y)f)·exp(|y|²/2)`
-(`entireTheta`), and `y` runs over complex vectors indexed by (infinite place, coordinate) with the
-measure `New.Fock.normalizedVolume`. -/
-lemma theta_integrated_polyVector_eq_integral_entireTheta (hs : s = 1)
-    (P : MvPolynomial (NumberField.InfinitePlace E × n) ℂ) (f : 𝒮 V) :
-    V.θ (V.integrated (polyVector (realSigns E s) P) f) = ∫ y : NumberField.InfinitePlace E × n → ℂ,
-      MvPolynomial.eval (star y) P * entireTheta f y * Complex.exp (-(star y ⬝ᵥ y))
-        ∂normalizedVolume (NumberField.InfinitePlace E × n) := by
-  -- By `theta_integrated` the theta value is ∫ v_P(y) f(y) dy; compare the integrands.
-  rw [theta_integrated]
-  refine integral_congr_ae (Filter.Eventually.of_forall fun y ↦ ?_)
-  -- With all signs +1 the polynomial is evaluated at the conjugate vector.
-  have h_hol : holomorphicCoord (realSigns E s) y = star y := by
-    simp [funext_iff, hs, holomorphicCoord_eq, realSigns]
-  have h_value : f (realVec y) = entireTheta f y * realVac y := by
-    rw [entireTheta, realVac, div_mul_cancel₀ _ (Complex.exp_ne_zero _)]
-  have h_square : realVac y * realVac y = Complex.exp (-(star y ⬝ᵥ y)) := by
-    rw [realVac, ← Complex.exp_add]
-    ring_nf
-  calc polyVector (realSigns E s) P y * f (realVec y)
-      = MvPolynomial.eval (star y) P * realVac y * (entireTheta f y * realVac y) := by
-        rw [polyVector_apply, h_hol, h_value]
-    _ = _ := by
-        simp only [← h_square]
-        ring
 end EntireTheta
 
 end New.Space
@@ -384,7 +361,7 @@ lemma IsAdapted.omega_projReal_of_isMixedLaw (hT : D.IsMixedLaw T) {g : G E s}
   have h_frame : MeasurePreserving (realMatrix (D.frameAt g t) *ᵥ ·) (normalizedVolume _)
       (normalizedVolume _) :=
     measurePreserving_equiv (realHeisenberg 1) (realHeisenberg 1)
-      (φ := {toLin'OfInv h_orth h_orth' with}) h_vac
+      (φ := (toLin'OfInv h_orth h_orth').toContinuousLinearEquiv.toContinuousAddEquiv) h_vac
   -- Splitting the coordinates as ((c, b), w), and then as (c, b), preserves the measure too.
   let outer : (realHeisenberg (realSigns E ((1 : p ⊕ p → ℤˣ) ⊕ᵥ s₀))).OrthogonalSum
       (realHeisenberg (realSigns E (1 : p ⊕ p → ℤˣ))) (realHeisenberg (realSigns E s₀)) realVac :=
@@ -413,10 +390,13 @@ lemma IsAdapted.omega_projReal_of_isMixedLaw (hT : D.IsMixedLaw T) {g : G E s}
   have h_law (x c b : InfinitePlace E × p → ℂ) (w : InfinitePlace E × n₀ → ℂ) :
       N x (V.ϱ (realVec (coord c b w)) f) =
         (realHeisenberg 1).β (x + (x + c)) b • V₀.ϱ (realVec w) (N (x + c) f) := by
+    have h_vec : realVec (outer.equiv (inner.equiv (c, b), w)) =
+        (realVec c ⊕ᵥ realVec b) ⊕ᵥ realVec w := by
+      simp only [outer, inner, realVec_realCoordSum]
     rw [← h_char]
-    simp [hT, N, coord, outer, inner, realVec_realMatrix_mulVec, frameAt, ← g.adeleMatrix.mul_assoc,
+    simp [hT, N, coord, h_vec, realVec_realMatrix_mulVec, frameAt, ← g.adeleMatrix.mul_assoc,
       adelicHeisenberg, ← G.adeleMatrix_mul, star_mulVec_dotProduct, ← conjTranspose_mul, mul_add,
-      realVec_realCoordSum, omega_rho, mulVec_add, AddChar.map_add_eq_mul]
+      omega_rho, mulVec_add, AddChar.map_add_eq_mul]
   have h_vac_coord (c b : InfinitePlace E × p → ℂ) (w : InfinitePlace E × n₀ → ℂ) :
       realVac (coord c b w) = realVac c * realVac b * realVac w := by
     simp only [coord, h_vac, OrthogonalSum.vac_equiv]

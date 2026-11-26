@@ -1,4 +1,6 @@
-import Lib.General.Algebra.LongExactSequences
+module
+
+public import Lib.General.Algebra.LongExactSequences
 
 /-!
 # Criteria for comparison maps of Ext cohomology of functors of points to be bijective
@@ -54,6 +56,8 @@ Known; see `Lib.Cohomology.Hodge.FixedPointFormula` and `Lib.Cohomology.Etale.Fi
 sources.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New.Variety
@@ -68,7 +72,7 @@ chains on tuples `(x, l₁, …, lₘ)` form a Čech-type complex, exact in posi
 
 section WitnessCocycles
 
-open CategoryTheory MonoidalCategory Abelian.Ext FreeAbelianGroup QuotientAddGroup Fin ShortComplex
+open CategoryTheory MonoidalCategory Abelian.Ext FreeAddCommGroup QuotientAddGroup Fin ShortComplex
   abCoker H freeAb
 
 variable {C : Type _} [Category C] {m n : ℕ} {V L : C ⥤ Type _} (R : Subfunctor (V ⊗ L))
@@ -179,7 +183,8 @@ variable {U : Subfunctor V} (hU : ∀ A : C, ∀ x ∈ U.obj A, ∃ l : L.obj A,
 well defined because every point of `U` has a witness. -/
 def fromRel : relFreeAb U ⟶ abCoker (boundary R 0) :=
   desc (freeAb.map (noWitness R).inv ≫ π (boundary R 0))
-    (freeAb.hom_ext fun A x ↦ proj_boundary_of_eq_zero (hU A x.val x.property))
+    (freeAb.hom_ext fun A x ↦ proj_boundary_of_eq_zero
+      (R := R) (A := A) (t := (noWitness R).inv.app A x.val) (hU A x.val x.property))
 
 /-- The universal class in degree `n`, with coefficients in the chains with `n` witnesses modulo
 boundaries. In degree `0` it is the map `fromRel hU`; each further degree composes with the
@@ -318,7 +323,7 @@ lemma pull_cocycleClass (c : Comparison F F') (u : V' ⟶ c.functor ⋙ V) (v : 
         (freeAbMap (q 0) ≫ (restrictAlong c.functor).map (π _)).app A
           (of ((noWitness R').inv A x)) := by
     refine (congrArg _ (hα A x)).trans
-      (congrArg (fun t ↦ (π (boundary R 0)).app _ (FreeAbelianGroup.of t)) ?_)
+      (congrArg (fun t ↦ (π (boundary R 0)).app _ (FreeAddCommGroup.of t)) ?_)
     exact Subtype.ext (Prod.ext rfl (funext nofun))
   obtain ⟨z, hz, h_coc⟩ :=
     map_cocycleClass hU hU' (restrictAlong c.functor) c.coeffHom (fun m ↦ freeAbMap (q m))
@@ -606,7 +611,7 @@ lemma pointMap_comp (y : E.obj A) (p : E ⟶ Y) : pointMap y ≫ p = pointMap (p
 maps from it to `F` are determined bijectively by the image of `z` in `F.obj B`. -/
 lemma projective_and_eval_bijective (F : C ⥤ Ab) {B : C} (z : Y.obj B)
     (hz : AllBijective fun A : C ↦ pointMap z A) :
-    Projective (freeAb Y) ∧ Bijective fun s : freeAb Y ⟶ F ↦ s B (FreeAbelianGroup.of z) := by
+    Projective (freeAb Y) ∧ Bijective fun s : freeAb Y ⟶ F ↦ s B (FreeAddCommGroup.of z) := by
   -- `Y` is represented by `B`, so both claims come from `reprBy B`, the second by Yoneda
   let e : freeAb Y ≅ freeAb (reprBy B) := freeAb.mapIso (isoOfAppBijective _ hz).symm
   -- write `z` as `Y.map (𝟙 B) z`, the form in which the Yoneda equivalence returns it
@@ -663,7 +668,7 @@ lemma isBijective_iff_of_coeff_iso {β : c.functor ⋙ G ⟶ G'} (γ : F ⟶ G) 
   simp [IsBijective, bijective_iff_of_comm_sq (c.pull_push β γ γ' w _), push_bijective_of_isIso]
 
 lemma homOfValue_app (x : F.obj A) (B : C') (y : Y'.obj B) :
-    c.homOfValue u x B (FreeAbelianGroup.of y) = c.coeffHom B (F.map (u B y).down x) := by
+    c.homOfValue u x B (FreeAddCommGroup.of y) = c.coeffHom B (F.map (u B y).down x) := by
   -- by definition the left side is `c.coeffHom B` applied to `F.map (u B y).down x + 0`
   rw [← add_zero (F.map (u B y).down x)]
   rfl

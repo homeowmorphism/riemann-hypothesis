@@ -1,4 +1,6 @@
-import Lib.SiegelWeil.Tower.RealConeIntegral
+module
+
+public import Lib.SiegelWeil.Tower.RealConeIntegral
 
 /-!
 # The test vector of the zeta integral
@@ -32,6 +34,8 @@ Part of a known result: analytic continuation and functional equation of Hecke `
 `Lib.SiegelWeil.Tower.FunctionalEquation`. Up to a scaling of the variable the test function is that
 of J. Tate, Fourier analysis in number fields and Hecke's zeta-functions (thesis, 1950), §2.5.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -209,7 +213,7 @@ lemma realBoxProd_realHeisenbergOp_vacVector {ι ι₁ ι₂ : Type} [Fintype ι
     {ε₂ : ι₂ → ℤˣ} {e : ι₁ ⊕ ι₂ ≃ ι} (he : ε ∘ e = ε₁ ⊕ᵥ ε₂) (y : ι₁ → ℂ) :
     realBoxProd he (realHeisenbergOp y vacVector) vacVector =
       realHeisenbergOp ((realCoordSum he).equiv (y, 0)) vacVector := by
-  show (realCoordSum he).tmul (heisenbergOp y vacElem) vacElem =
+  change (realCoordSum he).tmul (heisenbergOp y vacElem) vacElem =
     heisenbergOp ((realCoordSum he).equiv (y, 0)) vacElem
   simp [← OrthogonalSum.tmul_vacElem (realCoordSum he), OrthogonalSum.heisenbergOp_tmul]
 

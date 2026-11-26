@@ -1,7 +1,9 @@
-import Lib.Weil.DualPair.TwoEdges
-import Lib.Weil.MixedModel.AdaptedSplitting
-import Lib.Weil.Periods.ConstantTerm
-import New.UpperBound.Objects.Rows
+module
+
+public import Lib.Weil.DualPair.TwoEdges
+public import Lib.Weil.MixedModel.AdaptedSplitting
+public import Lib.Weil.Periods.ConstantTerm
+public import New.UpperBound.Objects.Rows
 
 /-!
 # Finite zero terms and the evaluation of pairs of edges in the tower of spaces `Y_k`
@@ -55,6 +57,8 @@ Notions from other files:
 See `New.UpperBound.Seesaw.SeesawIdentity` for related work. See `Lib.Weil.MixedModel.ZeroTerm` for
 sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -120,17 +124,6 @@ lemma exists_zeroTermFin_ne_zero (D : V.Splitting V₀ p) :
     simp [mk_one_one, hc, vacuumFn]
   have h_vac : V₀.vacElem = 0 := (smul_eq_zero.1 (h_value.symm.trans h_zero)).resolve_left hc_ne
   simpa [h_vac] using V₀.dataInner_vacElem_vacElem
-
-/-- The law of the zero term on the parabolic subgroup holds for its finite part and finite points:
-if `g k = k a` for the isotropic frame `k` of `D`, with `det a = d`, and `g` acts on `V₀` as `g₀`,
-then `zeroTermFin D` carries `ω g` to `(chiAdelic d)⁻¹ • ω g₀`. Here
-`chiAdelic d = υ(d) |d| ^ (-1 / 2)`, with `υ` the splitting character of `New.WeilData` and `|d|`
-the idele norm. This is a corollary of `New.Space.Splitting.zeroTerm_omega`. -/
-lemma zeroTermFin_omega (D : V.Splitting V₀ p) {g : Gf E n} {g₀ : G E s₀} {a : Matrix p p (𝔸 E)}
-    (hi : D.iCoord * (G.adeleMatrix (s := s) (1, g) * D.iAdelic) = g₀.adeleMatrix)
-    (hk : D.ActsOnFrame (1, g) a) {d : (𝔸 E)ˣ} (hd : a.det = d.val) (f : 𝒮 V) :
-    zeroTermFin D (V.ω (1, g) f) = (chiAdelic d)⁻¹ • V₀.ω g₀ (zeroTermFin D f) := by
-  simp [zeroTermFin, ← D.zeroTerm_omega g₀ hi hk d hd, omega_integrated]
 
 unseal finitePart in
 /-- Let `D` be a splitting of `V` over `V₀`, with isotropic frame `k` indexed by `p`. The finite
@@ -536,15 +529,6 @@ lemma relIndex_map_stdLattice_ne_zero (g : Gf E n) :
     rw [norm_finMultiplier_sq, AddSubgroup.relIndex_comap]
     rfl
   simp [h_zero, finMultiplier_ne_zero] at h_norm
-
-/-- For a splitting `D` of `V` over `V₀`, the quotient `L' / (L' ∩ L°)` is finite, where
-`L' = zeroTermLattice D` and `L°` is the standard lattice of `V₀`. So finite families of
-representatives as in `exists_zeroTermFin_vacElem_eq_sum` exist. This is a corollary of
-`exists_zeroTermLattice_eq_map`. -/
-lemma relIndex_zeroTermLattice_ne_zero (D : V.Splitting V₀ p) :
-    (stdLattice E n₀).relIndex (zeroTermLattice D) ≠ 0 := by
-  obtain ⟨g, hg⟩ := exists_zeroTermLattice_eq_map D
-  simpa [hg] using relIndex_map_stdLattice_ne_zero g
 
 /-- Let `D` be a splitting of `V` over `V₀`, with embedding `i = D.iFin` and isotropic frame
 `k = D.isotropicBasisFin`. Let `L' = zeroTermLattice D` be the lattice of the `w` with
@@ -1164,19 +1148,17 @@ def lastGrading {M : ℕ} (e : D.m = M) : Grading (D.spaceY M) D.N (D.InitIndex 
 /-- The finite evaluation `New.Seesaw.DoubleLiftData.finEval` of the double lift
 Y_{2i} → Y_{2i+1} → Y_{2i+2}: for the middle double lift if i < ϱ, the last double lift if i = ϱ,
 and 0 beyond. -/
-def doubleLiftEvalY (i : ℕ) := by
-  refine if _ : i < D.ϱ then
+def doubleLiftEvalY (i : ℕ) :=
+  if _ : i < D.ϱ then
     (middleDoubleLift (D.gradingY (2 * i)) (D.gradingY (2 * i + 1)) (D.gradingY (2 * i + 2))
-      ⟨?_, ?_, ?_, ?_⟩ ?_ ?_).finEval
+      ⟨by grind, by grind, by grind, by simp [gradingY]⟩ (by simp; grind) (by grind)).finEval
   else if _ : D.ϱ = i then
     -- the last pair, which ends in the space with the trivial grading
-    (lastDoubleLift (D.gradingY (2 * i)) (D.gradingY (2 * i + 1)) (D.lastGrading ?_)
-      ⟨?_, ?_, ?_, ?_⟩ ?_ congr($D.piN_mul_star) ?_).finEval
+    (lastDoubleLift (p := (D.piN : D.E)) (D.gradingY (2 * i)) (D.gradingY (2 * i + 1))
+      (D.lastGrading (M := 2 * i + 2) (by grind))
+      ⟨by grind, by grind, by grind, by simp [gradingY]⟩ (by simp; grind)
+      (by exact_mod_cast D.piN_mul_star) (by grind)).finEval
   else 0
-  -- what is left: lengths of the strings, parity of the ranks, that the constants `genericConst`
-  -- agree, and that the last double lift ends at `D.m`
-  all_goals try simp [gradingY]
-  all_goals grind
 
 /-- The natural number `M ^ (f n²)`, with `M = p₀ p₁`, `f` the number of infinite places of `E` and
 `n = n_m` the rank `D.n D.m`. -/

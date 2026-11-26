@@ -1,4 +1,7 @@
-import Lib.General.Groups.CongruenceSubgroups
+module
+
+public import Lib.General.Groups.CongruenceSubgroups
+import TauCeti.LinearAlgebra.Matrix.Charpoly.Roots
 
 /-!
 # Eigenvalues: traces of powers, common eigenvectors, Amitsur's theorem, Sylvester's law
@@ -32,6 +35,8 @@ pseudocharacters of a profinite group and pseudorepresentations over arbitrary r
 Note Ser. 414 (2014), (1.5).
 -/
 
+@[expose] public section
+
 /-! ## Traces of powers as power sums of eigenvalues -/
 
 section PowerSums
@@ -47,29 +52,13 @@ the product of q(−x) over the roots x of the characteristic polynomial of A, c
 multiplicity. -/
 lemma det_aeval_neg_eq_prod_roots (q : k[X]) :
     (aeval (-A) q).det = (A.charpoly.roots.map fun a : k ↦ q.eval (-a)).prod := by
-  -- `q` is a product of constants and of factors `X + C a`; both sides are multiplicative in `q`.
-  have hq : q ∈ Submonoid.closure ({C a | a : k} ∪ {X + C a | a : k}) := splits q
-  refine Submonoid.closure_induction_left ?_ ?_ hq
-  · simp
-  · rintro _ (⟨a, rfl⟩ | ⟨a, rfl⟩) r - hr
-    · -- A constant `a` contributes `a ^ card n` to both sides.
-      simp [hr, card_roots_eq_natDegree, algebraMap]
-    · -- `X + C a` contributes `det (a - A)`, the value at `a` of the characteristic polynomial.
-      simp [hr, ← (splits _).eval_eq_prod_roots_of_monic, charpoly_monic, neg_add_eq_sub,
-        eval_charpoly, algebraMap]
+  simpa [aeval_comp] using det_aeval_eq_prod_roots_charpoly A (q.comp (-X))
 
 /-- Over an algebraically closed field, the trace of A^m is the sum of the m-th powers of the
 roots of the characteristic polynomial of A, counted with multiplicity. -/
 lemma trace_pow_eq_sum_roots (m : ℕ) :
     (A ^ m).trace = (A.charpoly.roots.map fun a : k ↦ a ^ m).sum := by
-  -- The roots of the characteristic polynomial of `A ^ m` are the `m`-th powers of those of `A`.
-  have h_charpoly :
-      (A ^ m).charpoly = ((A.charpoly.roots.map (· ^ m)).map fun a ↦ X - C a).prod := by
-    refine Polynomial.funext fun x ↦ ?_
-    -- At `-A` the polynomial `C x - (-X) ^ m` is `x - A ^ m`; at `-a` it is `x - a ^ m`.
-    have h_det := det_aeval_neg_eq_prod_roots A (C x - (-X) ^ m)
-    simpa [eval_charpoly, eval_multiset_prod, algebraMap_eq_diagonal, Pi.algebraMap_def] using h_det
-  rw [trace_eq_sum_roots_charpoly, h_charpoly, roots_multiset_prod_X_sub_C]
+  simpa using trace_aeval_eq_sum_roots_charpoly_of_splits (splits A.charpoly) (X ^ m)
 
 /-- Over an algebraically closed field of characteristic 0, if tr A^m = tr B^m + ∑_{e∈S} α_e^m
 for all m ≥ 0, with S finite, then the characteristic polynomial of A is that of B times
@@ -121,7 +110,7 @@ lemma New.det_one_sub_smul_eq_prod_roots {ι : Type*} [Fintype ι] [DecidableEq 
 lemma New.trace_eq_rank_of_isIdempotentElem {k n : Type*} [Field k] [Fintype n] [DecidableEq n]
     {p : Matrix n n k} (hp : IsIdempotentElem p) : p.trace = p.rank := by
   -- `p` is a projection, so its trace is the dimension of its range.
-  rw [← p.trace_toLin'_eq]
+  rw [← p.trace_toLin'_eq, ← p.finrank_range_mulVecLin]
   exact (LinearMap.IsIdempotentElem.isProj_range _ (hp.map Matrix.toLinAlgEquiv')).trace
 
 /-! ## Sorting by adjacent swaps and common eigenvectors -/
@@ -138,7 +127,7 @@ lemma New.exists_antitone_of_swap {α : Type*} {N : ℕ} [LinearOrder α] (f : F
     ∃ σ : Equiv.Perm (Fin N), P σ ∧ Antitone (f ∘ σ) := by
   -- Among the permutations with `P` take one for which `f ∘ σ` is lexicographically largest.
   obtain ⟨τ, hτ, τ_max⟩ : ∃ τ, P τ ∧ ∀ σ, P σ → toLex (f ∘ σ) ≤ toLex (f ∘ τ) :=
-    Set.exists_max_image P _ Subtype.finite h_exists
+    Set.exists_max_image {σ | P σ} _ Subtype.finite h_exists
   refine ⟨τ, hτ, (antitone_iff_forall_covBy _).2 fun i j hij ↦ le_of_not_gt fun hlt ↦ ?_⟩
   -- Swapping an increasing pair of neighbours `i`, `j` would give a larger one: the two agree
   -- before `i`.

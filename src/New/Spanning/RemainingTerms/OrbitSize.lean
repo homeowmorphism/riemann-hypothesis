@@ -1,4 +1,6 @@
-import New.Spanning.Unfolding.Terms
+module
+
+public import New.Spanning.Unfolding.Terms
 
 /-!
 # Near terms in the filling theorem: the bound for an orbit, the tail and the open-cell term
@@ -34,6 +36,8 @@ Notions from other files:
   the product over the infinite places of |𝗀(γ)|_v, and the number n_p = #R̄₀ n_X N^(−kf).
 -/
 
+@[expose] public section
+
 noncomputable section
 
 section OrbitBound
@@ -66,7 +70,7 @@ variable {S} {γ : S.G E}
 products of the frame with its image under `γ`, and `n = ϱ + 1`. -/
 lemma norm_map_termDisc_le (v : NumberField.InfinitePlace E) :
     ‖Φ v (S.termDisc γ)‖ ≤ ‖Φ v (leadingMinor (S.frameProducts γ) ⊤)‖ ^ 2 := by
-  show _ ≤ ‖Φ v (S.frameProducts γ).det‖ ^ 2
+  change _ ≤ ‖Φ v (S.frameProducts γ).det‖ ^ 2
   have h_eq : ‖Φ v (S.termDisc γ)‖ = ‖Φ v (S.frameProducts γ).det‖ ^ 2 -
       (S.N * ‖Φ v (leadingMinor (S.frameProducts γ) 𝔰.top.castSucc)‖) ^ 2 := by
     rw [← Complex.ofReal_inj, ← map_termDisc_eq_norm]
@@ -102,7 +106,6 @@ lemma orbitBound_top [S.IsAdmissible] (x : ℝ) : S.orbitBound ⊤ x = S.tailSca
 /-- For admissible data, `pairCountScale` is at most the main second moment. -/
 lemma pairCountScale_le_mainSecondMoment [S.IsAdmissible] :
     S.pairCountScale ≤ S.mainSecondMoment := by
-  have : Nonempty 𝔰.κ := ⟨𝔰.k₀⟩
   -- `pairCountScale ≤ identitySecondMoment ≤ τ⁻⁴⁴ mainSecondMoment`, and `τ = tailScale ≥ 1`
   grw [pairCountScale, ← tailScale_pow_mul_identitySecondMoment_le, identitySecondMoment, sourceDim,
     ← S.N_prime.one_le, ← one_le_tailScale, ← NeZero.one_le (n := card S.BesselCoord)]
@@ -281,7 +284,9 @@ lemma two_pow_mul_pairCountScale_mul_le [S.IsAdmissible] :
   set x : ℝ := 200 * (f * 𝔰.k) * rd with hx
   have h_discr : (1 : ℝ) ≤ |(NumberField.discr E : ℝ)| :=
     mod_cast Int.one_le_abs (NumberField.discr_ne_zero E)
-  have h_rd : 1 ≤ rd := one_le_rpow (mod_cast h_discr) (by positivity)
+  have h_rd : 1 ≤ rd := by
+    rw [show rd = _ from NumberField.rootDiscr_def E, Int.cast_abs]
+    exact one_le_rpow h_discr (by positivity)
   have hf : (1 : ℝ) ≤ f := Nat.one_le_cast.2 NeZero.one_le
   have hk : (1 : ℝ) ≤ 𝔰.k := Nat.one_le_cast.2 (by grind [S.pow_le_k])
   have hN : (0 : ℝ) < S.N := Nat.cast_pos.2 S.N_prime.pos
@@ -373,7 +378,6 @@ lemma prod_pairingBoundSq_le [S.IsAdmissible] (h_one_le : 1 ≤ S.termDiscNorm �
   have h_const : 0 ≤ S.mainSecondMoment /
     (S.pairCountScale * S.M ^ (2 * 𝔰.ϱ * numInfPlaces E * 𝔰.k)) :=
     div_nonneg mainSecondMoment_nonneg (mul_nonneg pairCountScale_pos.le (by positivity))
-  have h_norm : 0 < S.termDiscNorm γ := one_pos.trans_le h_one_le
   have h_exponent : 𝔰.k ≤ 10 ^ 5 * 𝔰.n ^ 4 + (𝔰.k - 1) := by
     grind [Nat.pow_pos (n := 4) 𝔰.ϱ.succ_pos]
   calc

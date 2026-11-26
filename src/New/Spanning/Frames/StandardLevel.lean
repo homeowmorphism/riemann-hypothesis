@@ -1,6 +1,8 @@
-import Lib.SiegelWeil.OneVector.StandardQuadrics
-import New.Spanning.Frames.QuadricPlancherel
-import New.Spanning.Unfolding.BesselLevelStructure
+module
+
+public import Lib.SiegelWeil.OneVector.StandardQuadrics
+public import New.Spanning.Frames.QuadricPlancherel
+public import New.Spanning.Unfolding.BesselLevelStructure
 
 /-!
 # Place data and gauges at a finite place from the lattice of integral vectors
@@ -43,6 +45,8 @@ Notions from other files:
 
 See `New.Spanning.MainTerm.EnergyEstimate` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -203,7 +207,7 @@ lemma IntegralPlace.exists_right_invariant_measure_besselH :
   let H : Subgroup T.G := T.besselH
   have h_closed : IsClosed (H : Set T.G) := isClosed_of_entries_eq_one mem_floorGroup
   have h_emb : MeasurableEmbedding (Subtype.val : H → T.G) :=
-    .subtype_coe h_closed.measurableSet
+    .subtypeVal h_closed.measurableSet
   have h_open : IsOpen (K : Set T.G)⁻¹ := IsOpen.inv unitaryLevel_open_compact.1
   let K₀ : TopologicalSpace.PositiveCompacts H :=
     ⟨⟨Subtype.val ⁻¹' (K : Set T.G)⁻¹, unitaryLevel_open_compact.2.inv.preimage_val h_closed⟩,
@@ -212,7 +216,8 @@ lemma IntegralPlace.exists_right_invariant_measure_besselH :
   let η : Measure T.G := ν.map Subtype.val
   have η_apply (S : Set T.G) : η S = ν (Subtype.val ⁻¹' S) := h_emb.map_apply ν S
   have η_box : η K = 1 :=
-    calc η K = haarMeasure K₀ (Subtype.val ⁻¹' (K : Set T.G))⁻¹ := by rw [η_apply, inv_apply]
+    calc η K = haarMeasure K₀ (Subtype.val ⁻¹' (K : Set T.G))⁻¹ := by
+          rw [η_apply, Measure.inv_apply]
       _ = 1 := haarMeasure_self
   have η_right (s : T.G) (hs : s ∈ H) : η ∗ₘ dirac s = η := by
     have h_pres : MeasurePreserving (· * s) η η :=
@@ -613,8 +618,8 @@ lemma exists_intGL_mulVec_mem_commonVectors {x y u k : T.G}
     · have h_last (a : Fin 𝔰.ϱ) : (N * Y) (eStar a) j = 0 := h_zero (inr (inl a)) j
       have hu_inv : u⁻¹ ∈ T.besselU := inv_mem hu
       generalize u⁻¹ = u' at hu_inv ⊢
-      simp [Matrix.mul_assoc, mul_apply (N := N * Y), apply_inr_of_mem_besselU hu_inv, h_last,
-        Matrix.one_apply]
+      simp [Matrix.mul_assoc, Matrix.mul_apply (N := N * Y), apply_inr_of_mem_besselU hu_inv,
+        h_last, Matrix.one_apply]
   -- so `(x z)⁻¹ = k⁻¹ y⁻¹ u⁻¹ y x⁻¹` acts on the columns as `k⁻¹ x⁻¹`
   let W : Matrix 𝔰.BesselIndex (Fin d) A := x⁻¹.val.val * (F.orthonormalPart * Y)
   have h_act : (x * (y⁻¹ * u * y * k))⁻¹.val.val * (F.orthonormalPart * Y) = k⁻¹.val.val * W := by
@@ -624,7 +629,7 @@ lemma exists_intGL_mulVec_mem_commonVectors {x y u k : T.G}
       _ = (k⁻¹ * y⁻¹).val.val * (N * Y) := by rw [h_fix]
       _ = k⁻¹.val.val * W := by simp [N, W, Matrix.mul_assoc]
   have h_int : IsIntMatrix integers W :=
-    (inv_mem hx).1.isIntMatrix.mul (by simp [mul_apply, h.isIntMatrix_basisMatrix _, Y,
+    (inv_mem hx).1.isIntMatrix.mul (by simp [Matrix.mul_apply, h.isIntMatrix_basisMatrix _, Y,
       hV.isIntMatrix _, IsIntMatrix, mul_mem, sum_mem])
   have h_cong : IsIntMatrix integers (F.levelUnit⁻¹.val • (W - k⁻¹.val.val * W)) := by
     simpa [← smul_neg, Matrix.sub_mul, Units.smul_def] using ((inv_mem hk).2.mul h_int).neg
@@ -748,17 +753,6 @@ def gauge (α : Aˣ := 1) (hα : α.1 ∈ integers := by simp)
                    (h_mass β (α ^ j)).trans
                      (h.idealZeta_mul_inv_modulus_pow_le hα (by simp only [blockRank]; nlinarith))⟩
   exists_commonBound _ hx _ hz := h.exists_isCommonBound hα (fun _ ↦ rfl) hx hz
-
-/-- At a large lattice datum, let `y` and `γ⁻¹ y` be near at `l`: elements of
-`partialUnitriangularGroup l` move them into the group of integral isometries. Then the leading
-minors of order `j ≤ l` of the matrix of the products `h(f_a, γ f_b)` of the frame vectors are
-integral. -/
-theorem leadingMinor_mem_of_isNear {l : ℕ} {γ y : T.G} (hy : F.IsNear l y)
-    (hγy : F.IsNear l (γ⁻¹ * y)) {j : Fin (𝔰.n + 1)} (hj : j.val ≤ l) :
-    leadingMinor (T.frameGram (γ.val : Matrix 𝔰.BesselIndex 𝔰.BesselIndex A)) j ∈ P.integers := by
-  -- In the gauge of scale `1` every size means integral.
-  simpa [gauge] using
-    (h.gauge 1 (one_mem P.integers) (star_one A)).leadingMinor_mem_ofSize_of_isNear hy hγy hj
 
 include h in
 /-- At a large lattice datum `F`, let `g` be an integral self-conjugate unit of `A`, `a < 𝔰.ϱ`, and
@@ -913,7 +907,8 @@ theorem groupMeasure_boxSet_le : F.groupMeasure F.boxSet ≤ ENNReal.ofReal (1 +
         Fin F.blockRank ⊕ Fin F.blockRank →
           Fin 2 ⊕ FloorPairs l (m + 1) ⊕ ι ⊕ FloorPairs l (m + 1)) := by
       simpa only [comp_elim] using inr_injective.comp (h_mid.comp h_blocks)
-    simpa [SemilocalField.volume_O, volume_coordinateBox, Size.vecsOfSize, -Sum.forall] using!
+    simpa [SemilocalField.volume_O, volume_coordinateBox, Size.vecsOfSize, -Sum.forall,
+      Set.univ_inter] using!
       h_solved.setLIntegral_le isOpen_O.measurableSet h_disjoint measurable_one
   calc F.groupMeasure F.boxSet
     _ ≤ F.quotientMeasureFrom 0 {g : T.G | F.IsNear (𝔰.ϱ + 2) (g * 1)} := by

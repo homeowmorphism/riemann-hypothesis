@@ -1,4 +1,6 @@
-import Lib.Weil.Construction.FiniteMultiplier
+module
+
+public import Lib.Weil.Construction.FiniteMultiplier
 
 /-!
 # Schwartz–Bruhat functions on a set of places and the Schrödinger model there
@@ -31,6 +33,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.MixedModel.ZeroTerm` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -297,8 +301,9 @@ lemma mem_of_cosets (P : Submodule ℂ ((n → 𝔸f E) → ℂ))
   -- that points that differ by an element of `N` times the lattice are `W`-close.
   let uniformSpace : UniformSpace (n → 𝔸f E) := IsTopologicalAddGroup.rightUniformSpace (n → 𝔸f E)
   obtain ⟨W, hW, h_ball_subset⟩ : ∃ W ∈ uniformity (n → 𝔸f E), ∀ x ∈ C, ∃ y : n → 𝔸f E,
-      UniformSpace.ball x W ⊆ {z | Ψ z = Ψ y ∧ (Ψ y ≠ 0 → z ∈ U y)} :=
-    lebesgue_number_lemma_nhds hC fun y _ ↦ h_nhds y
+      UniformSpace.ball x W ⊆ {z | Ψ z = Ψ y ∧ (Ψ y ≠ 0 → z ∈ U y)} := by
+    obtain ⟨V, hV, h_ball⟩ := lebesgue_number_lemma_nhds hC fun y _ ↦ h_nhds y
+    exact ⟨SetRel.inv V, tendsto_swap_uniformity hV, h_ball⟩
   obtain ⟨N, hN, h_smul_mem⟩ : ∃ N : ℕ, N ≠ 0 ∧ ∀ x ∈ (stdLattice E n).carrier,
       (N : 𝔸f E) • x ∈ {z | ∀ ⦃p : (n → 𝔸f E) × (n → 𝔸f E)⦄, p.2 + -p.1 = z → p ∈ W} :=
     exists_natCast_smul_mem_of_isCompact E isCompact_stdLattice (mem_comap'.mp hW)

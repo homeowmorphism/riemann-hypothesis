@@ -1,4 +1,6 @@
-import New.Reduction.Data.AdmissibleData
+module
+
+public import New.Reduction.Data.AdmissibleData
 
 /-!
 # Logarithmic bounds for the sizes of the data
@@ -33,6 +35,8 @@ Notions from other files:
   `offWeight = a / x₁` elsewhere, where `a = x b`.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 open Real Set Finset Nat NeZero
@@ -63,7 +67,6 @@ lemma le_constantBound :
   have hφ : (φ P.q₀ : ℝ) ≤ P.q₀ := mod_cast totient_le P.q₀
   -- `P.constantBound` is `q₀ + 2 d + 6` plus nonnegative terms
   have h_le : P.q₀ + (2 * P.d + 6) ≤ P.constantBound := by
-    have h_const : (0 : ℝ) ≤ P.vacuumBoundConst := P.vacuumBoundConst.cast_nonneg
     have h_sum : 0 ≤ ∑ w ∈ primitiveRoots P.q₀ ℂ,
         |Real.log ‖(Polynomial.cyclotomic P.q₀ ℂ).derivative.eval w‖| :=
       sum_nonneg fun w _ ↦ abs_nonneg _
@@ -238,10 +241,10 @@ variable [HasLogBound D u F l]
 instance : HasLogBound D u (F ^ A) (A * l) := by
   cases u
   · refine D.hasLogLower_iff.2 ?_
-    rw [exp_nat_mul]
+    rw [exp_natCast_mul]
     exact pow_le_pow_left₀ (exp_pos l).le (D.hasLogLower_iff.1 inferInstance) A
   · refine D.hasLogUpper_iff.2 ?_
-    rw [exp_nat_mul, abs_pow]
+    rw [exp_natCast_mul, abs_pow]
     exact pow_le_pow_left₀ (abs_nonneg F) (D.hasLogUpper_iff.1 inferInstance) A
 
 /-- Exponents are halved under taking square roots. -/
@@ -387,28 +390,47 @@ section
 
 -- The default proof of `l < l'` first clears all hypotheses but `D`, which keeps `grind` fast.
 variable [D.HasLogUpper F l] [D.HasLogLower G l'] [D.HasLogUpper A l] [D.HasLogLower B l']
-  (h_exp : l < l' := by
-    clear_aux_decl
-    clear * - D
-    repeat clear ‹_›
-    grind (splits := 99) [D.scale_inequalities])
 
-include D h_exp
+include D
 /-- If `|F| ≤ exp l`, `exp l' ≤ G` and `l < l'`, then `F < G`. -/
-protected lemma lt_of_hasLogBound : F < G :=
+protected lemma lt_of_hasLogBound
+    (h_exp : l < l' := by
+      clear_aux_decl
+      clear * - D
+      repeat clear ‹_›
+      grind [D.scale_inequalities]) :
+    F < G :=
   calc F ≤ |F| := le_abs_self F
     _ ≤ exp l := D.hasLogUpper_iff.1 inferInstance
     _ < exp l' := exp_lt_exp.2 h_exp
     _ ≤ G := D.hasLogLower_iff.1 inferInstance
 
 /-- If `|F| ≤ exp l`, `exp l' ≤ G` and `l < l'`, then `F ≤ G`. -/
-protected lemma le_of_hasLogBound : F ≤ G := (D.lt_of_hasLogBound h_exp).le
+protected lemma le_of_hasLogBound
+    (h_exp : l < l' := by
+      clear_aux_decl
+      clear * - D
+      repeat clear ‹_›
+      grind [D.scale_inequalities]) :
+    F ≤ G := (D.lt_of_hasLogBound h_exp).le
 
 /-- If natural numbers `A`, `B` satisfy `A ≤ exp l`, `exp l' ≤ B` and `l < l'`, then `A < B`. -/
-lemma nat_lt_of_hasLogBound : A < B := cast_lt.mp (D.lt_of_hasLogBound h_exp)
+lemma nat_lt_of_hasLogBound
+    (h_exp : l < l' := by
+      clear_aux_decl
+      clear * - D
+      repeat clear ‹_›
+      grind [D.scale_inequalities]) :
+    A < B := cast_lt.mp (D.lt_of_hasLogBound h_exp)
 
 /-- If natural numbers `A`, `B` satisfy `A ≤ exp l`, `exp l' ≤ B` and `l < l'`, then `A ≤ B`. -/
-lemma nat_le_of_hasLogBound : A ≤ B := (D.nat_lt_of_hasLogBound h_exp).le
+lemma nat_le_of_hasLogBound
+    (h_exp : l < l' := by
+      clear_aux_decl
+      clear * - D
+      repeat clear ‹_›
+      grind [D.scale_inequalities]) :
+    A ≤ B := (D.nat_lt_of_hasLogBound h_exp).le
 
 end
 

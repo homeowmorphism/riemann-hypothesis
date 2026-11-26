@@ -1,6 +1,8 @@
-import New.Spanning.Bessel.LargeFunction
-import New.Spanning.Unfolding.AmplitudeSums
-import New.UpperBound.Objects.Rows
+module
+
+public import New.Spanning.Bessel.LargeFunction
+public import New.Spanning.Unfolding.AmplitudeSums
+public import New.UpperBound.Objects.Rows
 
 /-!
 # Poincaré series of fitting spaces, unfolding, Petersson products and source form coordinates
@@ -49,6 +51,8 @@ Notions from other files:
 The file also contains known results stated on this proof's data: Poincaré series along a Bessel
 subgroup and their unfolding. See `Lib.DiscreteSeries.Bruhat.FloorGroups`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -157,7 +161,7 @@ def realHomeomorph : (NumberField.InfinitePlace E → USign ε) ≃ₜ
   -- of `S`, to the diagonal form of signs `ε`, and back.
   Homeomorph.piCongrRight fun v ↦ DiscreteSeries.frameEquiv.symm.toHomeomorph.trans <|
     Homeomorph.mulLeft ⟨(S.basisScaleGL v)⁻¹ * GeneralLinearGroup.map (evalInf v) V.x * p.matrix⁻¹,
-      gram_mul_of_gram_eq
+      mem_unitaryGroupOf_iff.2 <| gram_mul_of_gram_eq
         (gram_mul_of_gram_eq (gram_inv_of_gram_eq
           (S.conjTranspose_basisScaleGL_mul_splitGram_mul v))
           (X.gram_map_evalInf_point v))
@@ -168,7 +172,8 @@ infinite part of `X.adelicEquiv g`. -/
 theorem realHomeomorph_mul (g' : New.G E ε) :
     X.realHomeomorph (g * g').1 = S.adelicToInf (X.adelicEquiv g) * X.realHomeomorph g'.1 := by
   -- At each place both sides are products of the same change-of-basis matrices.
-  ext v : 2
+  ext v : 1
+  refine Subtype.ext ?_
   have h_comp : (g.1 v).val = GeneralLinearGroup.map (evalInf v) (G.toUnitary g).val := rfl
   -- `X.adelicEquiv` is conjugation by the point of `V`, and `X.realHomeomorph` multiplies by `x`.
   let x : GL 𝔰.BesselIndex ℂ := (S.basisScaleGL v)⁻¹ * GeneralLinearGroup.map (evalInf v) V.x
@@ -190,9 +195,9 @@ theorem finiteEquiv_eq_conj_adelicToFin :
   simp only [finiteEquiv, adelicToFin, MulEquiv.trans_apply, MulAut.conj_apply, inv_inv,
     MonoidHom.comp_apply, MonoidHom.coe_ofClass]
   congr 3
-  ext : 2
+  refine Subtype.ext (Units.ext ?_)
   -- It remains to compare the matrices of the finite part in rational coordinates.
-  show V.ratCoordMatrixFin g.2 = (V.ratCoordMatrix g).map Prod.snd
+  change V.ratCoordMatrixFin g.2 = (V.ratCoordMatrix g).map Prod.snd
   exact V.ratCoordMatrixFin_snd g
 
 /-- The isomorphism `New.Filling.Fits.finiteEquiv` is conjugation by an integral matrix x that
@@ -290,10 +295,10 @@ theorem enorm_cutBessel_ratEquiv_mul_le (γ : S.G E) :
   -- A coordinate of a vector is bounded by its norm.
   have h_coord (y : NumberField.InfinitePlace E → 𝔰.G₁) :
       ‖S.besselFn .full y a.2‖ₑ ≤ ∏ v, ‖(S.besselSystem v).besselFn .full (y v)‖ₑ := by
-    simp only [besselFn, enorm_eq_nnnorm, nnnorm_prod]
+    simp only [besselFn, eNorm_eq_nnNorm, nnNorm_prod]
     norm_cast
     gcongr
-    exact nnnorm_apply_le _ _
+    exact nnNorm_apply_le _ _
   simp only [cutBessel_ratEquiv_mul]
   split
   · grw [enorm_toReal_smul_le, h_coord]
@@ -375,7 +380,7 @@ theorem exists_tsum_enorm_cutBessel_le :
         ((Equiv.divLeft δ).symm.tsum_eq _).symm
     _ = ∑' γ : T, ‖X.cutBessel a (X.ratEquiv (γ.val⁻¹ * δ) * g)‖ₑ := by
         refine (tsum_subtype_eq_of_support_subset fun γ hγ ↦ h_over γ (by_contra fun h ↦ ?_)).symm
-        exact hγ (by simp only [h_zero _ h, enorm_zero])
+        exact hγ (by simp only [h_zero _ h, eNorm_zero])
     _ ≤ M := by
         refine le_trans (ENNReal.tsum_le_tsum fun γ ↦ ?_) (hM (S.ratToInf δ * X.realHomeomorph g.1))
         simpa only [map_mul S.ratToInf, map_inv, mul_assoc] using
@@ -436,13 +441,6 @@ private theorem mul_poincareSeries_eq_sum (y : New.G E ε → ℂ) :
       ∑ a : S.Classes × S.BesselCoord, φ a * (y g * ∑' γ : V.Γ, X.cutBessel a (γ * g)) := by
   simp only [poincareSeries, Finset.mul_sum, mul_left_comm]
 
-/-- For admissible filling data and a form y on V of any type e (a bounded automorphic function),
-the product of y with the Poincaré series of φ is integrable on Γ∖G. -/
-theorem integrable_mul_poincareSeries {e : GInf E ε → ℂ} {y : New.G E ε → ℂ} (hy : V.IsForm e y) :
-    Integrable (fun g : New.G E ε ↦ y g * X.poincareSeries φ g) V.Γ.quotMeasure := by
-  simp only [mul_poincareSeries_eq_sum]
-  exact integrable_finsetSum _ fun a _ ↦ (integrable_mul_tsum_cutBessel a hy).const_mul (φ a)
-
 /-- Unfolding, for admissible filling data and a form y on V of any type e (a bounded automorphic
 function): the integral over Γ∖G of y times the Poincaré series of φ is
 ∑_a φ_a ∫_G y·`X.cutBessel a`. -/
@@ -452,18 +450,6 @@ theorem integral_mul_poincareSeries {e : GInf E ε → ℂ} {y : New.G E ε → 
   simp only [mul_poincareSeries_eq_sum]
   rw [integral_finsetSum _ fun a _ ↦ (integrable_mul_tsum_cutBessel a hy).const_mul (φ a)]
   simp only [integral_const_mul, integral_mul_tsum_cutBessel _ hy]
-
-/-- Unfolding, for admissible filling data S. Let y be a form on V of any type e (a bounded
-automorphic function). Then y times the Poincaré series of φ is integrable on Γ∖G, with integral ∑_a
-φ_a ∫_G y·`X.cutBessel a`.
-
-Known result: the unfolding of Poincaré series along a Bessel subgroup. -/
-theorem integrable_and_integral_mul_poincareSeries {e : GInf E ε → ℂ} {y : New.G E ε → ℂ}
-    (hy : V.IsForm e y) :
-    Integrable (fun g : New.G E ε ↦ y g * X.poincareSeries φ g) V.Γ.quotMeasure ∧
-    ∫ g : New.G E ε, y g * X.poincareSeries φ g ∂V.Γ.quotMeasure =
-      ∑ a : S.Classes × S.BesselCoord, φ a * ∫ g : New.G E ε, y g * X.cutBessel a g :=
-  ⟨integrable_mul_poincareSeries φ hy, integral_mul_poincareSeries φ hy⟩
 
 omit [S.IsAdmissible] [HasPrimitiveRoot5040 E] in
 /-- Right convolution over the real points with `typeKernel l ε` fixes each coordinate of the full
@@ -523,9 +509,9 @@ theorem exists_levelSpace_tsum_cutBessel_eq :
   have h_group (g : New.G E ε) :
       ∑' γ : V.Γ, X.cutBessel a (γ * g) = ∑' q : S.G E ⧸ S.classUnipotent a.1, F q g := by
     rw [← cosetEquiv.tsum_eq]
-    exact (cosetEquiv.summable_iff.2 (.of_enorm ((hM g).trans_lt ENNReal.coe_lt_top).ne)).tsum_prod
+    exact (cosetEquiv.summable_iff.2 (.of_eNorm ((hM g).trans_lt ENNReal.coe_lt_top).ne)).tsum_prod
   have h_bound (g : New.G E ε) : ∑' q : S.G E ⧸ S.classUnipotent a.1, ‖F q g‖ₑ ≤ M := by
-    grw [← hM g, ← cosetEquiv.tsum_eq, ENNReal.tsum_prod', ← enorm_tsum_le_tsum_enorm]
+    grw [← hM g, ← cosetEquiv.tsum_eq, ENNReal.tsum_prod', ← eNorm_tsum_le_tsum_eNorm]
   have h_fix (q : S.G E ⧸ S.classUnipotent a.1) (g : New.G E ε) :
       realConv (typeKernel l ε) (F q) g = F q g := by
     simpa [F, cosetEquiv, mul_assoc] using
@@ -814,7 +800,7 @@ lemma New.Shape.submatrix_fromBlocks_besselIndexEquiv (𝔰 : Shape) {R : Type*}
       fromBlocks 1 0 0 (fromBlocks (fromBlocks m 0 0 1) 0 0 1) := by
   -- Compare entries block by block; what is left is arithmetic of the string indices.
   ext (i | (i | i) | i) (j | (j | j) | j) <;>
-    simp [besselIndexEquiv, one_apply, Fin.ext_iff] <;> lia
+    simp [besselIndexEquiv, Matrix.one_apply, Fin.ext_iff] <;> lia
 
 open Matrix in
 /-- A Kronecker product acts on a product vector factor by factor. -/
@@ -898,19 +884,6 @@ lemma finiteEquiv_inclXFin (X : S.Fits V l kw Y η) (a : Gf E 𝔰.κ) :
     X.finiteEquiv (Y.inclXFin a) = S.inclHFin a :=
   -- `Y.inclXFin a` is by definition the finite component of `Y.inclX (1, a)`.
   X.finiteEquiv_inclX (1, a)
-
-/-- If `X` says that `V` with grading `Y` fits `S`, then for `a` in `Gf E 𝔰.κ` (finite adelic
-U(X₀)), `Y.inclXFin a` lies in `stdLevel`, the stabiliser of the standard lattice, if and only if
-`S.inclHFin a` lies in `S.latticeStabilizer`. -/
-lemma inclXFin_mem_stdLevel_iff (X : S.Fits V l kw Y η) (a : Gf E 𝔰.κ) :
-    Y.inclXFin a ∈ stdLevel E 𝔰.BesselIndex ↔ S.inclHFin a ∈ S.latticeStabilizer := by
-  rw [← X.finiteEquiv_mem_latticeStabilizer_iff, finiteEquiv_inclXFin]
-
-/-- A finite adelic point of U(X₀), embedded by the grading Y, lies in the principal level of V at
-the chosen places if and only if its image `S.inclHFin a` lies in the principal level of S. -/
-lemma inclXFin_mem_stdPrincipalLevel_iff (X : S.Fits V l kw Y η) (a : Gf E 𝔰.κ) :
-    Y.inclXFin a ∈ S.stdPrincipalLevel ↔ S.inclHFin a ∈ S.principalLevel := by
-  rw [X.mem_stdPrincipalLevel_iff, finiteEquiv_inclXFin]
 
 /-- At each infinite place v, the embedding `Y.inclX` of the adelic unitary group U(X₀) on κ,
 rescaled into `𝔰.G₁`, is the embedding `toBesselH` applied to the component at v. -/

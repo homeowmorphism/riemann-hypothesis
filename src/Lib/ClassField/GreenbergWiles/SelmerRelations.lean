@@ -1,5 +1,7 @@
-import Lib.ClassField.Global.Chebotarev
-import Lib.ClassField.GreenbergWiles.SplitPrimeReciprocity
+module
+
+public import Lib.ClassField.Global.Chebotarev
+public import Lib.ClassField.GreenbergWiles.SplitPrimeReciprocity
 
 /-!
 # Relations at split primes and their number (Greenberg–Wiles)
@@ -35,6 +37,8 @@ Notions from other files:
 
 Known; see `Lib.ClassField.GreenbergWiles.CocycleCounts` for sources.
 -/
+
+@[expose] public section
 
 namespace New.selmerZ1
 
@@ -113,7 +117,7 @@ theorem card_mul_pow_le (hu : ∀ g ∈ inertiaAbove (S : Set (FinPlace K))ᶜ, 
   have h_coc (y : Y) : y.1 ∈ Z1 M.ρ := y.2.1.1
   have h_loc (y : Y) (v : FinPlace K) (hv : v ∈ S) :
       (fun g : decompGroup Gal(Ω/K) (A v) ↦ y.1 g) ∈ J v :=
-    ⟨y.2.2.1 v hv, (h_coc y).1.comp continuous_subtype_val, fun g h ↦ (h_coc y).2 g h⟩
+    ⟨y.2.2.1 v hv, (h_coc y).1.comp continuous_subtypeVal, fun g h ↦ (h_coc y).2 g h⟩
   have h_cob (v : FinPlace K) (hv : v ∈ S) (a : M) :
       coboundaryMap (M.restrictTo (decompGroup Gal(Ω/K) (A v))).ρ a ∈ J v :=
     ⟨hL v hv ⟨a, rfl⟩, ((M.restrictTo _).coboundary a).2⟩
@@ -216,7 +220,7 @@ lemma exists_dvd_coprime_sup_idelesUnitOff_eq_top (U : OpenNormalSubgroup Gal(Ω
     obtain ⟨T, hT, -, h_off, h_top⟩ :=
       exists_sup_idelesUnitOff_eq_top (K := F) finite_empty _ (finite_natCast_mem p)
     filter_upwards [mem_large hT fun v hv hp ↦ h_off v hp hv] with k hk
-    exact eq_top_mono (sup_le_sup_left (idelesUnitOff_mono hk) _) h_top
+    exact eq_top_mono (sup_le_sup_left (idelesUnitOff_mono fun v hv ↦ hk v hv) _) h_top
   -- The finitely many primes with an inertia group outside `U` do not divide `p`.
   let bad : Set (FinPlace K) :=
     {v | ¬ ∀ B : ClosurePlace, IsPlaceOver B v → inertiaGroup Gal(Ω/K) B ≤ U}
@@ -254,7 +258,7 @@ lemma exists_fix_roots_of_units {m : ℕ} [NeZero m] (U : OpenNormalSubgroup Gal
   obtain ⟨t, ht⟩ : roots.FG := fg_of_fg_map_of_fg_inf_ker mul h_image h_ker
   -- An open normal subgroup `O` fixes the finitely many generators.
   have h_cont : Continuous fun p : Gal(Ω/K) × t ↦ (unitsModule Gal(Ω/K)).ρ p.1 p.2.1 :=
-    (unitsModule Gal(Ω/K)).continuous.comp (continuous_id.prodMap continuous_subtype_val)
+    (unitsModule Gal(Ω/K)).continuous.comp (continuous_id.prodMap continuous_subtypeVal)
   obtain ⟨O, hO⟩ := exists_openNormalSubgroup_apply_eq h_cont
   refine ⟨O, fun g h hgh y hy ↦ LinearMap.eqOn_span (fun x hx ↦ ?_) (ht.ge hy)⟩
   have h_fix : unitsRep (g⁻¹ * h) x = x := by

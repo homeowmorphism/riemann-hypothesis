@@ -1,6 +1,8 @@
-import Lib.DiscreteSeries.Holomorphic.ModelFunction
-import Lib.SiegelWeil.RallisInner.SharpData
-import Lib.Weil.DualPair.HolomorphicData
+module
+
+public import Lib.DiscreteSeries.Holomorphic.ModelFunction
+public import Lib.SiegelWeil.RallisInner.SharpData
+public import Lib.Weil.DualPair.HolomorphicData
 
 /-!
 # Holomorphic Fock vectors and a reproducing formula by theta lifts
@@ -46,6 +48,8 @@ Fourier-Jacobi-Entwicklung Siegelscher Eisensteinreihen, Math. Z. 183 (1983); J.
 See also `Lib.Weil.Fock.OscillatorPair` and `Lib.Weil.DualPair.HolomorphicData`.
 -/
 
+@[expose] public section
+
 namespace New.Rows
 
 open MeasureTheory Set Matrix Fock SiegelWeil MvPolynomial Finset Submodule NumberField Sum
@@ -73,14 +77,14 @@ lemma linSubst_variableMinor {i : p → n'} {c : p → n} {κ : ℤˣ} (hi : ∀
         ∑ j : p, (u τ : Matrix n n ℂ) (c a) (c j) • X (τ, i b, c j) := calc
     _ = ∑ k : n, (if s k = κ then (u τ : Matrix n n ℂ) (c a) k else 0) • X (τ, i b, k) := by
       simp [complexLinearPart, linSubst, posProj, blockDiagonal_apply, (h_range _).2, hi,
-        sum_prod_type, mul_eq_one_iff_eq_inv', one_apply, pairSign, pairHomInf, pairHom]
+        sum_prod_type, mul_eq_one_iff_eq_inv', Matrix.one_apply, pairSign, pairHomInf, pairHom]
     _ = _ := (sum_of_injective c hc _ _ (by simp +contextual [h_range]) (by simp [h_range])).symm
   have h_minor : principalMinor (u τ) (fun k : n ↦ s k = κ) =
       (of fun a b : p ↦ (u τ : Matrix n n ℂ) (c a) (c b)).det :=
     (det_submatrix_equiv_self
       ((Equiv.ofInjective c hc).trans (Equiv.subtypeEquivRight h_range).symm) _).symm
   rw [variableMinor, ← det_transpose, AlgHom.map_det, ← C_mul', h_minor, C.map_det, ← det_mul]
-  exact congrArg det (Matrix.ext fun a b ↦ by simpa [mul_apply, C_mul'] using h_var a b)
+  exact congrArg det (Matrix.ext fun a b ↦ by simpa [Matrix.mul_apply, C_mul'] using h_var a b)
 
 /-- The principal minor of the action of `(u, 1)` on matrices of variables, on the variables of sign
 `-1` for `homSigns s s'`, is the product over the places `w` and the rows `r` of the minor of `u w`
@@ -135,7 +139,7 @@ lemma polyMatrixCoeff_eq_holMinorsPi_mul_conj (s : n → ℤˣ) (s' : n' → ℤ
     have h_neg {k : InfinitePlace E × n' × n} (hk : σ k ≠ 1) : pderiv k P = 0 :=
       pderiv_eq_zero_of_notMem_vars fun hk' ↦ hk (mem_supported.1 hP hk')
     by_cases hj : σ j = 1
-    · rw [New.pderiv_comm, h_neg (h.trans_eq hj), map_zero]
+    · rw [MvPolynomial.pderiv_comm, h_neg (h.trans_eq hj), map_zero]
     · rw [h_neg hj, map_zero]
   let t : ℂ := ∏ w : InfinitePlace E, principalMinor (u⁻¹ w) (fun k : n ↦ s k = 1) ^ ν w *
     principalMinor (u⁻¹ w) (fun k : n ↦ s k = -1) ^ c w

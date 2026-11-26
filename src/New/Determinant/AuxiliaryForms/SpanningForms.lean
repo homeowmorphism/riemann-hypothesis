@@ -1,7 +1,9 @@
-import New.Determinant.AuxiliaryForms.DiagonalTurns
-import New.Determinant.AuxiliaryForms.FirstPath
-import New.Determinant.AuxiliaryForms.LastPath
-import New.OneLift.ComparisonOperator.FirstFactors
+module
+
+public import New.Determinant.AuxiliaryForms.DiagonalTurns
+public import New.Determinant.AuxiliaryForms.FirstPath
+public import New.Determinant.AuxiliaryForms.LastPath
+public import New.OneLift.ComparisonOperator.FirstFactors
 
 /-!
 # Denominators and sizes on the last path, and the auxiliary forms
@@ -46,6 +48,8 @@ Notions from other files:
   `Y₀` to `Y_m`, with values in algebraic forms. `New.Data.lowerChainAtLevel ϑ` is the same map with
   values in the forms of the last level and its character; `levelY ϑ m` fixes these forms.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -541,10 +545,10 @@ lemma fixedByOuterLevels_lastPathConjDelta (φ : D.gridLevelForms D.m) :
     (principalLevel (D.LastPathIndex true 0) D.gridLevelGen)
   have h_symm : (e.symm φ).1 = D.lastPathToAlgForm true φ.1 := rfl
   refine Bool.forall_bool.2 ⟨?_, ?_⟩
-  · show D.lastPathToAlgForm false (lastPathConjDelta ϑ x v) ∈ _
+  · change D.lastPathToAlgForm false (lastPathConjDelta ϑ x v) ∈ _
     rw [lastPathToAlgForm_lastPathConjDelta]
     exact levelSpace_anti h_level (lastPathDelta ϑ x v).2
-  · show D.lastPathToAlgForm true φ.1 ∈ _
+  · change D.lastPathToAlgForm true φ.1 ∈ _
     rw [← h_symm]
     exact levelSpace_anti (lastPathLevel_le_principalLevel ϑ true 0) (e.symm φ).2
 
@@ -732,7 +736,7 @@ lemma exists_lowerChain_integral_and_weylNormSq_le : ∃ c : D.MFoldTwist → �
           √(weylNormSq (σ ∘ v)) := by ring
       _ ≤ _ := by grw [D.dualHook_mul_exp_le]
   refine (D.weylNormSq_le_of_dualPairing σ (by positivity) h_pair_le).trans_eq ?_
-  rw [mul_pow, sq_sqrt ((weylNormSq_nonneg _).trans (hB 1)), ← exp_nat_mul, Nat.cast_ofNat,
+  rw [mul_pow, sq_sqrt ((weylNormSq_nonneg _).trans (hB 1)), ← exp_natCast_mul, Nat.cast_ofNat,
     ← mul_assoc]
 
 /-- The space `gridLevelForms` of forms of level `J(𝔟)` on `Ỹ^m_0`, the space at the outer end of

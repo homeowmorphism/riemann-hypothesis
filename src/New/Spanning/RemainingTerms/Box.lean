@@ -1,5 +1,7 @@
-import Lib.Adelic.Adeles.SemilocalProducts
-import New.Spanning.Unfolding.Setup
+module
+
+public import Lib.Adelic.Adeles.SemilocalProducts
+public import New.Spanning.Unfolding.Setup
 
 /-!
 # The box
@@ -29,6 +31,8 @@ Notions from other files:
 * `New.Filling.mem_frameBox_of_mem_boxedPoints`: at a boxed point the frame vectors have length at
   most `b ^ (37 n)`.
 -/
+
+@[expose] public section
 
 open NumberField Matrix Set ENNReal
 
@@ -233,7 +237,7 @@ lemma ratTriangle_eq_one_apply_of_le (y : InfinitePlace E → 𝔰.G₁) {row co
     (h_col_le_row : col ≤ row) (v : InfinitePlace E) :
     S.ratTriangle y row col v = (1 : Matrix (Fin (𝔰.ϱ + 1)) (Fin (𝔰.ϱ + 1)) ℂ) row col := by
   rw [ratTriangle, gramSchmidtMatrix, RealPlace.unitriangularMatrix, of_apply,
-    dite_eq_right h_col_le_row.not_gt, one_apply]
+    dite_eq_right h_col_le_row.not_gt, Matrix.one_apply]
   split_ifs with h_diagonal
   · rw [h_diagonal, div_self (S.basisScale_ne_zero v _), mul_one]
   · rw [zero_mul]
@@ -334,6 +338,8 @@ lemma mem_frameBox_of_mem_boxedPoints [S.IsAdmissible] {y : InfinitePlace E → 
 lemma measurableSet_boxedPoints [S.IsAdmissible] : MeasurableSet S.boxedPoints := by
   have hD : S.IsResidueDomain (Classical.epsilon S.IsResidueDomain) :=
     Classical.epsilon_spec S.exists_isResidueDomain
+  change MeasurableSet (S.reducedPoints (Classical.epsilon S.IsResidueDomain) ∩
+    {y : InfinitePlace E → 𝔰.G₁ | ∀ v, InCut (y v) S.b})
   refine hD.measurableSet_reducedPoints.inter ?_
   change MeasurableSet {y : InfinitePlace E → 𝔰.G₁ | ∀ v, besselLength (y v) ≤ S.b ^ (6 * 𝔰.n + 2)}
   measurability

@@ -1,6 +1,8 @@
-import Lib.SiegelWeil.Reproduction
-import New.Determinant.Exchange.ExplicitMatching
-import New.OneLift.ComparisonOperator.FirstFactors
+module
+
+public import Lib.SiegelWeil.Reproduction
+public import New.Determinant.Exchange.ExplicitMatching
+public import New.OneLift.ComparisonOperator.FirstFactors
 
 /-!
 # Three exchanges: the carrier, the third exchange and its left side as a theta series
@@ -66,6 +68,8 @@ Yang, Theta liftings and Hecke L-functions, 1997.
 See `New.OneLift.ComparisonOperator.FirstFactors` and `New.OneLift.ComparisonOperator.ProductsSpan`
 for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -478,7 +482,7 @@ lemma carrierForm_ne_zero {m : ℕ} [NeZero m] : carrierForm E m ≠ 0 := by
       Fock.fockInner v (realPairWeil 0 0 (u, 1) v) = Fock.fockInner v v :=
     fockInner_realPairWeil_variableMinor_pow_eq_self u
   have : CompactSpace (USign (-1 : Fin m → ℤˣ)) := by
-    rw [show USign (-1 : Fin m → ℤˣ) = U 1 by simp [U]]
+    rw [show USign (-1 : Fin m → ℤˣ) = U 1 by ext; simp [mem_unitaryGroupOf_iff]]
     infer_instance
   intro h_lift_zero
   -- The modulus is trivial, so the finite part of the datum is the vacuum, which is sharp.

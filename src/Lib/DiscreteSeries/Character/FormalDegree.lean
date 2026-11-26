@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.Character.MultiplicityOrbitalIntegral
-import Lib.DiscreteSeries.Character.OpenOrbitIntegral
+module
+
+public import Lib.DiscreteSeries.Character.MultiplicityOrbitalIntegral
+public import Lib.DiscreteSeries.Character.OpenOrbitIntegral
 
 /-!
 # Harish-Chandra's formula for formal degrees and stable orbital integrals
@@ -42,6 +44,8 @@ characters, Acta Math. 116 (1966), Thm 16 (with part I, Acta Math. 113 (1965), T
 Representation Theory of Semisimple Groups (1986), Thm 12.7.
 -/
 
+@[expose] public section
+
 namespace New.Orbital
 
 open Finset AddMonoidAlgebra Equiv Fintype Matrix HCParam
@@ -71,7 +75,7 @@ lemma sum_sign_mul_eval_alternant (ε : n → ℤˣ) (κ : n → ℤ) (x : n →
   have det_eq (w : Perm n) :
       ∑ τ : Perm n, (w.sign : ℂ) * (τ.sign * ∏ a, (x (τ a) : ℂ) ^ κ (w a)) =
         torusEval x (alternant 1 κ) := by
-    simpa [alternant, torusEval, det_apply', mul_sum] using
+    simpa [alternant, torusEval, det_apply', mul_sum, Function.swap] using
       (det_permute' w⁻¹ (of fun a b : n ↦ (x a : ℂ) ^ κ (w b))).symm.trans (det_transpose _).symm
   calc ∑ τ : Perm n, τ.sign * torusEval (x ∘ τ) (alternant ε κ)
       = ∑ w ∈ {w : Perm n | ε ∘ w = ε},
@@ -477,36 +481,6 @@ theorem formalDegree_eq_weylDimensionPoly [Nonempty n] {ε : n → ℤˣ} {l : H
     (hg : l.HasLargeGap (10 * card n ^ 5)) : l.formalDegree = weylDimensionPoly l := by
   rw [eq_inv_of_mul_eq_one_left (formalDegree_mul_kTypeNormSq_and_isOrbitalLaurent hg).1]
   exact weyl_dimension_formula (HasGap.signs_one hg)
-
-/-- Absolute convergence of the orbital integrals: for a parameter `l` of gap `500 n³ + 10 n⁵` and a
-regular point `x` of the compact torus, `g ↦ l.dsCoeff (g⁻¹ x g)` is integrable on `U(diag ε)`.
-
-This is Harish-Chandra's convergence theorem for regular orbital integrals of Schwartz functions,
-restricted to one discrete series coefficient (a Schwartz function by Harish-Chandra) of
-`U(diag ε)`, the compact torus and parameters of large gap. -/
-theorem integrable_dsCoeff_conj [Nonempty n] {ε : n → ℤˣ} {l : HCParam ε}
-    (hg : l.HasLargeGap (10 * card n ^ 5)) {x : n → Circle} (x_inj : x.Injective) :
-    MeasureTheory.Integrable fun g : USign ε ↦ l.dsCoeff (g⁻¹ * diagTorus ε x * g :) := by
-  -- The integrand times a power `D` of the noncompact roots is integrable, and `D(x) ≠ 0`.
-  let D : ℂ[n → ℤ] := (-l).rootProd Ne ^ (4 * card n ^ 2 + 1)
-  let ψ : C(USign ε, C(maxCompactU ε, ℂ)) :=
-    (ContinuousMap.mk fun p : USign ε × maxCompactU ε ↦
-      l.dsCoeffSmooth.val (p.1⁻¹ * p.2 * p.1)).curry
-  have hψ (g : USign ε) (k : maxCompactU ε) : ψ g k = l.dsCoeff (g⁻¹ * k * g :) := rfl
-  choose s ν hν apply_eq using exists_sign_isKDominant hg.injective
-  have hs : IsStraightening l s ν := ⟨hν, apply_eq⟩
-  obtain ⟨Y, hXY⟩ := hs.exists_isWeylFamily hg.injective
-  obtain ⟨d, hd⟩ : ∃ d : C(maxCompactU ε, ℂ),
-      ∀ (y : maxCompactU ε) (t : n → Circle), d (y * diagTorusK t * y⁻¹) = torusEval t D :=
-    hXY.exists_apply_conj_eq hg.injective fun w hw t ↦ by
-      simp [D, torusEval_rootProd_noncompact_comp hg.neg.injective hw]
-  have d_ne : d (diagTorusK x) ≠ 0 := by
-    rw [show d (diagTorusK x) = torusEval x D by simpa using hd 1 x, map_pow]
-    exact pow_ne_zero _ (torusEval_rootProd_ne_zero (-l) Ne x_inj)
-  have h_mul : MeasureTheory.Integrable fun g : USign ε ↦ d (diagTorusK x) * ψ g (diagTorusK x) :=
-    (ContinuousMap.evalCLM ℂ (diagTorusK x)).integrable_comp
-      (integrable_mul_dsCoeff_conj l hg hd hψ)
-  exact (MeasureTheory.integrable_const_mul_iff d_ne.isUnit _).1 h_mul
 
 /-- Let the Harish-Chandra parameter `l = 2λ` have gap `500 n³ + 10 n⁵`, and let `l.dsKernel g` be
 `l.formalDegree` (`deg_λ`) times the conjugate of the discrete series coefficient `l.dsCoeff g`

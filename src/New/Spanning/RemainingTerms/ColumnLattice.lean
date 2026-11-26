@@ -1,4 +1,6 @@
-import New.Spanning.RemainingTerms.FrameCount
+module
+
+public import New.Spanning.RemainingTerms.FrameCount
 
 /-!
 # The covolume of the lattice of columns
@@ -26,6 +28,8 @@ Notions from other files:
 
 See `New.Spanning.RemainingTerms.Sum` for related work.
 -/
+
+@[expose] public section
 
 open MeasureTheory Matrix Module Fintype NumberField
 
@@ -66,7 +70,7 @@ lemma denseRange_conjColumnsAtInfinity : DenseRange (conjColumnsAtInfinity E �
     fun y ↦ ⟨fun a l v ↦ star (y v l a), by simp [conjSwap]⟩
   have h_dense : DenseRange (Pi.map fun _ : 𝔰.κ ↦ Pi.map fun _ : ι ↦ RingHom.pi (Φ (E := E))) :=
     .piMap fun _ ↦ .piMap fun _ ↦ denseRange_Φ
-  show DenseRange (conjSwap ∘ Pi.map fun _ : 𝔰.κ ↦ Pi.map fun _ : ι ↦ RingHom.pi (Φ (E := E)))
+  change DenseRange (conjSwap ∘ Pi.map fun _ : 𝔰.κ ↦ Pi.map fun _ : ι ↦ RingHom.pi (Φ (E := E)))
   exact h_surjective.denseRange.comp h_dense (by fun_prop)
 
 variable (ι) in
@@ -129,7 +133,7 @@ instance {S : Filling E 𝔰} {c : S.Classes} [HasPrimitiveRoot5040 E] [S.IsAdmi
     isOpen_lt (by fun_prop) continuous_const
   suffices h_zero : ({0} : Set (S.columnLattice ι c)) = Subtype.val ⁻¹' U by
     rw [h_zero]
-    exact hU.preimage continuous_subtype_val
+    exact hU.preimage continuous_subtypeVal
   ext ⟨x, hx⟩
   obtain ⟨q, hq, rfl⟩ := mem_columnLattice.1 hx
   refine ⟨fun h_eq ↦ ?_, fun h_short ↦ Subtype.ext ?_⟩
@@ -163,7 +167,7 @@ lemma span_columnLattice {E : Type} [Field E] [CMType E] {𝔰 : Shape} {ι : Ty
       exists_natCast_smul_mem_of_isCompact E (Set.finite_range _).isCompact
         (isOpen_Ô.mem_nhds (zero_mem _))
     have h_int : IsIntMatrix (Ô E) (S.classCoordX₀ c * finAdeleMatrix (N • q)) := fun a l ↦ by
-      simpa [Function.uncurry, mul_apply, Finset.mul_sum, mul_left_comm] using
+      simpa [Function.uncurry, Matrix.mul_apply, Finset.mul_sum, mul_left_comm] using
         h_mem _ ⟨(a, l), rfl⟩
     have h_point : conjColumnsAtInfinity E 𝔰 ι (N • q) ∈ S.columnLattice ι c :=
       mem_columnLattice.2 ⟨N • q, h_int, rfl⟩
@@ -176,7 +180,7 @@ lemma span_columnLattice {E : Type} [Field E] [CMType E] {𝔰 : Shape} {ι : Ty
         Set (InfinitePlace E → ι → 𝔰.κ → ℂ)) :=
     denseRange_conjColumnsAtInfinity.mono h_range
   rw [← Submodule.dense_iff_topologicalClosure_eq_top.1 h_dense,
-    (Submodule.closed_of_finiteDimensional _).submodule_topologicalClosure_eq]
+    (Submodule.isClosed_of_finiteDimensional _).submodule_topologicalClosure_eq]
 
 /-- Let the CM field `E` contain a primitive root of unity of order `5040`, hence a square root of
 `-1`. For an algebraic integer `x` of `E`, the sum over the infinite places `v` of the real parts of
@@ -270,6 +274,6 @@ theorem exists_isAddFundamentalDomain_columnLattice {E : Type} [Field E] [CMType
   obtain ⟨n, hn⟩ : ∃ n : ℤ, ∑ v : InfinitePlace E, (Φ v (∑ l : ι, (qᴴ * q') l l)).re = n :=
     exists_int_eq_sum_re h_int
   refine ⟨n, .trans ?_ hn⟩
-  simp [e, Fintype.sum_sigma, mul_apply, Finset.sum_add_distrib]
+  simp [e, Fintype.sum_sigma, Matrix.mul_apply, Finset.sum_add_distrib]
 
 end New.Filling

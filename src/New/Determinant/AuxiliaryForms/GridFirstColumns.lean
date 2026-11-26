@@ -1,7 +1,9 @@
-import New.Determinant.AuxiliaryForms.PathData
-import New.Determinant.Chain.Moduli
-import New.OneLift.ComparisonOperator.GluedLattices
-import New.UpperBound.Seesaw.LevelIdeles
+module
+
+public import New.Determinant.AuxiliaryForms.PathData
+public import New.Determinant.Chain.Moduli
+public import New.OneLift.ComparisonOperator.GluedLattices
+public import New.UpperBound.Seesaw.LevelIdeles
 
 /-!
 # Periods on the diagonal and path data on the first path
@@ -39,6 +41,8 @@ Notions from other files:
   characters of the edges at the determinants of such a family.
 * `New.GridPath.formMap`: the composite of the maps by the matrices of a tuple along a path.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -111,7 +115,7 @@ lemma exists_triangleGLCard_eq_mul_levelIndex (D : Data P) (j : ℕ) :
   have h_ratio : (card (D.triangleModulus false 1).ResidueRing / card
     (D.gridModulus 1).ResidueRing : ℂ) =
       card R₀ / card R := by simp [R₀, R, card_residueRing_twistModulus, mul_div_mul_right,
-        prod_eq_zero_iff]
+        prod_eq_zero_iff, IsDedekindDomain.HeightOneSpectrum.ne_bot]
   rw [h_index, h_ratio, div_pow, div_mul_comm, ← h_share, div_mul_cancel₀ _ (by simp)]
 
 /-- The period of a conjugate form `y` on `Y^j_j` (grid `false`) and a form `φ` on `Ỹ^j_j` (grid
@@ -495,7 +499,8 @@ lemma transposedChain_eq_sum {ϑ : D.MFoldTwist} {z : Bool} {b : ℕ} (hb : b �
       GridPath.edges,
       sum_tuplesOn_insert h_new, sum_comm, prod_eq_prod_Ico_succ_bot hb]
     ext φ : 1
-    simp [GridPath.formMap, h_datum, h_map, smul_sum, smul_smul, mul_assoc, mul_left_comm]
+    simp [GridPath.formMap, h_datum, h_map, smul_sum, smul_smul]
+    exact sum_congr rfl fun _ _ ↦ sum_congr rfl fun _ _ ↦ by rw [mul_mul_mul_comm]
 
 /-- In the grid of the `Ỹ` the iterated transposed lifts `transposedChain` along the first column do
 not depend on the twist. -/
@@ -503,8 +508,11 @@ lemma transposedChain_one_true_eq_transposedChain {b : ℕ} (ϑ : D.MFoldTwist) 
     D.transposedChain 1 true b = transposedChain ϑ true b := by
   induction hb using Nat.decreasingInduction with
   | self => rw [transposedChain_self, transposedChain_self]
-  | of_succ b hb ih => rw [transposedChain_of_lt 1 hb, transposedChain_of_lt ϑ hb, ih,
-      show D.pointTransposedLift 1 true b = pointTransposedLift ϑ true b from rfl]
+  | of_succ b hb ih =>
+    rw [transposedChain_of_lt 1 hb, transposedChain_of_lt ϑ hb, ih, pointTransposedLift,
+      pointTransposedLift, show triangleGLCard true ϑ b = triangleGLCard true 1 b from rfl,
+      show triangleModulus true ϑ = triangleModulus true 1 from rfl,
+      show gridChar ϑ (!true) b = gridChar 1 (!true) b from rfl]
 
 /-- Let `ϑ` be an m-fold twist (`MFoldTwist`), `y'` a conjugate form on `Y_m` and `φ` a form on
 `Ỹ^m_0`. Move them to `Y₀` and `Ỹ^0_0` by `transposedChain`, the composites of transposed theta
@@ -543,14 +551,15 @@ lemma pairing_transposedChain_eq_sum {ϑ : D.MFoldTwist}
       B ((∑ S ∈ tuplesOn ϑ (p.edges false), columnPointDatum false 0 S • p.formMap S false) y')
         ((∑ S ∈ tuplesOn ϑ (p.edges true), columnPointDatum true 0 S • p.formMap S true) φ) := by
     rw [sum_tuplesOn_union h_disjoint, sum_comm]
-    simp [h_datum, h_formMap_false, p.formMap_congr (h_glue_true _ _), mul_sum, mul_assoc,
-      mul_left_comm]
+    simp only [h_datum, h_formMap_false, p.formMap_congr (h_glue_true _ _), LinearMap.coe_sum,
+      Finset.sum_apply, LinearMap.smul_apply, map_sum, map_smul, smul_eq_mul, mul_sum, mul_assoc]
+    exact sum_congr rfl fun _ _ ↦ sum_congr rfl fun _ _ ↦ mul_left_comm _ _ _
   rw [show (TwoGridPath.first D.m).edges = p.edges false ∪ p.edges true from rfl, h_sum,
     transposedChain_one_true_eq_transposedChain ϑ zero_le, transposedChain_eq_sum zero_le,
       transposedChain_eq_sum zero_le,
       range_eq_Ico]
-  simp only [prod_mul_distrib, LinearMap.smul_apply, map_smul, smul_eq_mul, p, mul_assoc,
-    mul_left_comm]
+  rw [prod_mul_distrib, LinearMap.smul_apply, map_smul, LinearMap.smul_apply, LinearMap.smul_apply,
+    map_smul, smul_eq_mul, smul_eq_mul, mul_assoc]
 
 /-! ### Invariance -/
 

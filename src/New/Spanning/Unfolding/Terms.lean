@@ -1,6 +1,8 @@
-import New.Spanning.RemainingTerms.Box
-import New.Spanning.RemainingTerms.SiegelLemma
-import New.Spanning.Unfolding.BesselLevelStructure
+module
+
+public import New.Spanning.RemainingTerms.Box
+public import New.Spanning.RemainingTerms.SiegelLemma
+public import New.Spanning.Unfolding.BesselLevelStructure
 
 /-!
 # Near terms in the filling theorem: frames, cell ranks, nearness and integrality
@@ -41,6 +43,8 @@ Notions from other files:
   sourceDim² / (besselDegree · mass), with the mass of the genus of the standard lattice, and
   sourceDim times the order of the reduced image of the Bessel subgroup `besselS`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -262,39 +266,6 @@ lemma mul_sum_norm_sq_frameImage_mulVec_eq {D : E}
   rw [h_D]
   linear_combination (S.N : ℝ) * h_norm
 
-/-- A vector `t` without `e*`-part lies in the span of the frame `f` if, at some infinite place,
-`N` times the squared length of its `X₀`-part is at most zero. -/
-lemma exists_frameImage_one_mulVec_eq_of_nonpos {t : 𝔰.BesselIndex → E}
-    (h_dual : ∀ a : Fin 𝔰.ϱ, t (eStar a) = 0) {v : InfinitePlace E}
-    (h_nonpos : S.N * ∑ i : 𝔰.κ, ‖Φ v (t (𝔰.indexX₀ i))‖ ^ 2 ≤ 0) :
-    ∃ x : Fin (𝔰.ϱ + 1) → E, frameImage (1 : Matrix 𝔰.BesselIndex 𝔰.BesselIndex E) *ᵥ x = t := by
-  -- A sum of squares that is at most zero vanishes term by term, so `t` has only frame coordinates.
-  have h_mid : ∀ i : 𝔰.κ, t (𝔰.indexX₀ i) = 0 := by
-    simpa [Nat.Prime.ne_zero, sum_eq_zero_iff_of_nonneg] using h_nonpos.antisymm (by positivity)
-  refine ⟨t ∘ 𝔰.besselFrame, ?_⟩
-  rw [frameImage_one_mulVec]
-  simp [init, h_dual, h_mid, funext_iff]
-
-/-- Let `γ` be a rational element of the unitary group, `f = (e₁, …, e_ϱ, z)` the frame, and let
-`t = γ f · y` be the combination of the image vectors with coefficients `y`. Suppose that `t` is
-orthogonal to `e₁, …, e_ϱ` and has product `D` with `z`. Then `t` has no component along the dual
-vectors `e*₁, …, e*_ϱ`, and `-N` times its `z`-coordinate is `D`. At each infinite place, `N` times
-the squared length of the `X₀`-part of `t` is `|D|² - N² |y_z|²`, where `y_z = y 𝔰.top`; if it is at
-most zero at some place, then `t` lies in the span of `f`. -/
-lemma norm_sq_middle_part_eq {D : E} {t : 𝔰.BesselIndex → E}
-    (h_prod : S.frameProducts γ *ᵥ y = Pi.single 𝔰.top D) (ht : frameImage γ.val.val *ᵥ y = t) :
-    (∀ a : Fin 𝔰.ϱ, t (eStar a) = 0) ∧
-    -(S.N * t 𝔰.z) = D ∧
-    (∀ v : InfinitePlace E, S.N * ∑ i : 𝔰.κ, ‖Φ v (t (𝔰.indexX₀ i))‖ ^ 2 =
-      ‖Φ v D‖ ^ 2 - (S.N * ‖Φ v (y 𝔰.top)‖) ^ 2) ∧
-    ∀ v : InfinitePlace E, S.N * ∑ i : 𝔰.κ, ‖Φ v (t (𝔰.indexX₀ i))‖ ^ 2 ≤ 0 →
-      ∃ x : Fin (𝔰.ϱ + 1) → E,
-        frameImage (1 : Matrix 𝔰.BesselIndex 𝔰.BesselIndex E) *ᵥ x = t := by
-  subst ht
-  exact ⟨frameImage_mulVec_eStar_eq_zero h_prod, neg_mul_frameImage_mulVec_z_eq h_prod,
-    mul_sum_norm_sq_frameImage_mulVec_eq h_prod,
-    fun v ↦ exists_frameImage_one_mulVec_eq_of_nonpos (frameImage_mulVec_eStar_eq_zero h_prod)⟩
-
 /-- Let γ be any rational element of the unitary group, and let D_l be the leading minors of the
 matrix `S.frameProducts γ` of products of the frame (e₁, …, e_ϱ, z) with its image under γ. At every
 infinite place v the image of `S.termDisc γ` = |D_{ϱ+1}|² − N²|D_ϱ|², where |x|² means x x̄, equals
@@ -432,7 +403,7 @@ lemma classCoord_conj_splitGram (c : S.Classes) :
       (S.ratMiddle (𝔸f E)).splitGram := by
   have h_basis : (classBasis c).valᴴ * (S.ratMiddle (𝔸f E)).splitGram * (classBasis c).val =
       (S.latticeMiddle (𝔸f E)).splitGram :=
-    gram_mul_of_gram_eq (toBesselH 𝔰 (S.N : 𝔸f E) c.out).prop
+    gram_mul_of_gram_eq (mem_unitaryGroupOf_iff.1 (toBesselH 𝔰 (S.N : 𝔸f E) c.out).prop)
       (gram_besselLatticeBasis _ _ S.piN_mul_star)
   exact gram_inv_of_gram_eq h_basis
 
@@ -470,7 +441,7 @@ lemma IsNear.mul_of_mem_besselU0 {u' : (S.ratMiddle E).G} (h_near : S.IsNear γ)
   obtain ⟨y, hy, hy'⟩ := h_near
   refine ⟨S.ratToInf u * y,
     (mul_mem_boxedPoints_iff fun v ↦ ratToInf_mem_besselU0 hu v).2 hy, ?_⟩
-  show (S.ratToInf (u * γ * u'))⁻¹ * (S.ratToInf u * y) ∈ S.boxedPoints
+  change (S.ratToInf (u * γ * u'))⁻¹ * (S.ratToInf u * y) ∈ S.boxedPoints
   simpa [mul_assoc, mul_mem_boxedPoints_iff, ratToInf_mem_besselU0, hu'] using hy'
 
 /-- An isometry that fixes every vector of the frame (e₁, …, e_ϱ, z) lies in `besselS`. -/
@@ -608,7 +579,7 @@ lemma termsOver.eq_and_mem_classUnipotent₀ [S.IsAdmissible] (hγ : γ ∈ S.te
     eq_and_mem_classUnipotent_of_besselS (mem_besselS_of_frameImage_eq_one h_fix) h_over
   -- fixing every frame vector is the extra condition of `classUnipotent₀`
   have h_frame : frameMatrix (γ⁻¹ * u) = 1 := by
-    show (frameImage (γ⁻¹ * u).val.val).submatrix 𝔰.besselFrame id = 1
+    change (frameImage (γ⁻¹ * u).val.val).submatrix 𝔰.besselFrame id = 1
     rw [h_fix]
     simp [submatrix_submatrix, submatrix_one, besselFrame_injective]
   exact ⟨h_class, h_mem, mem_besselU0_iff.2 ⟨h_mem.1, h_frame⟩⟩

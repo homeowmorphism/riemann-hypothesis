@@ -1,4 +1,6 @@
-import New.OneLift.ComparisonOperator.GluedLattices
+module
+
+public import New.OneLift.ComparisonOperator.GluedLattices
 
 /-!
 # Gluing: the descent of product forms and the denominators
@@ -58,6 +60,8 @@ See `New.OneLift.ComparisonOperator.GluingMaps` and
 `New.OneLift.ComparisonOperator.FirstFactors` for related work.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New.Rows
@@ -110,7 +114,7 @@ lemma letterPoly_schur_inclMatrix_mulVec {Φ : Type} [Fintype Φ] [DecidableEq �
     rw [toPoly_schur hκ.fitsRanks, hκ.schurDetExp_eq_zero, detPow_zero, mul_one]
   -- This substitution sends the variable in row `i` to that in row `f i`.
   rw [letterPoly, letterPoly, LinearMap.comp_apply, LinearMap.comp_apply, h_toPoly]
-  simp [rowSubst, fockLetters, inclMatrix, rename_bind₁, bind₁_bind₁, Matrix.one_apply]
+  simp [rowSubst, fockLetters, inclMatrix, comp_aeval_apply, Matrix.one_apply]
 
 /-- Let `ε : N ⊕ m ≃ n` split the indices of `V = V″ ⊕ V°`, and let `O.colsPlus` and `O.colsMinus`
 satisfy `HasColumnsBelow`: each column of height below the rank of `V` has height below the rank of
@@ -159,7 +163,7 @@ lemma idem_mul_mem_of_inv_mul_mem (x : Matrix n r (𝔸f E))
   have h_sum : ∑ k : n, star (O.genIdele * L.point.val.valᴴ k i) *
       (idem (O.levelModulus 2).places * (L.point⁻¹.val.val * x) k j) ∈ Ô E :=
     sum_mem fun k _ ↦ mul_mem (h_int k) (hx k j)
-  simpa [mul_assoc, mul_left_comm _ (idem _), ← mul_sum, ← mul_apply,
+  simpa [mul_assoc, mul_left_comm _ (idem _), ← mul_sum, ← Matrix.mul_apply,
     ← Matrix.mul_assoc, hw, hπ] using mem_Ô.1 h_sum w
 
 omit [DecidableEq N] in
@@ -192,8 +196,8 @@ lemma liftFn_datum_point_inv_mul (x : n × r → 𝔸f E) :
   simp only [liftFn_apply, vecToMatrix, Function.comp_apply, DividedLattice.reducedInverse,
     Matrix.map,
     smul_of, ← ext_iff, of_apply, Pi.smul_apply, smul_eq_mul, Matrix.smul_apply, Gf.coe_inv,
-    Prod.forall, factor_reduction, modulusResidue_reduction, mul_apply, MulMemClass.mk_mul_mk,
-    ← map_mul, ← map_sum]
+    Prod.forall, factor_reduction, modulusResidue_reduction, Matrix.mul_apply,
+    MulMemClass.mk_mul_mk, ← map_mul, ← map_sum]
   split
   next h_inv_mul =>
     have hx : ∀ (i : n) (j : r), idem (O.levelModulus 2).places * x (i, j) ∈ Ô E :=
@@ -204,7 +208,7 @@ lemma liftFn_datum_point_inv_mul (x : n × r → 𝔸f E) :
     · -- The two conditions agree, as `genIdele γ⁻¹ x = (genIdele γ⁻¹) x` entrywise.
       congr! 2
       ext
-      simp [matrixToVec, mul_apply, mul_sum, mul_left_comm, mul_assoc]
+      simp [matrixToVec, Matrix.mul_apply, mul_sum, mul_left_comm, mul_assoc]
     · -- At a place of `Q` the matrix `γ⁻¹` is `1`, so `γ⁻¹ x` and `x` have the same component.
       congr 3 with i j
       congrm ⟦⟨_ * ?_, _⟩⟧
@@ -220,7 +224,7 @@ lemma liftFn_datum_point_inv_mul (x : n × r → 𝔸f E) :
       -- as `genResidue ^ 2 = 0`, the entries of `genIdele ^ 2 γ⁻¹ x` vanish modulo `ϖ²`, so
       -- `γ⁻¹ x` is integral (`reduction_levelModulus_eq_zero_iff`), against `h_inv_mul`.
       refine (h_inv_mul fun i j ↦ ?_).elim
-      simpa [matrixToVec, mul_assoc, mul_apply, mul_sum, mul_left_comm, inclMatrix, sq,
+      simpa [matrixToVec, mul_assoc, Matrix.mul_apply, mul_sum, mul_left_comm, inclMatrix, sq,
         reduction_levelModulus_eq_zero_iff.2, ← map_mul, reduction_levelModulus_eq_zero_iff,
         ← map_sum, Matrix.one_apply] using congrArg (V.genResidue * ·) (h_cond i j)
     all_goals rfl
@@ -472,7 +476,7 @@ lemma norm_schur_diagonal_piecewise_inv_le [DecidableEq l] (S : Finset l)
   have h_entry : ∏ τ : NumberField.InfinitePlace E, ∏ b : l,
       S.piecewise (M : l → ℂ_[p])⁻¹ 1 b ^ tableauWeight i τ b =
         (M : ℂ_[p])⁻¹ ^ ∑ τ : NumberField.InfinitePlace E, ∑ b ∈ S, tableauWeight i τ b := by
-    simp [piecewise, prod_pow_eq_pow_sum]
+    simp [piecewise, prod_pow_eq_pow_sum, Finset.univ_inter]
   rw [h_entry, norm_pow, norm_inv] -- the exponent is the number of entries in `S`
   gcongr with τ
   · simp [one_le_inv₀, NeZero.ne, norm_natCast_le_one]
@@ -533,10 +537,10 @@ lemma norm_schur_inv_cols_le_weylGauge [DecidableEq l]
       · -- `M` lies in the ideal of the modulus.
         simp_all [← Quotient.eq_zero_iff_mem]
       · -- By `hk`, `ϖ` times the sum is `0` modulo `ϖ²`.
-        simp_all [mul_apply, DividedLattice.reducedInverse, reductionGL, ← map_mul, ← map_sum,
-          reduction_levelModulus_eq_zero_iff, sq, mul_assoc]
+        simp_all [Matrix.mul_apply, DividedLattice.reducedInverse, reductionGL, ← map_mul,
+          ← map_sum, reduction_levelModulus_eq_zero_iff, sq, mul_assoc]
     convert reduction_levelModulus_eq_zero_iff.1 h_red
-    by_cases hj : j ∈ S <;> simp [A, hj, mul_apply, mul_assoc, ← mul_sum]
+    by_cases hj : j ∈ S <;> simp [A, hj, Matrix.mul_apply, mul_assoc, ← mul_sum]
   let φ (τ : NumberField.InfinitePlace E) := adeleExtension (E := E) (weightEmbedding ιₚ τ)
   have h_inv : (g * L.point)⁻¹.val.val.submatrix id f =
       L.point⁻¹.val.val.submatrix id f * k.val.val.val * h⁻¹.val.val := by
@@ -546,7 +550,7 @@ lemma norm_schur_inv_cols_le_weylGauge [DecidableEq l]
         A.map (φ τ) * Δ * h⁻¹.val.val.map (φ τ) := by
     rw [h_inv, Matrix.map_mul]
     congr 1 with i j
-    by_cases hj : j ∈ S <;> simp [A, Δ, hj, NeZero.ne, mul_apply, diagonal_apply]
+    by_cases hj : j ∈ S <;> simp [A, Δ, hj, NeZero.ne, Matrix.mul_apply, diagonal_apply]
   -- the vector whose norm is the gauge of `v` at `h`
   let w : WeylIndex l κ → ℂ_[p] :=
     schur κ (fun τ : NumberField.InfinitePlace E ↦ h⁻¹.val.val.map (φ τ)) *ᵥ ιₚ ∘ v

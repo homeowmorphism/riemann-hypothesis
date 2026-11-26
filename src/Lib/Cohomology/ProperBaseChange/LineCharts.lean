@@ -1,5 +1,7 @@
-import Lib.General.Algebra.MultivariatePolynomials
-import Lib.PadicComparison.Descent.TestCategory
+module
+
+public import Lib.General.Algebra.MultivariatePolynomials
+public import Lib.PadicComparison.Descent.TestCategory
 
 /-!
 # Mayer–Vietoris for two charts of a line modulo an ideal
@@ -32,6 +34,8 @@ Notions from other files:
 
 Known; see `Lib.Cohomology.ProperBaseChange.Theorem` for sources.
 -/
+
+@[expose] public section
 
 namespace New.Variety
 
@@ -166,7 +170,6 @@ lemma exists_isNoetherian_pow_le_fg (hts : (t * s : D) = 1)
       IsInteger B (((τ ^ j : Dˣ) : D) * x) ∧ IsInteger C (((τ⁻¹ ^ j : Dˣ) : D) * x) :=
     eventually_forall_ge_atTop.mpr (S.eventually_all.mpr fun x _ ↦
       (eventually_zpow_mul_mem_range t τ rfl x).and (eventually_zpow_mul_mem_range s τ⁻¹ rfl x))
-
   have h_laurent (x : L) : (x : D) ∈ span A (range T) :=
     mem_span_range_zpowers_of_mem_adjoin τ x.prop
   -- the finitely many `r x g ∈ L` involve only exponents in `[-k, k]`, with coefficients in the
@@ -375,7 +378,7 @@ private lemma isPrimitiveRoot_map_of_isRoot_cyclotomic {ℓ : ℕ} (hℓ : IsUni
     IsPrimitiveRoot (ψ ζ) ℓ := by
   have h_neZero : NeZero (ℓ : S) := ⟨by simpa using (hℓ.map ψ).ne_zero⟩
   rw [← isRoot_cyclotomic_iff, ← map_cyclotomic ℓ ψ]
-  exact hζ.map
+  exact hζ.map ψ
 
 /-- Logarithms of roots of unity on a spectrum. Let `ℓ` be a unit of `A` and `ζ ∈ A` a root of the
 `ℓ`-th cyclotomic polynomial. If `y ^ ℓ = 1` in an `A`-algebra `S`, then there is a locally constant

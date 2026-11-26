@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.Bessel.UnipotentHaarMeasure
-import New.Spanning.Unfolding.Packing
+module
+
+public import Lib.DiscreteSeries.Bessel.UnipotentHaarMeasure
+public import New.Spanning.Unfolding.Packing
 
 /-!
 # The Bessel kernel and the integral of a class cutoff over the real unipotent group
@@ -36,6 +38,8 @@ Notions from other files:
 * `New.Filling.unipotentCovolume`: an explicit positive number built from M, N, |κ|, ϱ, the
   discriminant of E and the scales of the frame at the infinite places.
 -/
+
+@[expose] public section
 
 /-!
 ## Continuity of the Bessel kernel and the bound of an amplitude
@@ -74,17 +78,17 @@ lemma enorm_besselKernel (y : InfinitePlace E → 𝔰.G₁) :
         ∏ v : InfinitePlace E, ‖(S.besselSystem v).besselFn side (((S.ratToInf γ)⁻¹ * y) v)‖ₑ := by
   -- Square both sides: the sum over pairs of tuples of indices of the squared coordinates factors
   -- as a product over the places, for each of the two tensor factors.
-  simp only [enorm]
+  simp only [eNorm_eq_nnNorm]
   norm_cast
   rw [← sq_eq_sq₀ zero_le zero_le]
-  simp [EuclideanSpace.nnnorm_eq, besselKernel, besselFn, mul_pow, ← Finset.prod_pow, sum_prod_type,
+  simp [EuclideanSpace.nnNorm_eq, besselKernel, besselFn, mul_pow, ← Finset.prod_pow, sum_prod_type,
     prod_sum, sum_mul_sum]
 
 /-- The norm of the amplitude `∫ β_c(y) β_c'(γ⁻¹ y) W(y) ⊗ W(γ⁻¹ y)^* dy` is at most the integral of
 the norm of its integrand. -/
 lemma enorm_amplitude_le (c c' : S.Classes) :
     ‖S.amplitude side c c' γ‖ₑ ≤ S.amplitudeMajorant side c c' γ := by
-  grw [amplitude, MeasureTheory.enorm_integral_le_lintegral_enorm, enorm_toReal_smul_le,
+  grw [amplitude, MeasureTheory.eNorm_integral_le_lintegral_eNorm, enorm_toReal_smul_le,
     amplitudeMajorant]
 
 end New.Filling
@@ -192,7 +196,9 @@ lemma exists_classBasis_eq_fromBlocks {E : Type} [Field E] [CMType E] [HasPrimit
   -- roots.
   have h_unitary : genIndex c.out.val.val.det = 1 := by
     have h_sq : genIndex c.out.val.val.det ^ 2 = 1 := by
-      simpa [← sq] using congrArg (fun A ↦ genIndex (det A)) c.out.2
+      simpa [← sq] using congrArg (fun A ↦ genIndex (det A))
+          (show c.out.val.valᴴ * 1 * c.out.val.val = 1 from
+        mem_unitaryGroupOf_iff.1 c.out.2)
     exact (pow_eq_one_iff_of_nonneg (genIndex_pos c.out.val.det).le two_ne_zero).1 h_sq
   have h_norm : genIndex (S.piN : 𝔸f E) = S.N ^ numInfPlaces E := by
     have h_sq : genIndex (S.piN * star S.piN.val : 𝔸f E) = genIndex (S.N : 𝔸f E) :=
@@ -313,6 +319,7 @@ lemma measurePreserving_rowCoords :
         (measurePreserving_arrowProdEquivProdArrow ..)).comp
     (measurePreserving_pi _ _ fun _ : InfinitePlace E ↦ measurePreserving_freeEntries_besselHaar)
 
+open scoped Pointwise in
 /-- Unfolding. Let `E` contain a primitive 5040th root of unity and let `S` be admissible. The
 cutoff `S.classCutoff c` is a measurable function G_∞ → [0, ∞], on tuples `y` of points of `G₁` at
 the infinite places, whose left translates under the congruence group `S.classUnipotent c` of
@@ -348,7 +355,7 @@ lemma lintegral_classCutoff_eq_measure [HasPrimitiveRoot5040 E] [S.IsAdmissible]
     ⟨fun γ s _ ↦ measure_preimage_mul _ γ.val s⟩
   -- The translates of the cutoff add up to 1, and the measure is inversion invariant.
   rw [h_fund.lintegral_eq_tsum'', ← lintegral_tsum (by fun_prop), lintegral_congr h_sum]
-  simp
+  simp [Set.univ_inter]
 
 /-- Let `γ ∈ S.classUnipotent c`. If, at an infinite place `v`, right multiplication by `γ` adds the
 (e_a, e*_a) entry of `γ` to that of every unipotent `x`, then the (e_a, e*_a) entry of `γ` divided

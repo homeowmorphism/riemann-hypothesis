@@ -1,6 +1,8 @@
-import Lib.GaloisRep.Main.Defs
-import Lib.PadicHodge.Crystalline.HodgeTateJumps
-import Lib.PadicHodge.Crystalline.Regularity
+module
+
+public import Lib.GaloisRep.Main.Defs
+public import Lib.PadicHodge.Crystalline.HodgeTateJumps
+public import Lib.PadicHodge.Crystalline.Regularity
 
 /-!
 # Local conditions on ℓ-adic Galois representations and their passage to retracts
@@ -42,6 +44,8 @@ Notions from other files:
 
 Known; see `Lib.GaloisRep.Main.OddRank` and `Lib.ClassField.Places.LocalFields` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Local conditions at a place
@@ -340,7 +344,7 @@ private lemma PadicPlaceEmbedding.eventually_toLin'_decompRep
         P.toLin'.restrictScalars ℤ_[ℓ] (decompRep (r.comp φ) (A.comap c.toRingHom) g x) =
           decompRep r' (A.comap c.toRingHom) g (P.toLin'.restrictScalars ℤ_[ℓ] x) := by
   rw [nearOne_eq_nhds_one (𝒥 := (L.comap c hφ).toOverGp) (L.isOpenEmbedding_comp c hφ)]
-  exact (continuousAt_subtype_val.eventually_mem hS).mono (toLin'_decompRep_comp_of_mem h_comm)
+  exact (continuousAt_subtypeVal.eventually_mem hS).mono (toLin'_decompRep_comp_of_mem h_comm)
 
 /-- Let `P' * P = 1` and `r' g * P = P * r (φ g)` on a neighbourhood `S` of `1`. If `r'` is
 potentially crystalline on the decomposition group of `A.comap c` along `L.comap c hφ`, then `r`

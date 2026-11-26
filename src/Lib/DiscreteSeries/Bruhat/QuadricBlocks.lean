@@ -1,6 +1,8 @@
-import Mathlib.Probability.Kernel.Composition.MeasureCompProd
-import Lib.DiscreteSeries.Bruhat.FloorGroups
-import Lib.General.Measure.QuadricDisintegration
+module
+
+public import Mathlib.Probability.Kernel.Composition.MeasureCompProd
+public import Lib.DiscreteSeries.Bruhat.FloorGroups
+public import Lib.General.Measure.QuadricDisintegration
 
 /-!
 # Solving the equation of a quadric in a block of coordinates
@@ -34,6 +36,8 @@ Notions from other files:
 ## Relation to the literature
 Elementary: Tonelli's theorem and the invariance of Haar measure.
 -/
+
+@[expose] public section
 
 noncomputable section
 

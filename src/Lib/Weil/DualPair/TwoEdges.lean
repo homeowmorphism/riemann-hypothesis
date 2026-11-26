@@ -1,6 +1,8 @@
-import Lib.General.LinearAlgebra.TensorChains
-import Lib.Weil.CompactLift.ThetaKernelDefs
-import Lib.Weil.DualPair.Flip
+module
+
+public import Lib.General.LinearAlgebra.TensorChains
+public import Lib.Weil.CompactLift.ThetaKernelDefs
+public import Lib.Weil.DualPair.Flip
 
 /-!
 # Two edges V → V′ → V″ joined into one datum of the pair (V′, V⁻ ⊕ V″)
@@ -48,6 +50,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.DualPair.ThetaLiftConvergence` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -248,7 +252,7 @@ lemma range_arrowTensor : arrowTensor.range = (V'.hom (flipSum V V'')).finitePar
   simp [← map₂_eq_range_lift_comp_mapIncl, finitePart, map₂_span_span, ← arrowProduct_vacElem,
     finHeisenbergOp_arrowProduct, le_antisymm_iff, span_le, smul_mem, mem_span_of_mem,
     arrowTensor, Set.range_subset_iff]
-  show ∀ (x : ι' × ι → 𝔸f E) (x' : ι'' × ι' → 𝔸f E),
+  change ∀ (x : ι' × ι → 𝔸f E) (x' : ι'' × ι' → 𝔸f E),
     arrowProduct ((V.hom V').finHeisenbergOp x (V.hom V').vacElem)
         ((V'.hom V'').finHeisenbergOp x' (V'.hom V'').vacElem) ∈
       span ℂ (Set.range fun z : (ι ⊕ ι'') × ι' → 𝔸f E ↦

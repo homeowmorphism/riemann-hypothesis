@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.Bruhat.FloorMeasures
-import Lib.SiegelWeil.Mass
+module
+
+public import Lib.DiscreteSeries.Bruhat.FloorMeasures
+public import Lib.SiegelWeil.Mass
 
 /-!
 # Local measure bounds and local densities at a finite place
@@ -48,6 +50,8 @@ Notions from other files:
 Known; see `Lib.SiegelWeil.OneVector.SiegelClassSum`, `Lib.Adelic.Adeles.Basic` and
 `Lib.Adelic.Witt.IwasawaDecomposition` for sources.
 -/
+
+@[expose] public section
 
 namespace New.Floors
 
@@ -144,7 +148,7 @@ lemma skewMeasure_setOf_mul_mem (u : Aˣ) (h : star u.val = u) :
     exact (map_apply (by fun_prop) isOpen_O.preimage_val.measurableSet).symm
   have h_part (b : skewAdjoint A) : P.element * u * b.1 - star (P.element * u * b.1) = u * b.1 := by
     simp [h, ← add_mul, skewAdjoint.star_val_eq]
-  simpa only [preimage, mem_ofPred_eq, SetLike.mem_coe, h_part, Measure.smul_apply,
+  simpa only [preimage, mem_ofPred_eq, SetLike.mem_coe, h_part, smul_apply,
     skewMeasure_setOf_mem, smul_eq_mul, mul_one] using h_scale
 
 variable {ι κ : Type} [Fintype ι] [DecidableEq ι] [Fintype κ]
@@ -181,7 +185,7 @@ theorem unitaryLevel_open_compact {J : Matrix ι ι A} :
   refine ⟨(isOpen_intGL isOpen_O).preimage_val.and isOpen_O.matrix.preimage_of_continuous, ?_⟩
   -- At level 1 the group is the trace of the compact `GL(O)` on the closed subgroup `U J`.
   rw [unitaryLevel_one]
-  exact (isCompact_intGL isCompact_O).preimage_val (isClosed_U J)
+  exact (isCompact_intGL isCompact_O).preimage_val (isClosed_unitaryGroupOf J)
 
 /-- The determinant of a matrix in `GL(R)` has modulus `1`. -/
 theorem modulus_det_eq_one {V : GL ι A} (hV : V ∈ intGL ι P.integers) : modulus V.val.det = 1 := by
@@ -201,7 +205,8 @@ theorem exists_content {p : ι → A} {i : ι} (h_unit : IsUnit (p i)) :
       (h_column : replicateCol Unit p = V.val.submatrix id (Embedding.punit i) * _), rfl⟩ :=
     P.isAdelic.isValuationPair.hermite (.punit i) (replicateCol Unit p)
   have h_col (j : ι) : p j = V.1 j i * V⁻¹.1 i ⬝ᵥ p := by
-    simpa [mul_apply, dotProduct, Embedding.punit, -coe_units_inv] using congrFun₂ h_column j ()
+    simpa [Matrix.mul_apply, dotProduct, Embedding.punit, -coe_units_inv] using
+      congrFun₂ h_column j ()
   -- The scalar divides the unit `p i`, so it is a unit `t`.
   have h_prod_unit : IsUnit (V.1 i i * V⁻¹.1 i ⬝ᵥ p) := by rwa [← h_col i]
   obtain ⟨t, ht⟩ : IsUnit (V⁻¹.1 i ⬝ᵥ p) := isUnit_of_mul_isUnit_right h_prod_unit
@@ -508,7 +513,7 @@ lemma IntegralPlace.setIntegral_eq_slab (hJ : Jᴴ = J) (hψ : ∀ x : A, P.ψ (
   let M : AddSubgroup (skewAdjoint A) :=
     P.integers.toAddSubgroup.comap ((AddMonoidHom.mulLeft u.1).comp (skewAdjoint A).subtype)
   have M_open : IsOpen (M : Set (skewAdjoint A)) :=
-    isOpen_O.preimage (continuous_subtype_val.const_mul _)
+    isOpen_O.preimage (continuous_subtypeVal.const_mul _)
   have coe_M : (M : Set (skewAdjoint A)) = {b : skewAdjoint A | u.1 * b.1 ∈ O} := rfl
   have M_fin : P.skewMeasure M ≠ ∞ := by simp [coe_M, P.skewMeasure_setOf_mul_mem u hu]
   have : IsFiniteMeasure (P.skewMeasure.restrict M) := isFiniteMeasure_restrict.2 M_fin
@@ -733,7 +738,7 @@ lemma integral_eq_mul_of_section {X Y : Type*} [AddCommGroup X] [AddCommGroup Y]
       (shear₂.comp (measurePreserving_swap.comp shear₁)))
   calc
     _ = ∫ q : X × Y, f q.1 * K.indicator 1 q.2 ∂μ.prod ν := by
-      simp [integral_prod_mul f, integral_indicator hK, K_one, Measure.real]
+      simp [integral_prod_mul f, integral_indicator hK, K_one, Measure.real, Set.univ_inter]
     _ = ∫ q : X × Y, (p ⁻¹' K).indicator c q.1 * a q.2 ∂μ.prod ν := by
       rw [← he.integral_comp']
       refine integral_congr_ae (.of_forall fun q ↦ ?_)

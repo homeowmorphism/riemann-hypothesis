@@ -1,6 +1,8 @@
-import Lib.Weil.DualPair.HolomorphicData
-import New.OneLift.HeckeValues.CharacterLift
-import New.UpperBound.Objects.Rows
+module
+
+public import Lib.Weil.DualPair.HolomorphicData
+public import New.OneLift.HeckeValues.CharacterLift
+public import New.UpperBound.Objects.Rows
 
 /-!
 # Data of the three exchanges: the carrier, the choices and the functions 𝖥_i
@@ -69,6 +71,8 @@ Notions from other files:
 * Integral vectors with a monomial Fock polynomial: the height bound for inverse ratios of twisted
   to untwisted Hecke L-values. See `New.OneLift.HeckeValues.TwistedValueHeights`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -343,8 +347,6 @@ lemma New.Data.card_detIndex_add_firstFactorCharExp {P : Parameters} {D : Data P
       ∑ h ∈ Finset.range (D.posRank j), (untwistedDescentPair j).colsPlus τ h +
         D.reducedHalfGap := by
     simp [Finset.sum_range]
-  -- `k` is even and positive
-  have h_half : (D.t + D.k - 1) / 2 = (D.t + 1) / 2 + D.k / 2 - 1 := by grind
   zify [h_card]
   rw [Finset.sum_congr rfl h_diff, Finset.sum_range_sub', h_first, h_last]
   grind [reducedHalfGap]

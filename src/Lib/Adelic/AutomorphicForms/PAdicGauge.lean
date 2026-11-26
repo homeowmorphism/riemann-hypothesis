@@ -1,6 +1,8 @@
-import Lib.Adelic.AutomorphicForms.HeckeEigenforms
-import Lib.General.LinearAlgebra.MatrixNormBounds
-import Lib.PadicComparison.Descent.TestCategory
+module
+
+public import Lib.Adelic.AutomorphicForms.HeckeEigenforms
+public import Lib.General.LinearAlgebra.MatrixNormBounds
+public import Lib.PadicComparison.Descent.TestCategory
 
 /-!
 # The p-adic gauge of algebraic forms, class sums, and integral forms of a level
@@ -44,6 +46,8 @@ Notions from other files:
 Known; see `Lib.Adelic.AutomorphicForms.SmoothAlgebraicForms` and `Lib.Adelic.Hecke.ClassSums` for
 sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -365,11 +369,8 @@ form an element of `H`. -/
 lemma maxCompactAt_le_levelOf {ι : Type*} {u : ι → FinPlace E} {w : FinPlace E}
     {H : Subgroup ((i : ι) → GL n (ResField (u i)))} (hw : w ∉ (Set.range u).conjClosure) :
     maxCompactAt n w ≤ levelOf u H :=
-  le_trans (b := stdLevel E n ⊓ Gf.trivialOn n (.range u)) (fun k hk ↦ by
-    -- no `u i` is `w` or its conjugate, so `k` is trivial at every `u i`
-    have h_ne (i : ι) : u i ≠ w ∧ star (u i) ≠ w :=
-      ⟨fun h_eq ↦ hw (.inl ⟨i, h_eq⟩), fun h_eq ↦ hw (.inr ⟨i, by simp [← h_eq]⟩)⟩
-    simp_all [Subgroup.mem_inf]) inf_trivialOn_le_levelOf
+  (inf_le_inf_left _ ((Gf.supportedOn_mono (Set.singleton_subset_iff.2 hw)).trans_eq
+    Gf.supportedOn_compl)).trans inf_trivialOn_le_levelOf
 
 /-- The algebra map sending the variable (τ, i, h) to the sum of the variables (τ, i, a) over
 the indices a with sign s(a) = c and ord(a) = h. -/
@@ -618,7 +619,7 @@ variable {E : Type} [Field E] [NumberField E] [IsCMField E] {S : LevelPlaces E}
 instance : Fact (χ.comp (levelOf.reduction S.placeAt H) =ᶠ[nhds 1] 1) := by
   -- The character is trivial on the open level of the trivial subgroup.
   refine ⟨.mono (((isOpen_levelOf (w := S.placeAt) (H := ⊥)).preimage
-    continuous_subtype_val).mem_nhds (by simp)) fun k hk ↦ ?_⟩
+    continuous_subtypeVal).mem_nhds (by simp)) fun k hk ↦ ?_⟩
   simp [show levelOf.reduction S.placeAt H k = 1 from Subtype.ext (mem_levelOf.mp hk).2]
 
 /-- Let φ, ψ be forms of the level cut out by H, σ ∈ Aut ℂ, p a permutation of the infinite places
@@ -782,7 +783,7 @@ lemma map_valueMetric :
     ((valueMetric H κ).map (↑) : Matrix (ValueIndex H κ) (ValueIndex H κ) ℂ) =
       1 ⊗ₖ weylGramOver := by
   ext i k
-  simp [valueMetric, one_apply, apply_ite (Rat.cast : ℚ → ℂ)]
+  simp [valueMetric, Matrix.one_apply, apply_ite (Rat.cast : ℚ → ℂ)]
 
 lemma posDef_valueMetric :
     ((valueMetric H κ).map (↑) : Matrix (ValueIndex H κ) (ValueIndex H κ) ℂ).PosDef := by
@@ -802,7 +803,8 @@ lemma stdClassSum_gramForm_eq
     Fintype.sum_prod_type]
   refine sum_congr rfl fun c _ ↦ ?_
   have h_apply (ψ : S.LevelForm H χ κ e) (i) : valueCoord ψ (c, i) = ψ c.out i := rfl
-  simp [h_free, Fintype.sum_prod_type, h_apply, one_apply, gramForm_apply, dotProduct, mulVec]
+  simp [h_free, Fintype.sum_prod_type, h_apply, Matrix.one_apply, gramForm_apply, dotProduct,
+    mulVec]
 
 /-- If the classes have no nontrivial automorphisms, then the inner product of forms has the block
 Gram matrix `valueMetric` in the coordinates `valueCoord` (the values at representatives of the

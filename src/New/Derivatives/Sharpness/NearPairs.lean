@@ -1,5 +1,7 @@
-import New.Derivatives.FormalGroup.ThetaProducts
-import New.UpperBound.Size.ShortColumns
+module
+
+public import New.Derivatives.FormalGroup.ThetaProducts
+public import New.UpperBound.Size.ShortColumns
 
 /-!
 # Near pairs of `b`-places and the losses in the sharpness bound
@@ -43,6 +45,8 @@ Notions from other files:
 
 Legendre's formula for `v(n!)` is classical.
 -/
+
+@[expose] public section
 
 open Finset Real Nat New.Parameters
 
@@ -205,14 +209,16 @@ namespace New
 
 /-- The `p`-adic valuation is monotone for divisibility of nonzero natural numbers. -/
 lemma padicValNat_mono_of_dvd {p : ℕ} [hp : Fact p.Prime] {a b : ℕ} (hab : a ∣ b) (hb : b ≠ 0) :
-    padicValNat p a ≤ padicValNat p b :=
-  (padicValNat_dvd_iff_le hb).1 (pow_padicValNat_dvd.trans hab)
+    padicValNat p a ≤ padicValNat p b := by
+  rw [Nat.padicValNat_def, Nat.padicValNat_def]
+  exact (multiplicity_dvd_iff_le hb).1 ((pow_multiplicity_dvd p a).trans hab)
 
 /-- One step of Legendre's formula: for the `p`-adic valuation `v = padicValNat p`,
 `v(n!) = ⌊n / p⌋ + v(⌊n / p⌋!)`. -/
 lemma padicValNat_factorial_eq_div_add {p : ℕ} [Fact p.Prime] (n : ℕ) :
     padicValNat p n ! = n / p + padicValNat p (n / p)! := by
-  rw [← padicValNat_mul_div_factorial, padicValNat_factorial_mul, add_comm]
+  rw [Nat.padicValNat_def, Nat.padicValNat_def, ← multiplicity_mul_div_factorial,
+    multiplicity_factorial_mul, add_comm]
 
 /-- For a prime `p`, the first term of Legendre's formula gives `n / p - 1 ≤ v(n!)`, with
 `v = padicValNat p` and `n / p` taken as real division. -/
@@ -248,8 +254,9 @@ and the product `B = D.lossProduct l` of the `n♯` integers after `l⁻`, as `l
 lemma padicValNat_factorial_le_add_lossProduct (D : Data P) {p : ℕ} [Fact p.Prime] (l : ℕ) :
     padicValNat p l ! ≤
       padicValNat p (l - D.lossFactorCount)! + padicValNat p (D.lossProduct l) := by
-  rw [← padicValNat.mul (factorial_ne_zero _) (D.lossProduct_ne_zero l), lossProduct,
-    factorial_mul_ascFactorial]
+  rw [Nat.padicValNat_def (n := (l - _)!), Nat.padicValNat_def (n := D.lossProduct l),
+    ← Nat.multiplicity_mul (factorial_ne_zero _) (D.lossProduct_ne_zero l),
+    ← Nat.padicValNat_def, lossProduct, factorial_mul_ascFactorial]
   exact padicValNat_mono_of_dvd (factorial_dvd_factorial le_tsub_add) (factorial_ne_zero _)
 
 /-- `x ^ 42 ≤ n♯ = ⌈6 b / k⌉` for the numbers `x`, `b` and `k` of the data `D`, as `b` is far larger

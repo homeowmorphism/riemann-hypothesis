@@ -1,6 +1,8 @@
-import Lib.Analytic.EntireLFunction
-import Lib.SiegelWeil.Formula.WeilRange
-import Lib.Weil.MixedModel.AdaptedSplitting
+module
+
+public import Lib.Analytic.EntireLFunction
+public import Lib.SiegelWeil.Formula.WeilRange
+public import Lib.Weil.MixedModel.AdaptedSplitting
 
 /-!
 # Siegel–Weil for one vector, Siegel's class sum formula and the ratio of masses
@@ -54,6 +56,8 @@ vectors of norm one and a Gauss sum bound. Source: W. T. Gan, J. Hanke, J.-K. Yu
 formula of Shimura, Duke Math. J. 107 (2001); M. Kirschmer, Definite quadratic and hermitian forms
 with small class number (2016), 4.2.7, 4.2.9.
 -/
+
+@[expose] public section
 
 section OneVector
 
@@ -305,7 +309,7 @@ lemma New.exists_isAddFundamentalDomain_realAdele (E : Type) [Field E] [CMType E
       fun x ↦ s.existsUnique_congr_right.1 (h_unique x)
   refine ⟨ι, Ω, h_inj, fun a z ↦ realAdele_add _ z, h_bdd, h_fund, fun β hβ ↦ ?_⟩
   split_ifs with hβ0
-  · simpa [hβ0, μ, measureReal_def] using congrArg ((↑) : ℝ → ℂ) h_vol
+  · simpa [hβ0, μ, measureReal_def, Set.univ_inter _] using congrArg ((↑) : ℝ → ℂ) h_vol
   -- Translating `z` by `t + star t` multiplies the integral by `stdAddChar(βt)`. If the integral
   -- is not zero, then `stdAddChar(βt) = 1` for all adeles `t`, so `β = 0`.
   contrapose hβ0
@@ -535,7 +539,7 @@ lemma New.SiegelWeil.exists_mixedValue_eq_gaussian_mul {E κ : Type} [Field E] [
   -- The vacuum is the indicator of `Ô` at the finite places and a Gaussian at infinity.
   simp [ht, vacElem_apply_eq_prod_lineTheta, γ, vacuumFn, mem_integralBox, matrixToVec,
     apply_ite norm,
-    mul_assoc, sub_eq_add_neg, mul_pow, ne_of_gt, ← ofReal_pow, ← Real.exp_nat_mul, dotProduct,
+    mul_assoc, sub_eq_add_neg, mul_pow, ne_of_gt, ← ofReal_pow, ← Real.exp_natCast_mul, dotProduct,
     sum_comm (γ := κ), sum_prod_type, Unique.forall_iff, Units.smul_def, im_pos, le_of_lt, pi_pos,
     Complex.exp_neg, mul_add, mul_sum, norm_exp, Circle.norm_coe, funext_iff, fst_sum,
     conj_mul']
@@ -554,7 +558,7 @@ lemma New.integral_fourierChar_mul_inv_pow {k : ℕ} (hk : 1 ≤ k) {x : ℝ} (h
   have hg : g = 𝓕 p := by
     ext z
     calc g z = (∫ t : ℝ in Set.Ioi 0, (t : ℂ) ^ k * cexp (-(1 + 2 * π * .I * z) * t)) / k ! := by
-          rw [laplace_pow (by simp) k, div_div_cancel_left' (mod_cast k.factorial_ne_zero)]
+          rw [laplace_pow (by simp) k, div_div_cancel_left₀ (mod_cast k.factorial_ne_zero)]
       _ = 𝓕 p z := by
           rw [fourier_eq', ← integral_div, ← integral_indicator measurableSet_Ioi]
           congr with t
@@ -828,7 +832,7 @@ lemma New.norm_sub_one_le_of_normDensity_eq {E n : Type} [Field E] [CMType E] [W
       have ht : (star y ⬝ᵥ y - 1) * traceOneAdele ∈ Ô E :=
         mul_mem (sub_mem (star_dotProduct_mem hy hy) (one_mem _)) traceOneAdele_mem
       simpa [← mul_add, ← star_dotProduct] using (ψf_inv_two_mul_add_star _).trans (hz _ ht)
-    simpa [C, coe_stdLattice, volume_pi_pi, Measure.real] using
+    simpa [C, coe_stdLattice, volume_pi_pi, Measure.real, Set.univ_inter _] using
       setIntegral_congr_fun (μ := volume) meas F_eq
   -- The part of `∫ F` off `C` is `(x - 1) vol L`; in `gauss` the part on `C` uses up `vol L`.
   have h_compl : ∫ z in Cᶜ, F z = (x - 1) * volÔ E ^ Fintype.card n := by
@@ -836,7 +840,7 @@ lemma New.norm_sub_one_le_of_normDensity_eq {E n : Type} [Field E] [CMType E] [W
   have h_bound : ‖∫ z in C, F z‖ₑ + ‖∫ z in Cᶜ, F z‖ₑ ≤
       .ofReal (1 + 2⁻¹ ^ (u + 1)) * volÔ E ^ Fintype.card n :=
     calc ‖∫ z in C, F z‖ₑ + ‖∫ z in Cᶜ, F z‖ₑ ≤ (∫⁻ z in C, ‖F z‖ₑ) + ∫⁻ z in Cᶜ, ‖F z‖ₑ :=
-        add_le_add (enorm_integral_le_lintegral_enorm _) (enorm_integral_le_lintegral_enorm _)
+        add_le_add (eNorm_integral_le_lintegral_eNorm _) (eNorm_integral_le_lintegral_eNorm _)
       _ = ∫⁻ z, ‖F z‖ₑ := lintegral_add_compl _ meas
       _ ≤ .ofReal (1 + 2⁻¹ ^ (u + 1)) * volÔ E ^ Fintype.card n := by
         grw [gauss, ← zeta, pow_one]

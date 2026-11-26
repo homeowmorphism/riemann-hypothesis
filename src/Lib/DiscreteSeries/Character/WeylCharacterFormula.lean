@@ -1,5 +1,7 @@
-import Lib.GLn.SchurModule.SchurOrthogonality
-import Lib.General.LinearAlgebra.Eigenvalues
+module
+
+public import Lib.GLn.SchurModule.SchurOrthogonality
+public import Lib.General.LinearAlgebra.Eigenvalues
 
 /-!
 # Laurent polynomials on the torus and Weyl's character and dimension formulas
@@ -45,6 +47,8 @@ Classical Groups (1939), ch. VII; Fulton and Harris, Representation Theory (1991
 
 See also `Lib.DiscreteSeries.Character.FormalDegree`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -208,7 +212,7 @@ lemma torusEval_alternant (x : n → Circle) :
       simp [alternant, torusEval, apply_ite (lift ℂ ℂ (n → ℤ) _)]
     _ = ∑ w : Perm n, (w.sign : ℂ) * ∏ a : n, if ε a = ε (w a) then (x a : ℂ) ^ ν (w a) else 0 := by
       simp [prod_ite_zero, funext_iff, eq_comm]
-    _ = _ := by simp [← det_transpose (Matrix.of _), det_apply']
+    _ = _ := by simp [← det_transpose (Matrix.of _), -transpose_of, det_apply']
 
 section
 
@@ -297,7 +301,8 @@ lemma apply_comp_perm_of_conj_invariant {w : Perm n} (x : n → Circle) (hw : ε
     simp [g, ← Matrix.ext_iff, signMatrix, diagonal, Matrix.mul_apply, sum_ite, hw_apply]
   have h_unitary : (g : Matrix n n ℂ)ᴴ * 1 * g = 1 := by
     simp [g, ← Matrix.ext_iff, Matrix.mul_apply, sum_ite, Matrix.one_apply]
-  let y : maxCompactU ε := ⟨⟨g, h_form⟩, h_unitary⟩
+  let y : maxCompactU ε :=
+    ⟨⟨g, mem_unitaryGroupOf_iff.2 h_form⟩, mem_unitaryGroupOf_iff.2 h_unitary⟩
   have h_conj : y * diagTorusK (x ∘ w) * y⁻¹ = diagTorusK x := by
     ext
     simp [y, g, diagTorus, ← map_inv, diagonal, Matrix.mul_apply, sum_ite]
@@ -684,7 +689,7 @@ lemma exists_kTypeChar_diagTorusK_eq_trace_schur (hl : l.Injective) (hν : IsKDo
   let m (τ : ℤˣ) : Type := {i // ε i = τ}
   have h_enum (τ : ℤˣ) : ∃ q : Fin (Fintype.card (m τ)) ≃ m τ,
       ∀ a b : Fin (Fintype.card (m τ)), l (q a).1 < l (q b).1 ↔ a < b :=
-    exists_equiv_fin_lt_iff (n := m τ) hl.injOn.injective
+    exists_equiv_fin_lt_iff (n := m τ) (hl.comp Subtype.val_injective)
   choose q hq using h_enum
   obtain ⟨κ, e, h_partition⟩ := exists_eq_const_add_partition hν q hq
   have hν_q (τ : ℤˣ) (j : Fin (Fintype.card (m τ))) :
@@ -893,7 +898,7 @@ lemma New.weyl_dimension_formula {n : Type} [Fintype n] [DecidableEq n] {l : HCP
       simpa using (((hasDerivAt_id 0).ofReal_comp.mul_const Complex.I).const_mul c).cexp
     have h_slope (i j : n) : Filter.Tendsto (fun t : ℝ ↦ (t : ℂ)⁻¹ * (x a t i - x a t j))
         (nhdsWithin 0 {0}ᶜ) (nhds (Complex.I * (a i - a j))) := by
-      simpa [exp_int_mul, mul_comm _ Complex.I, ← mul_sub, x] using
+      simpa [exp_intCast_mul, mul_comm _ Complex.I, ← mul_sub, x] using
         ((h_exp (a i)).sub (h_exp (a j))).tendsto_slope_zero
     simpa [Δ, prod_mul_distrib] using
       tendsto_finsetProd univ fun i _ ↦ tendsto_finsetProd {j | l j < l i} fun j _ ↦ h_slope i j

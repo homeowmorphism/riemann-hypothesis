@@ -1,5 +1,7 @@
-import Lib.ClassField.HeckeL.EulerProduct
-import Lib.General.Analysis.PackingAndSobolev
+module
+
+public import Lib.ClassField.HeckeL.EulerProduct
+public import Lib.General.Analysis.PackingAndSobolev
 
 /-!
 # Sums over frequencies
@@ -15,6 +17,8 @@ Notions from other files:
 * `Φ v`: the chosen complex embedding of `E` that induces the infinite place `v`
   (`PlaceEmbedding E`).
 -/
+
+@[expose] public section
 
 open NumberField Finset
 
@@ -275,7 +279,7 @@ theorem sum_height_inv_cube_le [IsTotallyComplex E] (X : Finset E) :
         rw [finrank_eq_two_mul_card_infinitePlace]
         push_cast
         ring
-      rw [h_rank, Real.exp_nat_mul, ← mul_pow]
+      rw [h_rank, Real.exp_natCast_mul, ← mul_pow]
 
 end New
 

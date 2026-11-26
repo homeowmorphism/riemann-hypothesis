@@ -1,5 +1,7 @@
-import Lib.LocalGL.Iwahori.QuadraticRelation
-import Lib.Weil.Unramified.HeckeGL
+module
+
+public import Lib.LocalGL.Iwahori.QuadraticRelation
+public import Lib.Weil.Unramified.HeckeGL
 
 /-!
 # Iwahori degrees, partial Hecke sums and Satake's formula
@@ -41,6 +43,8 @@ Notions from other files:
 
 Known; see `Lib.LocalGL.Iwahori.SphericalExponents` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -169,7 +173,7 @@ private lemma existsUnique_inv_mul_mem_proIwahori {t : Fin N → (LocField w)ˣ}
     simp only [mul_assoc, _root_.mul_inv_rev, mul_inv_cancel_left]
     rw [← mul_assoc u⁻¹, mem_proIwahori_iff_of_unitriangular h_conj_tri]
     simp [Ψ, UnitriangularClasses, funext_iff, Quotient.eq_zero_iff_dvd, diagGL, inv_mul_le_iff₀,
-      le_div_iff₀, zero_lt_iff, (Valuation.integer.integers v).dvd_iff_le,
+      le_div_iff₀, _root_.pos_iff_ne_zero, (Valuation.integer.integers v).dvd_iff_le,
       Algebra.algebraMap_ofSubsemiring_apply]
   -- `Ψ` is injective: in each column compare the entries from the bottom up.
   have h_inj : Ψ.Injective := by

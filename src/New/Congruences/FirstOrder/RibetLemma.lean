@@ -1,5 +1,7 @@
-import New.Congruences.FirstOrder.RibetMatrices
-import New.Congruences.FirstOrder.RibetMethod
+module
+
+public import New.Congruences.FirstOrder.RibetMatrices
+public import New.Congruences.FirstOrder.RibetMethod
 
 /-!
 # Ribet's method to first order over a discrete valuation ring
@@ -40,6 +42,8 @@ Notions from other files:
 * `New.Selmer.tiedRows` (`RibetMatrices`): the rows whose element `∑ r i (gen i - 1)` lies in the
   tie ideal.
 -/
+
+@[expose] public section
 
 section RibetFirstOrder
 
@@ -193,8 +197,8 @@ lemma det_linearCombination_sub_one_eq_zero {r : Type} {t : ℕ} [NeZero t]
   have h_column (g : G) (i : σ) :
       u x g i (blockEquiv (inr 0)) = (1 : Matrix σ σ O) i (blockEquiv (inr 0)) := by
     obtain ⟨i | i, rfl⟩ := blockEquiv.surjective i
-    · simp [hu, one_apply]
-    · simp +contextual [hu, hξ₀, one_apply, diagonal_apply]
+    · simp [hu]
+    · simp +contextual [hu, hξ₀, Matrix.one_apply, diagonal_apply]
   refine det_eq_zero_of_column_eq_zero (blockEquiv (inr 0)) fun i ↦ ?_
   simp [Finsupp.linearCombination_apply, Finsupp.sum, Matrix.sum_apply, h_column]
 

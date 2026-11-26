@@ -1,5 +1,7 @@
-import Lib.Cohomology.Hodge.DepthVanishing
-import Lib.Cohomology.LerayHirsch
+module
+
+public import Lib.Cohomology.Hodge.DepthVanishing
+public import Lib.Cohomology.LerayHirsch
 
 /-!
 # Künneth formula: Hodge classes on X × X are sums of external products
@@ -35,6 +37,8 @@ Notions from other files:
 
 Known; see `Lib.Cohomology.Hodge.FixedPointFormula` for sources.
 -/
+
+@[expose] public section
 
 namespace New.Variety
 
@@ -86,8 +90,8 @@ private lemma pullbackAlong_cross_sectionEquiv {k : Type} [Field k] {c c' p : Ho
   rw [map_homClass, ← homClass_comp, ← homClass_comp]
   refine congrArg homClass ((AddEquiv.eq_symm_apply _).mpr ?_)
   -- By Yoneda it corresponds to the product of the values of `f` at `l` and of `g` at `q`.
-  have hf : f p (.of ⟨l⟩) = ⟨exteriorMap l.snd x⟩ := FreeAbelianGroup.lift_apply_of ..
-  have hg : g p (.of ⟨q⟩) = ⟨exteriorMap q.snd y⟩ := FreeAbelianGroup.lift_apply_of ..
+  have hf : f p (.of ⟨l⟩) = ⟨exteriorMap l.snd x⟩ := FreeAddCommGroup.lift_apply_of ..
+  have hg : g p (.of ⟨q⟩) = ⟨exteriorMap q.snd y⟩ := FreeAddCommGroup.lift_apply_of ..
   change exteriorAlg.mulPairing p (f p (.of ⟨l⟩) ⊗ₜ g p (.of ⟨q⟩)) = _
   rw [hf, hg]
   rfl

@@ -1,5 +1,7 @@
-import Lib.ClassField.Global.NormTheorems
-import Lib.GaloisRep.Main.SelmerModules
+module
+
+public import Lib.ClassField.Global.NormTheorems
+public import Lib.GaloisRep.Main.SelmerModules
 
 /-!
 # CM fields: complex conjugation, invariant ideles and splitting characters
@@ -47,6 +49,8 @@ exposition A. Raghuram, Notes on the arithmetic of Hecke L-functions, arXiv:2207
 
 See also `Lib.ClassField.Global.AlbertBrauerHasseNoether` and `Lib.ClassField.Places.LocalFields`.
 -/
+
+@[expose] public section
 
 /-!
 ## Invariant ideles and splitting characters at inert places
@@ -381,7 +385,7 @@ lemma exists_quadraticIdeleChar_eq_neg_one {w : FinPlace E} (hw : star w = w) :
       induction σ using gal_maximalReal_induction
       · exact hu rfl
       · exact hu hw
-    show finAdeleIncl K E (locIdele (w.below K) x).val u = 1
+    change finAdeleIncl K E (locIdele (w.below K) x).val u = 1
     rw [adeleMap_apply _ rfl, locIdele_apply_of_ne h_below, map_one]
   -- If `t = a z z̄`, then `a` is positive at infinity, and `χ` kills the symbol of `x`: that of
   -- `a` by the sign law, and that of a norm.
@@ -496,7 +500,7 @@ lemma isRealTimesNorm_of_finPart_eq_one [SplittingChar E] {r : (𝔸 E)ˣ} (hr :
     nth_rw 1 [← h_real w, ← h_b_real w]
     rw [← ofReal_mul, mul_div_cancel₀ _ h_ne_b]
   refine ⟨b, hv.unit, hb, Units.ext (Prod.ext (funext h_inf) ?_)⟩
-  show (r : 𝔸 E).2 = algebraMap E (𝔸f E) b * ((u : 𝔸f E) * star (u : 𝔸f E))
+  change (r : 𝔸 E).2 = algebraMap E (𝔸f E) b * ((u : 𝔸f E) * star (u : 𝔸f E))
   rw [hr_fin]
   exact congrArg Units.val h_u.symm
 
@@ -583,22 +587,6 @@ theorem upsilon_locFullIdele_eq_neg_one_of_star_eq [SplittingChar E] (w : FinPla
 lemma upsilon_atUniformizer_eq_neg_one [SplittingChar E] (w : FinPlace E) (hw : star w = w) :
     υ.atUniformizer w = -1 :=
   upsilon_locFullIdele_eq_neg_one_of_star_eq w (uniformizer w) hw (v_uniformizer w)
-
-/-- The four properties of a splitting character `υ` of `E` that are used: (1) `υ(ȳ) = υ(y)⁻¹`;
-(2) `υ(y) = ∏_τ y_τ/|y_τ|` over the infinite places `τ` if the finite part of `y` is a unit of
-`Ô E`; (3) `υ(ϖ) = -1` for every uniformiser `ϖ` at a finite place `w = w̄`, placed at `w` in an
-idele by `locFullIdele`; (4) on the ideles fixed by conjugation, the ideles of the maximal real
-subfield `F`, `υ` is the quadratic character `η` of `E/F`. This collects `υ_star`, `υ_unit`,
-`upsilon_locFullIdele_eq_neg_one_of_star_eq` and `upsilon_eq_quadraticIdeleChar`. -/
-theorem υ_star_eq_inv_and_apply_eq [SplittingChar E] :
-    (∀ y : (𝔸 E)ˣ, υ.val (star y) = (υ.val y)⁻¹) ∧
-    (∀ y : (𝔸 E)ˣ, y.map (MonoidHom.snd (InfinitePlace E → ℂ) (𝔸f E)) ∈ (Ô E).units →
-      (υ.val y : ℂ) = ∏ w : InfinitePlace E, (y : 𝔸 E).1 w / ‖(y : 𝔸 E).1 w‖) ∧
-    (∀ (w : FinPlace E) (ϖ : (LocField w)ˣ), star w = w →
-      Valued.v (ϖ : LocField w) = WithZero.exp (-1) → (υ.val (locFullIdele w ϖ) : ℂ) = -1) ∧
-    ∀ y : (𝔸 E)ˣ, star y = y → (υ.val y : ℂ) = quadraticIdeleChar E y :=
-  ⟨υ_star, υ_unit, upsilon_locFullIdele_eq_neg_one_of_star_eq,
-    fun _ hy ↦ upsilon_eq_quadraticIdeleChar hy⟩
 
 end Restriction
 
@@ -873,9 +861,10 @@ lemma IsFromU1.eq_one_of_mem_decompGroup (h : IsFromU1 S I χ) (hv : v ∈ S)
   -- The local Artin map has dense range and `χ` is locally constant, so `χ g = χ s` for some `s`
   -- in the decomposition group whose class is the local symbol of some `x`.
   obtain ⟨x, s, hs, hx⟩ : ∃ (x : (LocField v)ˣ) (s : decompGroup Gal(Ω/E) A),
-      χ g = χ s ∧ ↑s = localArtin Gal(Ω/E) A v x :=
-    hA.denseRange_localArtin.exists_mem_open
-      (QuotientGroup.isOpenMap_coe _ (h.isLocallyConstant _).preimage_val) ⟨_, ⟨g, hg⟩, rfl, rfl⟩
+      χ g = χ s ∧ ↑s = localArtin Gal(Ω/E) A v x := by
+    obtain ⟨x, s, hs, hx⟩ := hA.denseRange_localArtin.exists_mem_open
+      (QuotientGroup.isOpenMap_coe _ (h.isLocallyConstant {χ g}).preimage_val) ⟨_, ⟨g, hg⟩, rfl, rfl⟩
+    exact ⟨x, s, (by simpa using hs : χ s = χ g).symm, hx⟩
   have h_art : artinMap Gal(Ω/E) (locIdele v x) = (s : Gal(Ω/E)) := by
     simp [hA.artinAt_eq_of_localArtin_eq hx.symm]
   rw [hs, hχ _ _ h_art, star_locIdele]

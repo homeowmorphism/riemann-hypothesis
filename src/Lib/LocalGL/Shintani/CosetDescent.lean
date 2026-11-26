@@ -1,6 +1,8 @@
-import Lib.Adelic.Unitary.ComponentsAndBlockSums
-import Lib.LocalGL.Green.CuspidalFunctions
-import Lib.LocalGL.Shintani.CosetRootChoice
+module
+
+public import Lib.Adelic.Unitary.ComponentsAndBlockSums
+public import Lib.LocalGL.Green.CuspidalFunctions
+public import Lib.LocalGL.Shintani.CosetRootChoice
 
 /-!
 # Descent of class functions along a coset and lifts from GL_n(k') ⋊ Gal(k'/k)
@@ -44,6 +46,8 @@ Notions from other files:
 Known; see `Lib.LocalGL.Shintani.LiftingGreenCharacters` and `Lib.LocalGL.Green.CuspidalFunctions`
 for sources.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -121,8 +125,8 @@ omit [Finite k₀] in
 lemma descendsTo_comp_reindexGL {n' : Type*} [Fintype n'] [DecidableEq n'] (e : n ≃ n')
     {Ψ : GalSemidirect k k' n' → ℂ} {X : Hall k₀} (hΨ : DescendsTo Ψ X) :
     DescendsTo
-    (Ψ ∘ SemidirectProduct.map (reindexGL e).toMonoidHom (MonoidHom.id Gal(k'/k))
-      (reindexGL_comp_galActionGL e))
+    (Ψ ∘ SemidirectProduct.map (φ₁ := galActionGL k k' n) (φ₂ := galActionGL k k' n')
+      (reindexGL e).toMonoidHom (MonoidHom.id Gal(k'/k)) (by exact reindexGL_comp_galActionGL e))
       X := by
   intro σ hσ s γ hs hγ
   set ρ : GalSemidirect k k' n →* GalSemidirect k k' n' :=
@@ -134,7 +138,7 @@ lemma descendsTo_comp_reindexGL {n' : Type*} [Fintype n'] [DecidableEq n'] (e : 
     rfl
   calc Ψ (ρ s) = X.evalGL (reindexGL e γ) := hΨ σ hσ (ρ s) (reindexGL e γ) hs h_pow
     _ = X.evalGL γ := by
-      show X (simClassOf (γ.val.submatrix e.symm e.symm).toLin') = X (simClassOf γ.val.toLin')
+      change X (simClassOf (γ.val.submatrix e.symm e.symm).toLin') = X (simClassOf γ.val.toLin')
       rw [simClassOf_submatrix]
 
 /-- If (F, F') is a lift with coefficients in Z, then for every finite index set n some

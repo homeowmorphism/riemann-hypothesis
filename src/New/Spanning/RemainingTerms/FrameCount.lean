@@ -1,5 +1,7 @@
-import Lib.GLn.SchurModule.Basic
-import New.Spanning.Unfolding.ReducedPoints
+module
+
+public import Lib.GLn.SchurModule.Basic
+public import New.Spanning.Unfolding.ReducedPoints
 
 /-!
 # Frames of near terms: short shared vectors and moves between frames
@@ -34,6 +36,8 @@ Notions from other files:
 
 See `New.Spanning.RemainingTerms.Sum` for related work.
 -/
+
+@[expose] public section
 
 /-!
 ## Short vectors of terms with a cell rank, and near terms with equal frames
@@ -250,7 +254,7 @@ lemma sum_smul_frameVector_eq (γ : S.G E) (y : InfinitePlace E → 𝔰.G₁) (
   calc _ = ∑ k, ∑ m, Φ v (x k) / S.basisScale v (𝔰.besselFrame k) * ((y v)⁻¹.val i m *
           (Φ v (γ.val m (𝔰.besselFrame k)) *
             (S.basisScale v (𝔰.besselFrame k) / S.basisScale v m))) := by
-        simp [frameVector, mul_apply, mul_sum, -Fintype.sum_sum_type]
+        simp [frameVector, Matrix.mul_apply, mul_sum, -Fintype.sum_sum_type]
     _ = ∑ m, ∑ k, (y v)⁻¹.val i m *
           (Φ v (γ.val m (𝔰.besselFrame k)) * Φ v (x k) / S.basisScale v m) := by
       rw [sum_comm]
@@ -407,7 +411,6 @@ lemma HasCellRank.norm_sharedVectors_le [S.IsAdmissible] [HasPrimitiveRoot5040 E
     h_near.norm_adjugate_paddedLeading_le j v i k
   obtain ⟨y, hy, hγy⟩ := h_near
   have h_box : y v ∈ frameBox S.frameBoxRadius := mem_frameBox_of_mem_boxedPoints hy v
-  have h_cut : InCut (y v) S.b := inCut_of_mem_boxedPoints hy v
   set z : 𝔰.G₁ := ((S.ratToInf γ)⁻¹ * y) v
   have hz_box : z ∈ frameBox S.frameBoxRadius := mem_frameBox_of_mem_boxedPoints hγy v
   obtain ⟨w, hw⟩ : ∃ w : Fin (𝔰.ϱ + 1) → E,
@@ -542,7 +545,8 @@ lemma mul_paddedLeading_eq_submatrix_mul_isotropicRows {R m : Type} [CommRing R]
     (h_zero : ∀ (i : m) (k : Fin (𝔰.ϱ + 1)), j.val ≤ k.val ∨ k = 𝔰.top → η i k = 0) :
     η * paddedLeading j Z = η.submatrix id Fin.castSucc * isotropicRows Z := by
   ext i b
-  rw [mul_apply, Fin.sum_univ_castSucc, h_zero i _ (.inr rfl), zero_mul, add_zero, mul_apply]
+  rw [Matrix.mul_apply, Fin.sum_univ_castSucc, h_zero i _ (.inr rfl), zero_mul, add_zero,
+    Matrix.mul_apply]
   refine Finset.sum_congr rfl fun k _ ↦ ?_
   by_cases hk : k.val < j.val
   · simp [paddedLeading, isotropicRows, hk]
@@ -575,14 +579,14 @@ lemma mulVec_adjugate_top_eq_zero (hj : 𝔰.ϱ < j.val) (h_minor : leadingMinor
   have hP_adj (a : Fin 𝔰.ϱ) (b : Fin (𝔰.ϱ + 1)) :
       (P * Y.adjugate) a b = if a.castSucc = b then Y.det else 0 :=
     calc (P * Y.adjugate) a b = (Y * Y.adjugate) a.castSucc b := by
-          simp [hP_def, hY, mul_apply, paddedLeading, a.is_lt.trans hj]
-      _ = _ := by simp [mul_adjugate, one_apply]
+          simp [hP_def, hY, Matrix.mul_apply, paddedLeading, a.is_lt.trans hj]
+      _ = _ := by simp [mul_adjugate, Matrix.one_apply]
   have h_last : P *ᵥ Y.adjugate.col 𝔰.top = 0 := by
     ext a
     exact (hP_adj a 𝔰.top).trans (ite_eq_right (castSucc_lt_last a).ne)
   have hPα : P * α = Y.det • 1 := by
     ext a b
-    exact (hP_adj a b.castSucc).trans (by simp [one_apply])
+    exact (hP_adj a b.castSucc).trans (by simp [Matrix.one_apply])
   have h_kill : (Pᴴ * μ) *ᵥ Y.adjugate.col 𝔰.top = 0 := by
     rw [← neg_eq_zero, ← neg_mulVec, ← h_gram, ← mulVec_mulVec, h_last, mulVec_zero]
   have h_det : star Y.det ≠ 0 := by simpa [hY] using h_minor
@@ -599,7 +603,7 @@ lemma inclMatrix_conjTranspose_mul_frameImage (γ : S.G E) :
     (inclMatrix E (Sum.inl : Fin 𝔰.ϱ → 𝔰.BesselIndex))ᴴ * S.ratGram * frameImage γ.val.val =
       isotropicRows (S.frameProducts γ) := by
   ext a b
-  simp [inclMatrix, splitGram, frameGram, mul_apply, one_apply]
+  simp [inclMatrix, splitGram, frameGram, Matrix.mul_apply, Matrix.one_apply]
 
 /-- Let `γ` and `γ'` be in the unitary group `S.G E`, with underlying matrices `γ.val.val` and
 `γ'.val.val`. Let the frame of `γ'` be that of `γ` with `ξ` added to the first block of rows, and
@@ -612,18 +616,18 @@ lemma conjTranspose_mul_isotropicRows_eq_neg {γ γ' : S.G E} {ξ : Matrix (Fin 
   set D : Matrix 𝔰.BesselIndex (Fin (𝔰.ϱ + 1)) E := fromRows ξ 0 with hD
   have h_gram : (F + D)ᴴ * S.ratGram * (F + D) = Fᴴ * S.ratGram * F := by
     have h_unitary : γ'.val.valᴴ * S.ratGram * γ'.val.val = γ.val.valᴴ * S.ratGram * γ.val.val :=
-      γ'.prop.trans γ.prop.symm
+      (mem_unitaryGroupOf_iff.1 γ'.prop).trans (mem_unitaryGroupOf_iff.1 γ.prop).symm
     rw [← h_add]
     exact congrArg (submatrix · 𝔰.besselFrame 𝔰.besselFrame) h_unitary
   have h_left : Dᴴ * S.ratGram * F = ξᴴ * isotropicRows (S.frameProducts γ) := by
     ext
-    simp [hD, hF, mul_apply, splitGram, frameGram, one_apply]
+    simp [hD, hF, Matrix.mul_apply, splitGram, frameGram, Matrix.one_apply]
   have h_right : Fᴴ * S.ratGram * D = (isotropicRows (S.frameProducts γ))ᴴ * ξ := by
     ext
-    simp [hD, hF, mul_apply, splitGram, frameGram, one_apply, apply_ite star]
+    simp [hD, hF, Matrix.mul_apply, splitGram, frameGram, Matrix.one_apply, apply_ite star]
   have h_isotropic : Dᴴ * S.ratGram * D = 0 := by
     ext
-    simp [hD, mul_apply, splitGram]
+    simp [hD, Matrix.mul_apply, splitGram]
   rw [conjTranspose_add, Matrix.add_mul, Matrix.add_mul, Matrix.mul_add, Matrix.mul_add, h_left,
     h_right, h_isotropic, add_zero, add_assoc, add_eq_left] at h_gram
   exact eq_neg_of_add_eq_zero_right h_gram

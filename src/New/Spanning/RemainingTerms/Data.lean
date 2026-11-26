@@ -1,6 +1,8 @@
-import New.Spanning.RemainingTerms.BorderedDeterminant
-import New.Spanning.RemainingTerms.Discriminants
-import New.Spanning.RemainingTerms.OrbitSize
+module
+
+public import New.Spanning.RemainingTerms.BorderedDeterminant
+public import New.Spanning.RemainingTerms.Discriminants
+public import New.Spanning.RemainingTerms.OrbitSize
 
 /-!
 # The data of a term and of a pair of terms
@@ -25,6 +27,8 @@ Notions from other files:
   `(x, y)` lies in both links, with `x` and `y` orthogonal to `z`.
 * `S.maxGauge j c c' γ`: the larger of the gauge `𝗀♯` and `Nm 𝗀`, for a term in the cell `j`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -113,13 +117,6 @@ and `S.termDisc γ ≠ 0` exactly for `j = ϱ + 1`), then it lies in the cell of
 lemma HasCellRank.hasCellRank_cellRank {j : Fin (𝔰.ϱ + 2)} {γ : S.G E}
     (h : S.HasCellRank j γ) : S.HasCellRank (S.cellRank γ) γ :=
   Classical.epsilon_spec (p := fun i : Fin (𝔰.ϱ + 2) ↦ S.HasCellRank i γ) ⟨j, h⟩
-
-omit [HasPrimitiveRoot5040 E] in
-/-- If the rational element `γ` lies in the cell `j` (`S.HasCellRank j γ`), then the index
-`S.cellRank γ`, chosen among all cells that contain `γ`, is `j`, as there is at most one. -/
-lemma HasCellRank.cellRank_eq {j : Fin (𝔰.ϱ + 2)} {γ : S.G E} (h : S.HasCellRank j γ) :
-    S.cellRank γ = j :=
-  h.hasCellRank_cellRank.unique h
 
 omit [HasPrimitiveRoot5040 E] in
 /-- Vectors of `Λ ∩ X₀`, for the lattice `Λ` of the class `c` in the definite space `X₀`, have

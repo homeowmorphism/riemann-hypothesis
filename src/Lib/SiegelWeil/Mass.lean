@@ -1,6 +1,8 @@
-import Lib.Adelic.Reduction.DefiniteClassSums
-import Lib.ClassField.HeckeL.EulerProduct
-import Lib.Weil.Construction.FiniteMultiplier
+module
+
+public import Lib.Adelic.Reduction.DefiniteClassSums
+public import Lib.ClassField.HeckeL.EulerProduct
+public import Lib.Weil.Construction.FiniteMultiplier
 
 /-!
 # Masses of definite hermitian lattices and ideal zeta bounds for adelic Gauss sums
@@ -39,6 +41,8 @@ Part of a known result, Siegel's formula for representing a number by a hermitia
 bounds on the local densities: the Gauss sums are bounded at all finite places at once, by sorting
 the characters by their conductor ideal. See `Lib.SiegelWeil.OneVector.SiegelClassSum`.
 -/
+
+@[expose] public section
 
 /-!
 ## Positivity of masses and class sums of norm one vectors
@@ -92,7 +96,7 @@ lemma classSum_stdRatPoints_eq_mass :
   have h_count : (1 : Gf E κ → ℝ) = fun g : Gf E κ ↦
       ((MulAction.orbit (stdRatPoints : Subgroup (Gf E κ)) () ∩
         g • MulAction.orbit (stdLevel E κ) ()).ncard : ℝ) := by
-    simp [funext_iff, MulAction.orbit, Set.range_const]
+    simp [funext_iff, MulAction.orbit, Set.range_const, Set.inter_self, Set.ncard_singleton]
   rw [mass, h_count]
   exact classSum_card_orbit _ _ () ι.toMonoidHom ι.injective h_stab h_rat h_int
 
@@ -111,7 +115,7 @@ def normOneLatticeVectors (g : Gf E κ) : Set (κ → E) :=
 private lemma replicateCol_gram_eq_one {R : Type*} [CommRing R] [StarRing R] {x : κ → R}
     (hx : star x ⬝ᵥ x = 1) :
     (replicateCol Unit x)ᴴ * (1 : Matrix κ κ R) * replicateCol Unit x = 1 := by
-  simpa [← ext_iff, mul_apply, dotProduct] using hx
+  simpa [← ext_iff, Matrix.mul_apply, dotProduct] using hx
 
 /-- Witt's theorem for vectors: the unitary group over `E` moves any vector of norm `1` to any
 other. -/
@@ -257,7 +261,7 @@ lemma lintegral_le_idealZeta_mul (hμ : idealZeta R μ ≤ 2) {α : Type*} [Meas
       ∫⁻ x : α in T I, f x ∂ρ ≤ (I.val.cardQuot : ℝ≥0∞)⁻¹ ^ μ * V := by
     have sup_bound : ∫⁻ x : α in T I, f x ∂ρ ≤ (⨆ x ∈ T I, f x) * ρ (S I) := by
       grw [setLIntegral_mono measurable_const fun _ ↦ le_biSup f, setLIntegral_const,
-        measure_mono fun _ hx ↦ hx.1]
+        measure_mono fun x (hx : x ∈ T I) ↦ hx.1]
     grw [sup_bound]
     simp_rw [ENNReal.iSup_mul, iSup_le_iff, ← ENNReal.inv_pow]
     exact fun x hx ↦ (ENNReal.mul_le_iff_le_inv (by simp [I.2]) (by simp)).1 hx.2
@@ -314,7 +318,7 @@ lemma gauss_sum_sq_le [Fintype n] (b : selfAdjoint (𝔸f E)) (Γ : 𝔸f E) :
   -- Weyl differencing: the squared modulus of `∫ F` is the integral of the autocorrelation `corr`.
   let L : Set (n → 𝔸f E) := ↑(stdLattice E n)
   let F (w : n → 𝔸f E) : ℂ := ψf E ((2⁻¹ : E) * (b.1 * (star w ⬝ᵥ w - Γ)))
-  have F_cont : Continuous F := continuous_ψf.subtype_val.comp (by fun_prop)
+  have F_cont : Continuous F := continuous_ψf.subtypeVal.comp (by fun_prop)
   let corr (d : n → 𝔸f E) : ℂ := ∫ w in L, starRingEnd ℂ (F w) * F (w + d)
   -- Translating `w` by `star v` in the entry `i` multiplies `corr d` by `ψf E (b * d i * v)`
   -- and keeps `L`; so `corr d = 0` unless all `d i` are in `K`.
@@ -346,14 +350,14 @@ lemma gauss_sum_sq_le [Fintype n] (b : selfAdjoint (𝔸f E)) (Γ : 𝔸f E) :
   -- As `‖F‖ = 1` and `corr` vanishes off `K ^ n`, the square is at most a product of volumes.
   have h_sq : ‖∫ w in L, F w‖ₑ ^ 2 ≤ (volume (K ∩ Ô E : Set (𝔸f E)) * volÔ E) ^ card n := calc
       _ = ‖∫ d in Kn, corr d ∂volume.restrict L‖ₑ := by
-        rw [setIntegral_eq_integral_of_forall_compl_eq_zero corr_eq_zero, ← sq_eq, enorm_mul,
-          RCLike.enorm_conj, sq]
+        rw [setIntegral_eq_integral_of_forall_compl_eq_zero corr_eq_zero, ← sq_eq, eNorm_mul,
+          RCLike.eNorm_conj, sq]
       _ ≤ ∫⁻ d in Kn, (∫⁻ w in L, ‖starRingEnd ℂ (F w) * F (w + d)‖ₑ) ∂volume.restrict L :=
-        (enorm_integral_le_lintegral_enorm _).trans
-          (lintegral_mono fun _ ↦ enorm_integral_le_lintegral_enorm _)
+        (eNorm_integral_le_lintegral_eNorm _).trans
+          (lintegral_mono fun _ ↦ eNorm_integral_le_lintegral_eNorm _)
       _ = volume (Kn ∩ L) * volume L := by
         simp [Kn, F, ← ofReal_norm, Circle.norm_coe, MeasurableSet.univ_pi, K_open.measurableSet,
-          mul_comm]
+          mul_comm, Set.univ_inter]
       _ = _ := by simp [Kn, L, coe_stdLattice, ← pi_inter_distrib, volume_pi_pi, mul_pow]
   grw [h_sq, ← mul_pow, ← mul_assoc, vol_K, ← sq, pow_right_comm]
 
@@ -385,7 +389,6 @@ lemma lintegral_gauss_sum_le_idealZeta (hμ : idealZeta (Ô E) μ ≤ 2) [Fintyp
       ((AddMonoidHom.mulLeft b.1).comp (Ô E).subtype.toAddMonoidHom)
     have h_trivial (r : Ô E) (hr : r ∈ I.toAddSubgroup) : ξb r = 0 := by
       simp [ξb, show ψf E (b.1 * r) = 1 by simpa using hr 1]
-
     let χ : AddChar (Ô E ⧸ I.toAddSubgroup) ℂ :=
       toAddMonoidHomEquiv.symm (QuotientAddGroup.lift I.toAddSubgroup ξb h_trivial)
     -- The chosen representative `a` of that character differs from `b` by the codifferent.
@@ -435,9 +438,12 @@ lemma idealZeta_intAdeles_pow_le (u : ℕ) {v n : ℕ} (h_le : n * Module.finran
       (ofReal_re (term J)).symm.trans (by simp [term, cpow_neg])
   let contract (I : {I : Ideal (Ô E) // I.cardQuot ≠ 0}) : Ideal (𝓞 E) := I.val.under (𝓞 E)
   have inj : contract.Injective :=
-    (LeftInvOn.injOn fun I hI ↦ map_under_Ô (by simpa) (index_mem I)).injective
+    (LeftInvOn.injOn (show LeftInvOn (fun J : Ideal (𝓞 E) ↦ J.map (algebraMap (𝓞 E) (Ô E)))
+      (fun I : Ideal (Ô E) ↦ I.under (𝓞 E)) {I | I.cardQuot ≠ 0} from
+      fun I hI ↦ map_under_Ô (by simpa) (index_mem I))).injective
   have same_index (I) : absNorm (contract I) = I.val.cardQuot :=
-    card_eq_of_bijective _ (bijective_quot_Ô (by aesop) rfl (index_mem I))
+    (Ideal.absNorm_eq_natCard _).trans
+      (card_eq_of_bijective _ (bijective_quot_Ô (by aesop) rfl (index_mem I)))
   have zeta_le_euler : idealZeta (Ô E) σ ≤ ENNReal.ofReal P.re := calc
       _ = ∑' I, ENNReal.ofReal (term (contract I)) := tsum_congr fun I ↦ by
         simp [term, same_index, ofReal_inv_of_pos, I.2.pos, ENNReal.inv_pow]
@@ -457,7 +463,7 @@ lemma idealZeta_intAdeles_pow_le (u : ℕ) {v n : ℕ} (h_le : n * Module.finran
   calc
     idealZeta (Ô E) σ ^ n ≤ ENNReal.ofReal ‖P‖ ^ n := by grw [zeta_le_euler, re_le_norm]
     _ ≤ ENNReal.ofReal (Real.exp (n * (2 * Module.finrank ℚ E * 2 ^ (2 - σ : ℝ)))) := by
-      grw [le_exp_log ‖P‖, log_le, ← ENNReal.ofReal_pow (by positivity), ← Real.exp_nat_mul]
+      grw [le_exp_log ‖P‖, log_le, ← ENNReal.ofReal_pow (by positivity), ← Real.exp_natCast_mul]
     _ ≤ ENNReal.ofReal (1 + 2⁻¹ ^ u) := by grw [exponent_le, Real.exp_log (by positivity)]
 
 end New

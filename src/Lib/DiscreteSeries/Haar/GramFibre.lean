@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.Haar.TotalMass
-import Lib.General.Measure.FibreMeasure
+module
+
+public import Lib.DiscreteSeries.Haar.TotalMass
+public import Lib.General.Measure.FibreMeasure
 
 /-!
 # The fibre measure of the Gram map
@@ -32,6 +34,8 @@ Notions from other files:
 Known result: the invariant measure `dY / dT` on tuples of vectors with a given Gram matrix. Source:
 C. L. Siegel, Über die analytische Theorie der quadratischen Formen, Ann. of Math. 36 (1935).
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -133,7 +137,7 @@ theorem leGramFibre_haar :
 omit [DecidableEq ι] [DecidableEq n] in
 theorem sum_norm_sq_eq_re_trace (Y : Matrix ι n ℂ) :
     ∑ a : ι, ∑ b : n, ‖Y a b‖ ^ 2 = (Yᴴ * Y).trace.re := by
-  simp [trace, mul_apply, Finset.sum_comm (s := (Finset.univ : Finset ι)), conj_mul',
+  simp [trace, Matrix.mul_apply, Finset.sum_comm (s := (Finset.univ : Finset ι)), conj_mul',
     ← Complex.ofReal_pow]
 
 omit [DecidableEq ι] in
@@ -276,7 +280,7 @@ theorem LeGramFibre.append {E : Matrix ι n ℂ} {E₁ : Matrix ι n₁ ℂ} {E�
     exists_measurePreserving_hermBlocks e
   have φ_gram (Y : Matrix ι n ℂ) : (π₁ Y, π₂ Y) = φ (gramCoords J Y) := by
     rw [φ_apply, hermOfReal_gramCoords IsHermitianInvolution.isHermitian]
-    simp [π₁, π₂, split, joinCols, gramCoords, skewCoords, mul_apply, ← ext_iff]
+    simp [π₁, π₂, split, joinCols, gramCoords, skewCoords, Matrix.mul_apply, ← ext_iff]
   have h_base : (gramCoords J E₁, E₁ᴴ * J * E₂, gramCoords J E₂) = φ (gramCoords J E) := by
     simp only [← φ_gram, ← hE, π₁, π₂, split, LinearEquiv.symm_apply_apply]
   have h_both : LeFibreMeasure volume (volume.prod volume) (fun Y ↦ φ (gramCoords J Y))
@@ -308,7 +312,7 @@ theorem LeGramFibre.append_vector {E : Matrix ι n₁ ℂ} {v : ι → ℂ} (e :
       IsHermitianInvolution.isHermitian.im_star_dotProduct_mulVec_self y
     have h_norm : ((toCol ι ℂ y)ᴴ * J * toCol ι ℂ y) () () = star y ⬝ᵥ J *ᵥ y := by
       rw [Matrix.mul_assoc, h_col]
-      simp [mul_apply, dotProduct]
+      simp [Matrix.mul_apply, dotProduct]
     rw [toCorner_apply, mulVec_mulVec]
     refine Prod.ext rfl (Matrix.ext fun _ _ ↦ ?_)
     simp [gramCoords, skewCoords, h_norm, h_real]
@@ -365,7 +369,7 @@ theorem LeGramFibre.insert {p q : ι → Prop} [DecidablePred p] [DecidablePred 
     · exact joinCol_inl ..
     · exact (joinCol_inr ..).trans (Pi.single_apply j 1 i)
   have h_products (y : ι → ℂ) : Eᴴ *ᵥ y = fun i : Subtype p ↦ y i :=
-    funext fun i ↦ by simp [E, inclMatrix, mulVec, dotProduct, one_apply]
+    funext fun i ↦ by simp [E, inclMatrix, mulVec, dotProduct, Matrix.one_apply]
   rw [← h_join]
   refine h_first.append_vector _ ?_ (h_fix.mono fun g hg ↦
     (mul_inclMatrix g.val.val _).trans (Matrix.ext fun i k ↦ hg i k k.2))

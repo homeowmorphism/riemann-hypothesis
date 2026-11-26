@@ -1,4 +1,6 @@
-import New.UpperBound.Seesaw.NeighbourVacuum
+module
+
+public import New.UpperBound.Seesaw.NeighbourVacuum
 
 /-!
 # Finite evaluation of edge pairs takes translates of the vacuum to admissible combinations
@@ -37,6 +39,8 @@ Notions from other files:
 
 See `New.UpperBound.Seesaw.SeesawIdentity` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -170,8 +174,8 @@ lemma _root_.New.Grading.isIntMatrix_gradeZeroRows {a π : (𝔸f E)ˣ} {u : uni
   have h_row : Y'.gradeZeroRows l j = k.val (Y'.indexEquiv (Sum.inl l)) j := by
     -- The row of the graded basis at an index of `X' ⊕ Unit` is that of the identity matrix.
     cases l <;>
-      simp [gradeZeroRows, h_point, gradedLatticeBasis, mul_apply, inclMatrix, Matrix.one_apply,
-        reindex_equiv Y'.indexEquiv, h_even]
+      simp [gradeZeroRows, h_point, gradedLatticeBasis, Matrix.mul_apply, inclMatrix,
+        Matrix.one_apply, reindex_equiv Y'.indexEquiv, h_even]
   rw [h_row]
   exact (mem_intGL.1 hk).1 _ j
 
@@ -181,7 +185,7 @@ inverse point at these basis vectors, since the form of `V'` is `1` on them. -/
 lemma _root_.New.Grading.conjTranspose_gradeZeroRows (Y' : Grading V' N (X' ⊕ Unit) m') :
     Y'.gradeZeroRowsᴴ = V'.xFin⁻¹.val * inclMatrix (𝔸f E) (Y'.indexEquiv ∘ Sum.inl) := by
   -- The inverse of the point is its adjoint times the Gram matrix, which is `1` on `X' ⊕ Unit`.
-  simp [gradeZeroRows, inv_eq_left_inv V'.gram_xFin, ← Matrix.ext_iff, mul_apply, Y'.gram_eq,
+  simp [gradeZeroRows, inv_eq_left_inv V'.gram_xFin, ← Matrix.ext_iff, Matrix.mul_apply, Y'.gram_eq,
     gradedGram, inclMatrix, Matrix.one_apply, reindex_equiv Y'.indexEquiv]
 
 namespace DoubleLiftData
@@ -299,8 +303,8 @@ lemma latticeLift_eq_latticeUnitary_add_isotropic (hP : IsSplitLevel P N)
         ((0 : q → 𝔸f E) ⊕ᵥ fun _ : q ↦ (flipScale E : 𝔸f E) * u * neighbourCoeff X X'' P π j) ⊕ᵥ
           ((fun _ : X ⊕ Unit ↦ (flipScale E : 𝔸f E)) ⊕ᵥ (1 : X'' ⊕ Unit → 𝔸f E)) * κ *
             (neighbourMatrix X X'' P π).col j := by
-      simp [funext_iff, mul_apply, planeCoeff, M, S, Z, removePlanes, flipScale, xFin, Space.sum,
-        flipSpace, ← mul_assoc, diagonal_apply, Matrix.one_apply, fromRows_map, fromBlocks_map]
+      simp [funext_iff, Matrix.mul_apply, planeCoeff, M, S, Z, removePlanes, flipScale, xFin,
+        Space.sum, flipSpace, ← mul_assoc, diagonal_apply, Matrix.one_apply, fromRows_map, fromBlocks_map]
     rw [neighbourLift, transpose_apply, of_apply, liftVector, ← h_column, mulVec_mulVec]
     rfl
   -- The image of `κ γ ⊗ 1` and that of `planeCoeff ⊗ 1` are Kronecker products with the same

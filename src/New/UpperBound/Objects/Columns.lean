@@ -1,10 +1,12 @@
-import Lib.ClassField.Avatar.HeckeBaseChange
-import Lib.ClassField.HeckeCharacter.TameModulus
-import Lib.GLn.Branching.IntegralMap
-import Lib.General.Algebra.LevelModulus
-import New.UpperBound.Objects.LiftChains
-import New.UpperBound.Objects.Weights
-import New.UpperBound.Seesaw.AdmissibleCombinations
+module
+
+public import Lib.ClassField.Avatar.HeckeBaseChange
+public import Lib.ClassField.HeckeCharacter.TameModulus
+public import Lib.GLn.Branching.IntegralMap
+public import Lib.General.Algebra.LevelModulus
+public import New.UpperBound.Objects.LiftChains
+public import New.UpperBound.Objects.Weights
+public import New.UpperBound.Seesaw.AdmissibleCombinations
 
 /-!
 # Levels of the chain, chain data, and the composite lift
@@ -42,6 +44,8 @@ This file sets up the objects of the upper bound. Related work is listed with th
 in `New.UpperBound.Divisibility.LocalDivisibility`, `New.UpperBound.Seesaw.SeesawIdentity` and
 `New.UpperBound.Divisibility.ValuationAtLevel`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -310,12 +314,11 @@ lemma pairWeilFinite_schrodingerOpAt [h : IsSplitLevel P N] (g : GL n (LocProd P
   simp [-atPlaces_embedGL, field]
 
 omit h [Fact N.Prime] in
-/-- Let `P` hold one place of each conjugate pair above `N`, all unramified of degree one
-(`IsSplitLevel P N`), and let the base change of `a` be unramified at every place of `P`. Let
+/-- Suppose the base change of `a` is unramified at every place of `P`. Let
 `χ = a.spaceChar i` be this base change divided by the `i`-th power of the splitting character `υ`.
 The character `detCharAt χ k: x ↦ χ (det x) |det x| ^ (-k / 2)` of the invertible matrices at `P` is
 trivial on those that are invertible over the integers, which `inclGL` includes. -/
-lemma detCharAt_inclGL [_h : IsSplitLevel P N] (a : AutChar E)
+lemma detCharAt_inclGL (a : AutChar E)
     (h_unr : ∀ w ∈ P, CharUnramifiedAt a.baseChange.finPart w) (i k : ℕ)
     (g : GL n (O (F := LocProd P))) : detCharAt (a.spaceChar i) k (inclGL g) = 1 := by
   -- The determinant is a unit at each place of `P`, where both characters in `spaceChar` are
@@ -788,7 +791,8 @@ def restrictToY :
     refine ⟨?_, fun γ g ↦ ?_⟩
     · -- the stabiliser contains the preimage under `borderU` of the open stabiliser of `ψ`
       have cont : Continuous D.borderU := by
-        refine (U.isClosedEmbedding_coe isUnit_one).continuous_iff.2 (.matrix_reindex ?_ ..)
+        refine (Matrix.unitaryGroupOf.isClosedEmbedding_val isUnit_one).continuous_iff.2
+            (.matrix_reindex ?_ ..)
         -- each entry of `diag (g, 1)` is a constant or an entry of `g`
         simp [U.sum]
         fun_prop
@@ -857,9 +861,8 @@ def liftKernel :
         (D.liftTamePart (ϑ.pow j.succ) j.succ) :=
     D.hasWeight_liftChar
   exact thetaKernel (D.isLiftWeight_columnCount j) (star ↑D.piMBar * P.jetScale D.towerExp)
-    (by
-      convert weight.hasWeight_rankTwist (n := D.X j)
-      grind [lastEntry, card_X])
+    ((weight.hasWeight_rankTwist (n := D.X j)).of_weight_eq (funext fun _ ↦ by
+      grind [lastEntry, card_X]))
     weight.hasWeight_rankTwist (D.levelX j)
 
 /-- Tuples (x_j) of finite adelic matrices with rows X_{j+1} and columns X_j, the translations

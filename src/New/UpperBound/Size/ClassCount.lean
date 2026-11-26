@@ -1,5 +1,7 @@
-import New.Spanning.RemainingTerms.Box
-import New.UpperBound.Size.ShortColumns
+module
+
+public import New.Spanning.RemainingTerms.Box
+public import New.UpperBound.Size.ShortColumns
 
 /-!
 # Explicit bound for the number of classes in the genus
@@ -29,6 +31,8 @@ Notions from other files:
 See `New.UpperBound.Size.Estimates` for related work.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 section ClassCountBound
@@ -42,7 +46,7 @@ lemma New.Space.norm_map_mul_apply_le {E n : Type} [Field E] [Fintype n] (φ : E
     (hM : ∀ i j : n, ‖φ (M i j)‖ ≤ a) (hM' : ∀ i j : n, ‖φ (M' i j)‖ ≤ b) (i j : n) :
     ‖φ ((M * M') i j)‖ ≤ card n * (a * b) := calc
   ‖φ ((M * M') i j)‖ ≤ ∑ k, ‖φ (M i k)‖ * ‖φ (M' k j)‖ := by
-    simpa [mul_apply] using norm_sum_le _ fun k ↦ φ (M i k) * φ (M' k j)
+    simpa [Matrix.mul_apply] using norm_sum_le _ fun k ↦ φ (M i k) * φ (M' k j)
   _ ≤ ∑ _k : n, a * b := Finset.sum_le_sum fun k _ ↦
     mul_le_mul (hM i k) (hM' k j) (norm_nonneg _) ((norm_nonneg _).trans (hM i k))
   _ = card n * (a * b) := by simp
@@ -94,7 +98,7 @@ lemma New.Space.isIntegral_conjTranspose_mul_apply {E n : Type} [Field E] [CMTyp
     rw [← U.gram_invariant g]
     exact (hY.conjTranspose.mul .one).mul hZ
   rw [← algebraMap_mem_Ô]
-  simpa [mul_apply] using h_int i j
+  simpa [Matrix.mul_apply] using h_int i j
 
 /-- Let `g`, `g'` be double cosets in `StdClasses K₀ = Γ \ G_f / K₀`, with representatives `g.out`,
 `g'.out`, and let `Y`, `Y'` in `GL n E` have the same Gram matrix. Put `A = g.out⁻¹ Y` and
@@ -107,7 +111,8 @@ lemma New.Space.stdClasses_eq_of_gram_eq {E n : Type} [Field E] [CMType E] [Fint
     (h_int : IsIntMatrix (Ô E) (A' * A⁻¹).val) : g' = g := by
   -- `γ = Y Y'⁻¹` is a rational isometry, since the Gram matrices agree.
   have h_isom : Y * Y'⁻¹ ∈ U (stdSpace E n).J :=
-    gram_mul_of_gram_eq rfl (gram_inv_of_gram_eq (by simpa using h_gram))
+    mem_unitaryGroupOf_iff.2 <| gram_mul_of_gram_eq rfl 
+      (gram_inv_of_gram_eq (by simpa using h_gram))
   let γ : Gf E n := (stdSpace E n).embFin ⟨Y * Y'⁻¹, h_isom⟩
   have hγ_mem : γ ∈ (stdSpace E n).Γf := ⟨_, rfl⟩
   -- We have `g.out = γ g'.out k` with `k = A' A⁻¹`.

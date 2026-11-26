@@ -1,6 +1,8 @@
-import New.Determinant.AuxiliaryForms.GridPaths
-import New.OneLift.ComparisonOperator.ExchangeData
-import New.OneLift.HeckeValues.TwistedRatio
+module
+
+public import New.Determinant.AuxiliaryForms.GridPaths
+public import New.OneLift.ComparisonOperator.ExchangeData
+public import New.OneLift.HeckeValues.TwistedRatio
 
 /-!
 # Ratios of Hecke values and heights of functions of the twist
@@ -25,6 +27,8 @@ Notions from other files:
 * `New.Data.CriticalPair`: an integer 1 ≤ z ≤ t and a character ν of weight −c, z ≤ c ≤ 4b, with
   tame part supported on the chosen places.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -65,15 +69,6 @@ lemma CriticalPair.L_inv (p : D.CriticalPair) :
       p.character.L {w : FinPlace D.E | D.IsChosen w} :=
   p.hasWeight.L_inv p.tamePart_eq_one
 
-/-- For the character `ν` of a critical pair and a tame character `ϑ` of modulus `Q`, the character
-`ν ϑ` and its inverse have the same `L`-function away from the chosen places, the places of `Q` and
-their conjugates. -/
-lemma CriticalPair.L_mul_inv (p : D.CriticalPair) (ϑ : D.TameChar) :
-    (p.character * ϑ.toAutChar)⁻¹.L ({w : FinPlace D.E | D.IsChosen w} ∪ ϑ.Q) =
-      (p.character * ϑ.toAutChar).L ({w : FinPlace D.E | D.IsChosen w} ∪ ϑ.Q) := by
-  refine (p.hasWeight.mul ϑ.hasWeight).L_inv fun w hw ↦ ?_
-  simp [p.tamePart_eq_one w (fun h ↦ hw (.inl h)), ϑ.tamePart_eq_one w (fun h ↦ hw (.inr h))]
-
 lemma lRatioProd_nonneg (ν : AutChar D.E) (s : ℕ) (ϑ : D.TameChar) : 0 ≤ D.lRatioProd ν s ϑ :=
   prod_nonneg fun _ _ ↦ div_nonneg (norm_nonneg _) (norm_nonneg _)
 
@@ -85,16 +80,6 @@ lemma CriticalPair.ofReal_lRatioProd (p : D.CriticalPair) (ϑ : D.TameChar) :
   rw [lRatioProd, Complex.ofReal_prod]
   exact prod_congr rfl fun z hz ↦ by simp [CriticalPair.ratio, CriticalPair.lowerPoint,
     mem_Icc.1 hz]
-
-/-- For the character `ν` of a critical pair and a tame character `ϑ` of modulus `Q`, the product
-`lRatioProd` of the ratios of Hecke values can be written without inverses, as the product over
-`1 ≤ i ≤ s` of `|L^{MQ}(i, ν ϑ) / L^M(i, ν)|`. -/
-lemma CriticalPair.lRatioProd_eq_prod_norm_div (p : D.CriticalPair) (s : ℕ) (ϑ : D.TameChar) :
-    D.lRatioProd p.character s ϑ =
-      ∏ i ∈ Icc 1 s,
-        ‖(p.character * ϑ.toAutChar).L ({w : FinPlace D.E | D.IsChosen w} ∪ ϑ.Q) i /
-          p.character.L {w : FinPlace D.E | D.IsChosen w} i‖ := by
-  simp only [lRatioProd, p.L_mul_inv ϑ, p.L_inv, norm_div]
 
 /-- For a critical pair `p` (a character `ν = p.character` and an integer `z = p.z`) and a tame
 character `ϑ` with places `ϑ.Q`, the number `lValueProd` up to `z` for `(ν ϑ)⁻¹` and the chosen
@@ -142,7 +127,7 @@ lemma HasAbsUpToNormPower.mul (hcf : D.HasAbsUpToNormPower c f)
   obtain ⟨C', k', hc'⟩ := hcf'
   refine ⟨C * C', k + k', fun ϑ ↦ ?_⟩
   have h_ne : (ϑ.normQ : ℝ) ≠ 0 := by
-    simp [prod_eq_zero_iff]
+    simp [prod_eq_zero_iff, IsDedekindDomain.HeightOneSpectrum.ne_bot]
   rw [Pi.mul_apply, Pi.mul_apply, norm_mul, mul_pow, hc, hc', zpow_add₀ h_ne]
   ring
 

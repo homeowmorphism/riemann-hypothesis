@@ -1,6 +1,8 @@
-import Lib.Cohomology.Etale.Basic
-import Lib.General.Geometry.DenseComplexPoints
-import Lib.Shimura.AbelianScheme.Basic
+module
+
+public import Lib.Cohomology.Etale.Basic
+public import Lib.General.Geometry.DenseComplexPoints
+public import Lib.Shimura.AbelianScheme.Basic
 
 /-!
 # Geometric points, specialisation, separating products and integral abelian varieties
@@ -42,6 +44,8 @@ Notions from other files:
 
 Known; see `Lib.Shimura.AbelianScheme.IsogenyFlatness` for sources.
 -/
+
+@[expose] public section
 
 /-! ## Points over algebraically closed fields -/
 
@@ -131,11 +135,11 @@ lemma AddObj.property_of_isOpenImmersion {k : Type} {X : Scheme} [Field k] [IsAl
       exists_point_mem (Over.mk s) U.isOpen.isClosed_compl.isLocallyClosed ⟨x, hx⟩
     refine hz (TopologicalSpace.Opens.mem_iSup.2 ⟨z - y, a, ?_⟩)
     have h_yz : y ≫ translation (z - y) = z := by simp [Pt, comp_add]
-    show (translation (z - y)).left (i a) = z.left c
+    change (translation (z - y)).left (i a) = z.left c
     rw [ha, ← Hom.comp_apply, ← comp_left, h_yz]
   refine IsZariskiLocalAtSource.of_openCover (.mkOfCovers _ _ t h_cover) fun z ↦ ?_
   -- Translations are morphisms over `k`.
-  show P ((i ≫ (translation z).left) ≫ (Over.mk s).hom)
+  change P ((i ≫ (translation z).left) ≫ (Over.mk s).hom)
   rwa [Category.assoc, (translation z).w]
 
 /-- A standard smooth ring map is standard smooth of some relative dimension. -/
@@ -215,6 +219,7 @@ open CategoryTheory AlgebraicGeometry Algebra MorphismProperty TensorProduct Set
 namespace New.Variety
 
 /-- An étale algebra over an integral domain is reduced. -/
+@[stacks 033B "for an étale algebra over a domain"]
 lemma isReduced_of_algebra_etale (A B : Type*) [CommRing A] [CommRing B] [IsDomain A]
     [Algebra A B] [Algebra.Etale A B] : IsReduced B := by
   -- `B` is flat over `A`, so it embeds in `K ⊗[A] B`, which is unramified over the field `K`.
@@ -260,7 +265,7 @@ instance {k : Type} [Field k] [IsAlgClosed k] (A : Over (Spec ⟨k⟩)) [hA : Is
   let P : Type := MonoidalCategoryStruct.tensorUnit (Over (Spec ⟨k⟩)) ⟶ A
   let act : AddAction P (irreducibleComponents A.left) :=
     { vadd g C := ⟨(translation g).left ⁻¹' C, preimage_mem_irreducibleComponents C.prop
-        (translation g).left.isOpenEmbedding (by simp [C.prop.1.nonempty])⟩
+        (translation g).left.isOpenEmbedding (by simp [C.prop.1.nonempty, Set.inter_univ])⟩
       zero_vadd := by simp [HVAdd.hVAdd, preimage]
       add_vadd := by simp [P, HVAdd.hVAdd, preimage, ← Scheme.Hom.comp_apply, ← Over.comp_left,
         add_assoc, comp_add] }
@@ -477,7 +482,7 @@ lemma IsSeparatingFamily.prod {S : Scheme} [IsReduced S] {A B : Over S} {V W J :
   let j : A.hom.smoothLocus.toScheme ⟶ A.left := A.hom.smoothLocus.ι
   have : Smooth (j ≫ A.hom) := by
     simp [j, ← Hom.smoothLocus_eq_top_iff, ← j.preimage_smoothLocus_eq]
-  have : IsDominant j := ⟨(dense_smoothLocus_of_isDenseFamily hξ A.hom).denseRange_val⟩
+  have : IsDominant j := ⟨(dense_smoothLocus_of_isDenseFamily hξ A.hom).denseRange_subtypeVal⟩
   have : IsSchemeTheoreticallyDominant j := of_isDominant j
   -- Hence `A ×_S B` is reduced: the flat base change `j'` of `j` is scheme-theoretically dominant,
   -- and its source is smooth over the reduced `B`.

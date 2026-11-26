@@ -1,4 +1,6 @@
-import Lib.Weil.Periods.DescentVanishing
+module
+
+public import Lib.Weil.Periods.DescentVanishing
 
 /-!
 # Theta coefficients vanish off negative forms
@@ -29,6 +31,8 @@ Notions from other files:
 
 See `New.Determinant.Exchange.TheoremForPartners` for related work.
 -/
+
+@[expose] public section
 
 section NonnegativeVanishing
 
@@ -126,7 +130,7 @@ lemma New.Exchange.exists_mem_maxCompactU_eq_rotation {r : n → ℂ}
       h_left, h_right, P_sq]
     linear_combination (norm := module) hη • ε • P
   exact ⟨U.of IsHermitianInvolution.isUnit _ (h_form (-1) (by simp [sign_P]) (by simp [P_sign])),
-    h_form 1 (by simp) (by simp), rfl⟩
+    mem_unitaryGroupOf_iff.2 (h_form 1 (by simp) (by simp)), rfl⟩
 
 open NumberField (InfinitePlace)
 
@@ -240,7 +244,7 @@ lemma New.Exchange.apply_eq_zero_of_forall_fixed_eq_zero {G V : Type*} [Group G]
   have : IsProbabilityMeasure κ := ⟨haarMeasure_self⟩
   have h_int : Integrable (fun g : G ↦ ρ g v) κ := integrable_of_compactSpace h_cont
   have mean_mem : ∫ g : G, ρ g v ∂κ ∈ W :=
-    (W.restrictScalars ℝ).convex.integral_mem W.closed_of_finiteDimensional
+    (W.restrictScalars ℝ).convex.integral_mem W.isClosed_of_finiteDimensional
       (.of_forall fun g ↦ h_stable g v hv) h_int
   have mean_fixed (k : G) : ρ k (∫ g : G, ρ g v ∂κ) = ∫ g : G, ρ g v ∂κ := by
     simpa [← (ρ k).integral_comp_comm h_int] using integral_mul_left_eq_self (ρ · v) k
@@ -508,7 +512,7 @@ lemma New.Exchange.centreCoeff_eq_zero_of_not_representedBy {r : m → ℤˣ} {�
   -- translation by `C` scales the measure by `d = 1`, while the mean is `a = 0` times the term
   exact integral_quotMeasure_eq_zero_of_mean volume
     (D.fixesLeft_thetaTerm_mul h_fixesLeft_one x) (by fun_prop [Splitting.thetaTerm]) hΓS κ
-    (translator := fun _ c ↦ (c : S)) (fun _ ↦ measurable_subtype_coe) (d := 1) (a := 0)
+    (translator := fun _ c ↦ (c : S)) (fun _ ↦ measurable_subtypeVal) (d := 1) (a := 0)
     (h_scale := fun _ ↦ h_scale) zero_ne_one (h_mean := by simpa using h_mean)
 
 end NonnegativeVanishing

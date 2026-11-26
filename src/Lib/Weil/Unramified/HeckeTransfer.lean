@@ -1,8 +1,10 @@
-import Lib.ClassField.Avatar.HeckeBaseChange
-import Lib.General.Combinatorics
-import Lib.General.LinearAlgebra.BlockEmbeddings
-import Lib.Weil.DualPair.FiniteAction
-import Lib.Weil.Lift
+module
+
+public import Lib.ClassField.Avatar.HeckeBaseChange
+public import Lib.General.Combinatorics
+public import Lib.General.LinearAlgebra.BlockEmbeddings
+public import Lib.Weil.DualPair.FiniteAction
+public import Lib.Weil.Lift
 
 /-!
 # Hecke polynomials pass through a theta lift
@@ -42,6 +44,8 @@ Known result: the unramified theta correspondence for GL_n, stated for operators
 representation, Amer. J. Math. 104 (1982); S. Kudla, On the local theta-correspondence, Invent.
 Math. 83 (1986).
 -/
+
+@[expose] public section
 
 /-!
 ## The value at a uniformiser of the character attached to a character of [U(1)]
@@ -443,8 +447,8 @@ lemma heckePolyOp_pairWeilTarget (hk : card m = card n + k)
       qPochhammer w.q (card m - x.rank) X =
         qPochhammer w.q k X * qPochhammer w.q (card n - x.rank) (w.q ^ k * X) := by
     rw [hk, add_comm (card n), Nat.add_sub_assoc x.rank_le_card_width, qPochhammer_add]
-  have hα_ne : a.frobValue n w ≠ 0 := by simp [frobValue, atUniformizer]
-  have hβ_ne : b.frobValue m w ≠ 0 := by simp [frobValue, atUniformizer]
+  have hα_ne : a.frobValue n w ≠ 0 := by simp [frobValue, atUniformizer, w.ne_bot]
+  have hβ_ne : b.frobValue m w ≠ 0 := by simp [frobValue, atUniformizer, w.ne_bot]
   rw [hT, hS, div_mul_cancel₀ X hα_ne, div_mul_cancel₀ (w.q ^ k * X) hβ_ne, smul_schrodingerOp]
   congr! 2
   ext x
@@ -483,7 +487,7 @@ lemma hecke_transfer_of_equivariant (hk : card m = card n + k)
   have hS (Y : ℂ) :
       heckePolyOp π hw.star Y (Λ f) = Λ (heckePolyOp (pairWeilSource S T a b) hw.star Y f) := by
     simp only [heckePolyOp_eq_sum hw π_sph, heckePolyOp_eq_sum hw source_sph, hπ, map_sum, map_smul]
-  have hα_ne : a.frobValue n w ≠ 0 := by simp [frobValue, atUniformizer]
+  have hα_ne : a.frobValue n w ≠ 0 := by simp [frobValue, atUniformizer, w.ne_bot]
   rw [hT, hS, ← map_smul, div_mul_eq_mul_div, mul_assoc, ← h_vacuum, mul_div_cancel_left₀ X hα_ne]
 
 /-- Hecke transfer through a pairing. Let w be split of norm q, S of rank n, T of rank m = n + k, a,

@@ -1,5 +1,7 @@
-import Lib.GaloisRep.BaseChange.ShintaniLift
-import Lib.GaloisRep.LocalGlobal.IwahoriCompatibility
+module
+
+public import Lib.GaloisRep.BaseChange.ShintaniLift
+public import Lib.GaloisRep.LocalGlobal.IwahoriCompatibility
 
 /-!
 # Tame exponents of inertia and local-global compatibility for labelled forms
@@ -50,6 +52,8 @@ Taylor, Local-global compatibility for l = p, II (2014), Thm 1.1.
 
 See also `Lib.ClassField.Local.ArtinMap`.
 -/
+
+@[expose] public section
 
 /-! ## Tame exponents of inertial elements and inertia acting through labels -/
 
@@ -207,7 +211,7 @@ lemma exists_isTameExponent (hA : IsPlaceOver A w) (f : ℕ) :
   -- `ρ ζ` is again primitive, being a root of the cyclotomic polynomial; `T` is injective
   have hρζ : IsPrimitiveRoot (ρ hζ.toInteger) N := by
     rw [← isRoot_cyclotomic_iff, ← map_cyclotomic N ρ]
-    exact (isRoot_cyclotomic_iff.2 hζ.toInteger_isPrimitiveRoot).map
+    exact (isRoot_cyclotomic_iff.2 hζ.toInteger_isPrimitiveRoot).map ρ
   obtain ⟨j, -, hj, hTj⟩ :
       ∃ j < N, j.Coprime N ∧ T (ρ hζ.toInteger) ^ j = Complex.exp (2 * Real.pi * Complex.I / N) :=
     (hρζ.map_of_injective IsFaithfulMulChar.injective).isPrimitiveRoot_iff.1
@@ -315,7 +319,6 @@ lemma New.GaloisRep.Attached.isLabelledAt_one {ℓ : ℕ} [ThePrime ℓ] [PadicI
   -- The names of the `ψ i` and the `χ l` are the roots of a separable polynomial, so are distinct.
   have h_inj : Injective (append ψ χ) := .of_comp (f := fun η ↦ (charName T η).val) <| by
     simpa [Function.comp_def, ← separable_prod_X_sub_C_iff, prod_univ_add] using h_sep
-
   -- The span of the translates of `f` contains an Iwahori eigenvector `z` with a sorted `ξ`,
   -- whose values on units are those of the `ψ i` (once each) and the `χ l` (`t l` times).
   obtain ⟨z, hz, ξ, lab, h_eig, h_sorted, h_card, h_val⟩ :

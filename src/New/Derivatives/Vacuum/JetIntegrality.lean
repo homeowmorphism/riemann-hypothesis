@@ -1,6 +1,8 @@
-import New.Derivatives.FormalGroup.Resolution
-import New.Derivatives.Vacuum.IntegralVacuum
-import New.UpperBound.Seesaw.AdmissibleCombinations
+module
+
+public import New.Derivatives.FormalGroup.Resolution
+public import New.Derivatives.Vacuum.IntegralVacuum
+public import New.UpperBound.Seesaw.AdmissibleCombinations
 
 /-!
 # Integrality of jets of theta products and stability of standard data
@@ -31,6 +33,8 @@ makes integral above `p`, and under the Weil operators of finite points that are
 * `New.Parameters.omega_mem_standardData`: they are stable under the Weil operators of finite
   points integral above `p`.
 -/
+
+@[expose] public section
 
 /-!
 ## Integrality of the derivatives of products of copies of `θ`
@@ -147,9 +151,9 @@ lemma norm_constantCoeff_le_of_mem_jetRing {μ : I → X → ℂ_[p]} {F : MvPow
   rw [jetRing, Subring.closure_le]
   rintro G ((hG | ⟨i, rfl⟩) | ⟨i, rfl⟩)
   · exact C.norm_constantCoeff_le_of_mem_multiSeriesRing hG
-  · simp [constantCoeff_subst_of_constantCoeff_eq_zero, constantCoeff_linearSeries]
+  · simp [PowerSeries.constantCoeff_subst_of_constantCoeff_zero, constantCoeff_linearSeries]
   · -- The constant term of `g'` is the coefficient of `z` in `g`, which vanishes.
-    simp [constantCoeff_subst_of_constantCoeff_eq_zero, constantCoeff_linearSeries,
+    simp [PowerSeries.constantCoeff_subst_of_constantCoeff_zero, constantCoeff_linearSeries,
       PowerSeries.coeff_derivative,
       ← PowerSeries.coeff_zero_eq_constantCoeff_apply, coeff_one_negLogTheta]
 

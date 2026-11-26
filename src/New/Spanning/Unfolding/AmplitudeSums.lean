@@ -1,5 +1,7 @@
-import New.Spanning.Bessel.Orthonormality
-import New.Spanning.Unfolding.CutoffIntegral
+module
+
+public import New.Spanning.Bessel.Orthonormality
+public import New.Spanning.Unfolding.CutoffIntegral
 
 /-!
 # Sums of amplitudes over blocks
@@ -53,6 +55,8 @@ series (`New.Spanning.Unfolding.Moments`, which lists related work) and the boun
 terms and pairs with different links (`New.Spanning.RemainingTerms.Sum`).
 -/
 
+@[expose] public section
+
 section AmplitudeSums
 
 open NumberField MeasureTheory Measure Complex ENNReal Finset Fintype
@@ -101,9 +105,9 @@ lemma tsum_integral_apply {X J I : Type*} [MeasurableSpace X] {μ : Measure X} [
     (∑' j : J, ∫ x : X, g j x ∂μ) i = ∫ x : X, ∑' j : J, g j x i ∂μ := by
   -- Take the `i`-th coordinate through the sum and the integral, then exchange the two.
   have h_integrable (j) : Integrable (g j) μ := ⟨by fun_prop, (ENNReal.le_tsum j).trans_lt hg_fin⟩
-  have h_coord_fin : ∑' j, ∫⁻ x, ‖g j x i‖ₑ ∂μ < ∞ := by grw [PiLp.enorm_apply_le, hg_fin]
+  have h_coord_fin : ∑' j, ∫⁻ x, ‖g j x i‖ₑ ∂μ < ∞ := by grw [PiLp.eNorm_apply_le, hg_fin]
   have h_summable : Summable fun j ↦ ∫ x, g j x ∂μ :=
-    .of_enorm (ne_of_lt (by grw [enorm_integral_le_lintegral_enorm, hg_fin]))
+    .of_eNorm (ne_of_lt (by grw [eNorm_integral_le_lintegral_eNorm, hg_fin]))
   calc
     _ = ∑' j, (∫ x, g j x ∂μ) i := (EuclideanSpace.proj i).map_tsum h_summable
     _ = ∑' j, ∫ x, g j x i ∂μ := tsum_congr fun j ↦ eval_integral_piLp (h_integrable j).eval_piLp i
@@ -406,7 +410,7 @@ lemma enorm_besselKernel_sub_cut_le
     grw [h_gain, enorm_besselKernel, mul_mul_mul_comm, pow_mul_prod_enorm_le_majorant hw,
       pow_mul_prod_enorm_le_bound hw]
   rw [← mul_le_iff_le_inv (by positivity) ofReal_ne_top]
-  grw [enorm_sub_le, mul_add, h_kernel, h_kernel, two_mul]
+  grw [eNorm_sub_le, mul_add, h_kernel, h_kernel, two_mul]
 
 end Majorant
 
@@ -630,7 +634,7 @@ theorem tsum_lintegral_enorm_besselKernel_sub_cut_le (T : Set (S.G E)) (c : S.Cl
 /-- For admissible `S`, the amplitudes of the elements of `T` over `(c, s, c')` are summable. -/
 lemma summable_amplitude (T : Set (S.G E)) (c : S.Classes) (s : S.ResidueGL) (c' : S.Classes) :
     Summable fun γ : ↥(T ∩ S.termsOver c s c') ↦ S.amplitude side c c' γ := by
-  refine .of_enorm (ne_of_lt ?_)
+  refine .of_eNorm (ne_of_lt ?_)
   grw [enorm_amplitude_le]
   exact (ENNReal.le_tsum c').trans_lt (tsum_amplitudeMajorant_lt_top T c s)
 
@@ -642,8 +646,8 @@ omit [HasPrimitiveRoot5040 E] [S.IsAdmissible] in
 lemma mem_termsOver_iff_mul_mul_inv_mem {c c₁ c' c₁' : S.Classes} {t t' s : S.ResidueGL}
     {σ σ' γ : S.G E} (hσ_over : σ ∈ S.termsOver c t c₁) (hσ'_over : σ' ∈ S.termsOver c' t' c₁') :
     γ ∈ S.termsOver c₁ s c₁' ↔ σ * γ * σ'⁻¹ ∈ S.termsOver c (t * s * t'⁻¹) c' :=
-  ⟨fun hγ ↦ termsOver.mul (.mul hσ_over hγ) (.inv hσ'_over),
-    fun hγ ↦ by simpa using termsOver.mul (.inv hσ_over) (.mul hγ hσ'_over)⟩
+  ⟨fun hγ ↦ termsOver.mul (termsOver.mul hσ_over hγ) (termsOver.inv hσ'_over),
+    fun hγ ↦ by simpa using termsOver.mul (termsOver.inv hσ_over) (termsOver.mul hγ hσ'_over)⟩
 
 /-- Let `E` contain a primitive 5040th root of unity and let `S` be admissible. Let `σ` be a
 rational isometry of the form with middle Gram matrix `S.ratMiddle E`. Assume that `σ` lies in the
@@ -688,7 +692,7 @@ lemma mul_mul_inv_mem_inter_termsOver (hT : S.IsStable T) {c : S.Classes} {s : S
   obtain ⟨hu, hu_over⟩ := u.2
   obtain ⟨hu', hu'_over⟩ := (u'⁻¹).2
   exact ⟨by simpa using (hT u.1⁻¹ (inv_mem hu) u'.1⁻¹ hu' γ).2 hγ_mem.1,
-    by simpa [mul_assoc] using termsOver.mul (.mul hu_over hγ_mem.2) hu'_over⟩
+    by simpa [mul_assoc] using termsOver.mul (termsOver.mul hu_over hγ_mem.2) hu'_over⟩
 
 /-- Let the group `H`, with an s-finite inversion invariant measure `η`, act measurably on `Z` and
 preserve the s-finite measure `μ`. A cutoff (`IsCutoff η β`) is a measurable `β : Z → [0, ∞]` with
@@ -775,7 +779,7 @@ lemma hasSum_amplitudeSum_of_cutoff (hT : S.IsStable T) (c : S.Classes) (s : S.R
   have integrable {β : X × Y → ℝ≥0∞} (hβ : IsCutoff (count : Measure Δ) β) :
       Integrable (fun p ↦ (β p).toReal • kernel side p) ρ :=
     integrable_toReal_smul hβ.1 (kernel_meas side).aestronglyMeasurable
-      ((lintegral_le hβ (kernel_meas side).enorm (by simp [kernel_smul])).trans_lt
+      ((lintegral_le hβ (kernel_meas side).eNorm (by simp [kernel_smul])).trans_lt
         ((ENNReal.le_tsum c').trans_lt (tsum_amplitudeMajorant_lt_top T c s)))
   -- Fubini: for every cutoff the integrals over `y` sum to that of the kernel over the quotient.
   have hasSum {β : X × Y → ℝ≥0∞} (hβ : IsCutoff (count : Measure Δ) β) :
@@ -909,9 +913,11 @@ lemma amplitudeSum_besselS_one_eq_ite {E : Type} [Field E] [CMType E] {𝔰 : Sh
     lift γ to S.classUnipotent c using (eq_and_mem_classUnipotent_of_besselS hγ hγ_over).2
     simp only [φ]
     norm_cast
-    -- The default instance size is too small for the two copies of `S.classUnipotent c`.
-    set_option synthInstance.maxSize 512 in
-      simp [ite_apply, ↓eq_mul_inv_iff_mul_eq, tsum_classCutoff_eq_one, ENNReal.tsum_prod']
+    rw [tsum_prod']
+    simp only [ite_apply, eq_mul_inv_iff_mul_eq, one_mul, Pi.zero_apply]
+    exact (tsum_congr fun a ↦ by
+      convert tsum_ite_eq (a * γ) (fun _ ↦ S.classCutoff c (S.ratToInf ↑a * y))).trans
+      (tsum_classCutoff_eq_one c y)
   have φ_meas (γ : S.G E) : Measurable (φ γ) := by measurability
   obtain ⟨hasSum, integrable, -⟩ :=
     hasSum_amplitudeSum_of_cutoff (side := .full) isStable_besselS c 1 c φ φ_sum φ_meas

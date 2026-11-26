@@ -1,6 +1,8 @@
-import Lib.PadicHodge.Kisin.Modules
-import Lib.PadicHodge.Kisin.PeriodMatrixFrame
-import Lib.PadicHodge.RadiusLemma
+module
+
+public import Lib.PadicHodge.Kisin.Modules
+public import Lib.PadicHodge.Kisin.PeriodMatrixFrame
+public import Lib.PadicHodge.RadiusLemma
 
 /-!
 # The frame theorem for Kisin modules and stability under normalising Galois elements
@@ -81,6 +83,8 @@ Notions from other files:
 
 Known; see `Lib.PadicHodge.Kisin.PeriodMatrixFrame` and `Lib.PadicHodge.Kisin.Modules` for sources.
 -/
+
+@[expose] public section
 
 /-! ## The frame theorem: spanning and bounded height -/
 
@@ -224,7 +228,8 @@ private lemma nonempty_frame : Nonempty (Frame L) := by
   obtain ⟨M, U, v, hM⟩ := isChartOf.exists_isPeriodMatrixOf L.jumpBound L.jumpBound
     (ρ := (overZp L.ρ).comp k.subgroup.subtype) (h_adm.mono le_sup_right :)
       (finBasis ℤ_[p] L.Carrier)
-    (Nat.sInf_mem exists_jump_bound)
+    (Nat.sInf_mem (s := {a : ℕ | ∀ u : ℤ, jump ((overZp L.ρ).comp k.subgroup.subtype)
+      (ofId ℤ_[p] ℂ_[p]) u ≠ 0 → -a ≤ u ∧ u ≤ a}) exists_jump_bound)
   obtain ⟨Q, Q', Z, Y, B, hQQ', hZ, hUZ, hYZ, hφQ, hZ_gal⟩ := hM.isPeriodMatrix.exists_frame
   have h_surj (x : L.Ambient) : ∃ y : L.Ambient, tau ^ L.jumpBound • y = x := by
     simpa [← map_pow] using
@@ -827,15 +832,6 @@ private lemma mem_kisinAinf_of_mem_kisinModule {x : L.Ambient} (hx : x ∈ L.kis
 private lemma mem_saturateBy_of_mem_kisinAinf {x : L.Ambient} (hx : x ∈ L.kisinAinf) :
     x ∈ saturateBy (Submonoid.powers tau) L.ainfLattice :=
   hx.left
-
-/-- For a jump lattice `L` (a finite free `O`-module with a `Γ`-action, crystalline over `Γ'` of the
-Kummer chart `k`), the Kisin module is free over `S`. This module consists of the x in `kisinAinf`
-on which all `Γ'`-equivariant forms take values in the field `valueField 0`. -/
-lemma free_kisinModule : Module.Free k.S L.kisinModule := by
-  -- The family `v` is linearly independent over `Ainf`, hence over `S`, and spans the module.
-  obtain ⟨v, h_span_S, -, h_indep⟩ := exists_span_eq_kisinModule_linearIndependent (L := L)
-  rw [← h_span_S]
-  exact .of_basis (Basis.span (h_indep.restrict_scalars' k.S))
 
 /-- After inverting `tau`, the `Ainf`-span of the Kisin module and `ainfLattice` agree: they have
 the same saturation by the powers of `tau`. This is a case of the comparison over `A_inf[1/μ]` for

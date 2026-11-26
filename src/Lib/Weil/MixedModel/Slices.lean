@@ -1,7 +1,9 @@
-import Lib.SiegelWeil.Tower.LineTerms
-import Lib.Weil.DualPair.ThetaIntegrals
-import Lib.Weil.MixedModel.FockSections
-import Lib.Weil.TameGaussSum
+module
+
+public import Lib.SiegelWeil.Tower.LineTerms
+public import Lib.Weil.DualPair.ThetaIntegrals
+public import Lib.Weil.MixedModel.FockSections
+public import Lib.Weil.TameGaussSum
 
 /-!
 # Real, named and finite slices of data in the mixed model of an adapted splitting
@@ -48,6 +50,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.MixedModel.ZeroTerm` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -115,8 +119,11 @@ noncomputable def _root_.New.Space.Splitting.IsAdapted.mixedModel (h : D.IsAdapt
   -- `T` is the map of Fock spaces with `D.zeroTerm (V.integrated v f) = V₀.integrated (T v)
   -- (D.zeroTerm (V.projReal f))` (`hT`). The two laws of `slice` are tested against such vectors by
   -- `eq_of_integrated_zeroTerm_eq`.
-  choose T hT using by simpa [↓ Splitting.slice] using h.exists_apply_zero_omega_integrated_eq
-                         isMixedLaw_slice
+  choose T hT using
+    show ∃ T : fockSpace (realSigns E s) →L[ℂ] fockSpace (realSigns E s₀),
+        ∀ (v : fockSpace (realSigns E s)) (f : 𝒮 V),
+          D.zeroTerm (V.integrated v f) = V₀.integrated (T v) (D.zeroTerm (V.projReal f)) by
+      simpa [↓ Splitting.slice] using h.exists_apply_zero_omega_integrated_eq isMixedLaw_slice
   refine
     { L := realMatrix (D.lAdelic * t⁻¹.1ᴴ)
       K := realMatrix (D.kAdelic * t.1)
@@ -375,8 +382,6 @@ lemma ReadsAt.sliceDatum_eq_prod_setIntegral_smul (h : ReadsAt S π)
     have hψ_cont : Continuous h.ψ := h.hasIntegralConductor_psi.1
     simp only [g, vecToMatrix, mulVec, dotProduct, Fintype.sum_sum_type, Sum.elim_inl, Sum.elim_inr]
     fun_prop
-  have hψ_sum (z : p → F) : h.ψ (∑ i, z i) = ∏ i, h.ψ (z i) :=
-    map_prod h.ψ.toMonoidHom (fun i ↦ Multiplicative.ofAdd (z i)) Finset.univ
   have h_factor (z : p → F) : g z = (∏ i, Set.indicator (V.O : Set F)
       (fun t ↦ h.ψ (c i * t) * f i t) (z i)) * Ψ ((vecToMatrix y).map π) := by
     simp [g, h_prod, Set.indicator_apply, ← mul_assoc, ← Finset.prod_mul_distrib]
@@ -385,7 +390,7 @@ lemma ReadsAt.sliceDatum_eq_prod_setIntegral_smul (h : ReadsAt S π)
       = ∫ b : p → 𝔸f E in (integralBox p Sᶜ : Set (p → 𝔸f E)),
           g (π ∘ b) ∂latticeMeasure E p := by
         simp [g, c, sliceDatum, finFrameVector, ← h.psi_apply, ↓dotProduct_smul, vecToMatrix,
-          Matrix.map, dotProduct, mulVec, hψ_sum, matrixToVec]
+          Matrix.map, dotProduct, mulVec, AddChar.map_sum_eq_prod, matrixToVec]
     _ = ∫ z, g z := h.measurePreserving_comp.hasLaw.integral_comp hg.aestronglyMeasurable
     _ = (∏ i, ∫ t : F in V.O, h.ψ (c i * t) * f i t) * Ψ ((vecToMatrix y).map π) := by
       simp only [h_factor, integral_mul_const, integral_fintype_prod_volume_eq_prod,

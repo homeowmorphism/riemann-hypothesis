@@ -1,5 +1,7 @@
-import New.OneLift.ComparisonOperator.DeterminantProducts
-import New.UpperBound.Kernels.ThetaLiftGauge
+module
+
+public import New.OneLift.ComparisonOperator.DeterminantProducts
+public import New.UpperBound.Kernels.ThetaLiftGauge
 
 /-!
 # Rational equivariance, integrality and size of definite theta kernels
@@ -31,6 +33,8 @@ Notions from other files:
 * `New.Rows.twoSidedSubst`: the substitution `x_τ ↦ c_τᵀ x_τ g_τᵀ` on complex polynomials in the
   entries of `N × L` matrices `x_τ`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -197,8 +201,7 @@ lemma norm_map_eval_le_of_isHomogeneous {ι : Type*} {Q : MvPolynomial ι ℂ} {
   -- Scale `z` by `u = σ⁻¹ (t⁻¹)`: this divides `σ z` by `t` and `σ (Q z)` by `t ^ d`.
   let u : ℂ := σ.symm (t : ℂ)⁻¹
   have h_eval : Q.eval (fun i ↦ u * z i) = u ^ d * Q.eval z := by
-    simpa [aeval_bind₁, aeval_eq_eval, -coe_aeval_eq_eval] using
-      congrArg (aeval z) (isHomogeneous_iff_aeval_smul_X.1 hQ u (by simp [u, ht.ne']))
+    simpa only [Pi.smul_def, smul_eq_mul] using hQ.eval_smul u z
   have h_scaled : ‖σ (Q.eval fun i ↦ u * z i)‖ ≤ B :=
     hB _ fun i ↦ by simpa [u, abs_of_pos ht, inv_mul_le_iff₀ ht] using hz i
   rw [h_eval] at h_scaled
@@ -239,7 +242,7 @@ lemma hasConjugateGrowth_of_isHomogeneous {P : Parameters} {D : Data P} {d : ℕ
       gcongr
       · nlinarith [add_one_le_exp R]
       · exact norm_map_sq_div_bigOmega_mul_le hd σ
-  rw [zero_add, exp_nat_mul]
+  rw [zero_add, exp_natCast_mul]
   exact norm_map_eval_le_of_isHomogeneous hQ σ hB (exp_pos R)
     fun i ↦ le_of_sq_le_sq (coord_le i) (by positivity)
 
@@ -264,7 +267,7 @@ lemma M_pow_mul_card_mul_exp_le {P : Parameters} {D : Data P} {d : ℕ} {𝔪 : 
     rw [card_fun, card_eq_nat_card (α := 𝔪.ResidueRing), pow_mul]
     exact_mod_cast Nat.pow_le_pow_left (𝔪.card_residueRing_le h𝔪 one_le) _
   have h_pow : ((D.M : ℝ) ^ 2) ^ k = exp (k * (2 * log D.M)) := by
-    simp [exp_nat_mul, two_mul, sq, exp_add, exp_log, NeZero.pos]
+    simp [exp_natCast_mul, two_mul, sq, exp_add, exp_log, NeZero.pos]
   -- Insert the three size bounds; the rest is a comparison of logarithmic sizes.
   have h_log : k * (2 * log D.M) + k * (2 * log D.M) + e ≤ D.x₁ := by
     simp only [k, e, card_prod]

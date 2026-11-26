@@ -1,4 +1,6 @@
-import Lib.Weil.Periods.Grading
+module
+
+public import Lib.Weil.Periods.Grading
 
 /-!
 # The lattice of a finite point of a graded space
@@ -32,6 +34,8 @@ The results are known: duality of lattices, and Witt's theorem for unimodular he
 Sources: O'Meara, Introduction to Quadratic Forms; Jacobowitz, Hermitian forms over local fields
 (1962).
 -/
+
+@[expose] public section
 
 open Matrix Pointwise
 
@@ -94,7 +98,7 @@ lemma mulVec_mem_lattice : (V.xFin * x.val).val *ᵥ y ∈ V.lattice x ↔ ∀ i
 /-- For a finite point `x`, the frame `V.xFin * x` is orthonormal for the form of `V`. -/
 lemma gram_xFin_mul_eq_one (x : Gf E ι) :
     (V.xFin * x.val).valᴴ * V.J.map (algebraMap E (𝔸f E)) * (V.xFin * x.val).val = 1 :=
-  gram_mul_of_gram_eq V.gram_xFin x.2
+  gram_mul_of_gram_eq V.gram_xFin (mem_unitaryGroupOf_iff.1 x.2)
 
 /-- The Gram matrix of `V` is `g⁻¹ᴴ g⁻¹` for the orthonormal frame `g = V.xFin * x`. -/
 lemma gram_frame_inv (x : Gf E ι) :
@@ -305,11 +309,11 @@ lemma exists_isPrimitiveMatrix_basis :
   let S : Matrix ι (Fin s) (𝔸f E) := inclMatrix (𝔸f E) fun b ↦ Y.indexEquiv (.inr b)
   have h_left : Sᵀ * S = 1 := by
     ext1 a b
-    simp [S, inclMatrix, mul_apply, one_apply, eq_comm]
+    simp [S, inclMatrix, Matrix.mul_apply, Matrix.one_apply, eq_comm]
   have h_proj (y : ι → 𝔸f E) : Y.stringProj y = S *ᵥ Sᵀ *ᵥ y := by
     ext1 i
     obtain ⟨a | a, rfl⟩ := Y.indexEquiv.surjective i <;>
-      simp [S, inclMatrix, mulVec, dotProduct, one_apply, stringProj_apply_inl,
+      simp [S, inclMatrix, mulVec, dotProduct, Matrix.one_apply, stringProj_apply_inl,
         stringProj_apply_inr]
   have h_inv : HasLeftInv ((V.xFin * x.val)⁻¹.val * S) :=
     ⟨Sᵀ * (V.xFin * x.val).val, by simpa [Matrix.mul_assoc] using h_left⟩
@@ -400,16 +404,16 @@ lemma exists_inclXFin_eq_of_mulVec_eq {g : Gf E ι}
   let A : Matrix X X (𝔸f E) := of fun a b ↦ M (Y.indexEquiv (.inl a)) (Y.indexEquiv (.inl b))
   have h_row (a : Fin s) (j : ι) :
       M (Y.indexEquiv (.inr a)) j = (1 : Matrix ι ι (𝔸f E)) (Y.indexEquiv (.inr a)) j := by
-    simpa [stringProj_apply_inr, one_apply, Pi.single_apply] using
+    simpa [stringProj_apply_inr, Matrix.one_apply, Pi.single_apply] using
       congrFun (h_proj (Pi.single j 1)) (Y.indexEquiv (.inr a))
   have h_col (i : ι) (b : Fin s) :
       M i (Y.indexEquiv (.inr b)) = (1 : Matrix ι ι (𝔸f E)) i (Y.indexEquiv (.inr b)) := by
-    simpa [one_apply, Pi.single_apply] using congrFun
+    simpa [Matrix.one_apply, Pi.single_apply] using congrFun
       (hg (Pi.single (Y.indexEquiv (.inr b)) 1) (stringProj_eq_self_iff.2 (by simp))) i
   have h_blocks : M = gradedBlocks Y.indexEquiv Y.indexEquiv A 1 := by
     ext1 i j
     obtain ⟨i' | i', rfl⟩ := Y.indexEquiv.surjective i <;>
-      obtain ⟨j' | j', rfl⟩ := Y.indexEquiv.surjective j <;> simp [A, h_row, h_col, one_apply]
+      obtain ⟨j' | j', rfl⟩ := Y.indexEquiv.surjective j <;> simp [A, h_row, h_col, Matrix.one_apply]
   have hA : Aᴴ * 1 * A = 1 := by
     have h_isom := Space.ratCoordMatrixFin_isometry (V := V) g
     rw [show V.ratCoordMatrixFin g = _ from h_blocks, Y.gram_eq] at h_isom
@@ -417,7 +421,7 @@ lemma exists_inclXFin_eq_of_mulVec_eq {g : Gf E ι}
     simpa [gradedGram, ← submatrix_map, fromBlocks_map, submatrix_mul_equiv, fromBlocks_multiply,
       fromBlocks_conjTranspose] using
       congrArg (fun Z ↦ (Z.submatrix Y.indexEquiv Y.indexEquiv).toBlocks₁₁) h_isom
-  let a : Gf E X := ⟨(Units.mkOfMulEqOne (Aᴴ * 1) A hA)⁻¹, hA⟩
+  let a : Gf E X := ⟨(Units.mkOfMulEqOne (Aᴴ * 1) A hA)⁻¹, mem_unitaryGroupOf_iff.2 hA⟩
   -- The points have the same matrix, and conjugation by `V.xFin` is injective.
   exact ⟨a, Subtype.ext (mul_left_cancel (mul_right_cancel (b := V.xFin⁻¹) (Units.ext
     ((Y.ratCoordMatrixFin_inclXFin a).trans h_blocks.symm))))⟩

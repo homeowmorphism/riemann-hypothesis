@@ -1,4 +1,6 @@
-import Lib.PadicHodge.PeriodRings.DeRhamPeriods
+module
+
+public import Lib.PadicHodge.PeriodRings.DeRhamPeriods
 
 /-!
 # Power series charts Λ⟦z⟧ in A_inf: Weierstrass division and fixed elements
@@ -39,6 +41,8 @@ Notions from other files:
 
 Known; see `Lib.PadicHodge.Kisin.PeriodMatrixFrame` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -220,7 +224,7 @@ lemma WittFq.exists_smul_algebraMap_eq {f : ℕ+} (m : FrobGal) (c : WittFq f) :
   -- keeps the relation `t ^ p ^ f = t` that defines `flatFq f`.
   have h_mem (n : ℕ) : m • (c.coeff n : OFlat) ∈ flatFq f :=
     (smul_pow' m (c.coeff n : OFlat) (p ^ (f : ℕ))).symm.trans (congrArg _ (c.coeff n).prop)
-  exact ⟨⟨fun n ↦ ⟨m • (c.coeff n : OFlat), h_mem n⟩⟩, rfl⟩
+  exact ⟨WittVector.mk p fun n ↦ ⟨m • (c.coeff n : OFlat), h_mem n⟩, rfl⟩
 
 /-- Reduction of the coordinates from `flatFq f` to the residue field of `OFlat` is injective on
 Witt vectors. -/
@@ -258,10 +262,6 @@ lemma FixesThetaZ.fixesLambda {c : Chart} {g : Gp p} (h : c.FixesThetaZ g) : Fix
 lemma FixesThetaZ.smul_theta_z {c : Chart} {g : Gp p} (h : c.FixesThetaZ g) :
     g • theta c.z = theta c.z :=
   h.right
-
-lemma fixesThetaZ_iff {g : Gp p} :
-    c.FixesThetaZ g ↔ FixesLambda c.f g ∧ g • theta c.z = theta c.z :=
-  Iff.rfl
 
 /-- The chart `c` is a chart of a group homomorphism `j : Γ →* G_p`: every g in G_p that fixes Λ
 pointwise and fixes θ(z) lies in the image of j. So the field fixed by all g that fix Λ pointwise
@@ -361,7 +361,7 @@ instance : c.maxIdeal.IsMaximal := by
       span {(p : WittFq c.f)} = (maximalIdeal (WittFq c.f)⟦X⟧).map PowerSeries.constantCoeff := by
     rw [map_maximalIdeal_of_surjective _ constantCoeff_surj, (irreducible p).maximalIdeal_eq]
   have h_max : maximalIdeal (WittFq c.f)⟦X⟧ = span {X, C (p : WittFq c.f)} := by
-    simpa using eq_span_insert_X_of_X_mem_of_span_eq X_prime.not_isUnit h_const
+    simpa using eq_span_insert_X_of_X_mem_of_span_eq prime_X.not_isUnit h_const
   have h_map : (maximalIdeal (WittFq c.f)⟦X⟧).map c.seriesEquiv = c.maxIdeal := by
     simp [h_max, pair_comm X, map_span, seriesEquiv_X]
   rw [← h_map]
@@ -528,7 +528,7 @@ lemma phi_pow_z (n : ℕ) : (c.φ ^ n) c.z = c.z ^ p ^ n := by
 lemma z_dvd_frobE_sub_p (n : ℕ) : c.z ∣ c.frobE n - p := by
   -- Apply `φ^n` to `z ∣ E - p`; it sends `z` to `z ^ p ^ n`.
   have h_map : (c.φ ^ n) c.z ∣ (c.φ ^ n) (c.E - p) := map_dvd (c.φ ^ n) c.z_dvd_E_sub_p
-  rw [phi_pow_z, map_sub, map_natCast] at h_map
+  rw [phi_pow_z, RingHom.map_sub, map_natCast] at h_map
   exact (dvd_pow_self c.z (NeZero.ne (p ^ n))).trans h_map
 
 /-- If g in G_p fixes Λ = W(F_{p^f}) pointwise and d in A_inf divides gz − z, then d divides gs − s
@@ -577,7 +577,7 @@ lemma weierstrass_division (n : ℕ) {N : ℕ} (hN : p ^ n * c.e = N) (s : c.S) 
   -- `φ^n E = z ^ N * φ^n A + p`, with `A` the unit series of the chart. Here and below the power
   -- `c.φ ^ n` is kept as a ring map (`-RingHom.coe_pow`), so that `phi_pow_z`, `IsUnit.map` apply.
   have h_frobE : c.frobE n = c.z ^ N * (c.φ ^ n) (c.seriesEquiv c.unitSeries) + p := by
-    simp [frobE, phi_pow_z, ← pow_mul, hN, -RingHom.coe_pow]
+    rw [frobE, E, RingHom.map_add, RingHom.map_mul, map_pow, phi_pow_z, map_natCast, ← pow_mul, hN]
   -- Modulo `p` the series `G` is `X ^ N` times a unit, so its order is `N`.
   obtain ⟨hG, rfl⟩ : G.map (residue _) ≠ 0 ∧ (G.map (residue _)).order.toNat = N := by
     simp [G, h_frobE, order_mul, hp, order_zero_of_isUnit, IsUnit.ne_zero, IsUnit.map,
@@ -686,7 +686,7 @@ lemma eq_zero_of_forall_thetaPhiInv_eq_zero {a : Ainf} (h : ∀ n : ℕ, thetaPh
   -- Modulo `p` the value `thetaPhiInv n b` is the `n`-th component of `b`.
   have h_const : ∀ b ∈ ⨅ n, ker (thetaPhiInv (p := p) n), b.constantCoeff = 0 := by
     refine fun b hb ↦ Perfection.ext fun n ↦ Eq.trans ?_ (map_zero _).symm
-    show PreTilt.coeff n b.constantCoeff = 0
+    change PreTilt.coeff n b.constantCoeff = 0
     rw [← mk_thetaPhiInv_eq_coeff, mem_ker.mp (mem_iInf.mp hb n)]
     exact map_zero _
   -- The ideal is saturated for `p`, and an element vanishing modulo `p` is divisible by it.
@@ -750,7 +750,8 @@ lemma mem_of_fixed_thetaPhiInvS {K : Subalgebra ℚ_[p] ℂ_[p]} {y : PadicAlgCl
       (IsIntegral.of_mem_of_fg _ h_fg _ hx).tower_top
   -- `g` fixes `x'`, which lies in the field of `K`.
   have h_fix : (g : Gp p) x' = x' := g.property ⟨x', hxK⟩
-  exact (smul_coe_Cp (g := (g : Gp p)) x').trans (congrArg (algebraMap (PadicAlgCl p) ℂ_[p]) h_fix)
+  exact (UniformSpace.Completion.algEquiv_smul_coe (g : Gp p) x').trans
+    (congrArg (algebraMap (PadicAlgCl p) ℂ_[p]) h_fix)
 
 /-- Let `c.S` be the image in A_inf of the chart's map Λ⟦X⟧ → A_inf, and let y ∈ O^♭ be fixed by
 every g ∈ G_p that fixes S pointwise. Then for every N and all large n, the N-th component of y in
@@ -769,7 +770,7 @@ lemma eventually_exists_coeff_eq_of_fixed {y : OFlat}
     simp only [t, ← coe_smul, ← thetaPhiInv_smul, h_teich, h g hg]
   obtain ⟨_, ⟨x, x_fixed, rfl⟩, x_near : ‖(t : ℂ_[p]) - x‖ < ‖(p : ℂ_[p])‖⟩ :=
     SeminormedAddCommGroup.mem_closure_iff.mp (ax_mem_closure_fixedField _ t_fixed) ‖(p : ℂ_[p])‖
-      (by simp [NeZero.ne])
+      (by simp [Nat.pos_of_neZero])
   -- The ranges increase, because `thetaPhiInvS (n + 1) (φ s) = thetaPhiInvS n s`.
   have h_succ (n : ℕ) (s : c.S) : c.thetaPhiInvS (n + 1) (c.φ s) = c.thetaPhiInvS n s := by
     simp [φ]
@@ -796,7 +797,8 @@ lemma eventually_exists_coeff_eq_of_fixed {y : OFlat}
   obtain ⟨α, hα⟩ : ∃ α : c.S, (thetaPhiInv n α.val : ℂ_[p]) = a • (1 : ℂ_[p]) :=
     (c.thetaPhiInvS n).range.smul_mem (one_mem _) a
   -- `x = t - (t - x)` is integral, so the value `a` of `α` divides the value `a • x` of `s`.
-  let x_int : OC := t - ⟨(t : ℂ_[p]) - x, mem_valRingCp.mpr (x_near.trans norm_p_lt_one).le⟩
+  let x_int : OC :=
+    t - ⟨(t : ℂ_[p]) - x, mem_valRingCp.mpr (x_near.trans (PadicComplex.norm_p_lt_one p)).le⟩
   have hx_int : (x_int : ℂ_[p]) = x := by simp [x_int]
   have dvd : thetaPhiInv n α.val ∣ thetaPhiInv n s.val := by
     refine ⟨x_int, Subtype.ext ?_⟩

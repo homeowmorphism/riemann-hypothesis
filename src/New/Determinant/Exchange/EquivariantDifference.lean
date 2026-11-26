@@ -1,4 +1,6 @@
-import New.Determinant.Exchange.MatchingPartners
+module
+
+public import New.Determinant.Exchange.MatchingPartners
 
 /-!
 # The difference in the exchange identity as an equivariant lift
@@ -29,6 +31,8 @@ Notions from other files:
 
 See `New.Determinant.Exchange.TheoremForPartners` for related work.
 -/
+
+@[expose] public section
 
 namespace New.Exchange
 
@@ -102,7 +106,7 @@ splitting character of the Weil data. Then `k⁻¹` moves it to the same datum w
 in place of `Φ`, times the value at `det k_S` of `t ↦ ν (t / t̄) |t| ^ (rk W / 2)` (`localChar`).
 Here `Φ` is Schwartz–Bruhat on the matrices `x` of full row rank. -/
 lemma pairWeil_inv_localDatum (hn : 2 ∣ card n) (v : PairFock E s t)
-    {Φ : Matrix a n (LocProd 𝔠.ramifiedPlaces) → ℂ} (hΦ : Φ ∈ schwartzBruhat fun x ↦ HasLeftInv xᵀ)
+    {Φ : Matrix a n (LocProd 𝔠.ramifiedPlaces) → ℂ} (hΦ : Φ ∈ schwartzBruhat {x | HasLeftInv xᵀ})
     {k : Gf E a} (hk : k ∈ Gf.supportedOn a 𝔠.ramifiedPlaces) :
     pairWeil W V (rankTwist 𝔠.character⁻¹ n) (rankTwist 𝔠.character⁻¹ n) ((1, 1), 1, k⁻¹)
         (localDatum W V v Φ 𝔠.readsAt) =
@@ -163,7 +167,7 @@ lemma thetaSmall_translate_mul (v' : PairFock E s t')
     {g : Gf E n} (hg : g ∈ Gf.supportedOn n 𝔠.ramifiedPlaces)
     (hΨ : (fun y : Matrix n b (LocProd 𝔠.ramifiedPlaces) ↦
       Ψ ((atPlaces 𝔠.ramifiedPlaces g).val * y)) ∈
-      schwartzBruhat HasLeftInv) (x : G E s) :
+      schwartzBruhat {y | HasLeftInv y}) (x : G E s) :
     thetaSmall W V' 𝔠 v' (fun y ↦ Ψ ((atPlaces 𝔠.ramifiedPlaces g).val * y)) (x * (1, g)) =
       thetaSmall W V' 𝔠 v' Ψ x / localChar 𝔠.ramifiedPlaces υ 1
         (atPlaces 𝔠.ramifiedPlaces g).val.det ^ card b := by
@@ -186,7 +190,7 @@ lemma thetaSmall_translate_mul (v' : PairFock E s t')
 `U(W)` that are trivial at the ramified places of `𝔠`. -/
 lemma thetaLarge_mul_of_mem_stdLevel (v : PairFock E s t)
     {Φ : Matrix a n (LocProd 𝔠.ramifiedPlaces) → ℂ}
-    (hΦ : Φ ∈ schwartzBruhat fun x : Matrix a n (LocProd 𝔠.ramifiedPlaces) ↦ HasLeftInv xᵀ)
+    (hΦ : Φ ∈ schwartzBruhat {x : Matrix a n (LocProd 𝔠.ramifiedPlaces) | HasLeftInv xᵀ})
     {k : Gf E n}
     (hk_int : k ∈ stdLevel E n) (hk_triv : k ∈ Gf.trivialOn n 𝔠.ramifiedPlaces) (x : G E s) :
     thetaLarge W V 𝔠 v Φ (x * (1, k)) = thetaLarge W V 𝔠 v Φ x := by
@@ -201,7 +205,7 @@ lemma thetaLarge_mul_of_mem_stdLevel (v : PairFock E s t)
 `U(W)` that are trivial at the ramified places of `𝔠`. -/
 lemma thetaSmall_mul_of_mem_stdLevel (v' : PairFock E s t')
     {Ψ : Matrix n b (LocProd 𝔠.ramifiedPlaces) → ℂ}
-    (hΨ : Ψ ∈ schwartzBruhat HasLeftInv) {k : Gf E n}
+    (hΨ : Ψ ∈ schwartzBruhat {y | HasLeftInv y}) {k : Gf E n}
     (hk_int : k ∈ stdLevel E n) (hk_triv : k ∈ Gf.trivialOn n 𝔠.ramifiedPlaces) (x : G E s) :
     thetaSmall W V' 𝔠 v' Ψ (x * (1, k)) = thetaSmall W V' 𝔠 v' Ψ x := by
   rw [thetaSmall, ← thetaIntegral_pairWeil ((1, k), 1, 1),
@@ -214,7 +218,7 @@ lemma thetaSmall_mul_of_mem_stdLevel (v' : PairFock E s t')
 /-- For `v'` with all moments finite, `thetaSmall` is linear on Schwartz–Bruhat functions. -/
 lemma exists_linear_thetaSmall {v' : PairFock E s t'} (hv' : IsSchwartzVector v') :
     ∃ T : (Matrix n b (LocProd 𝔠.ramifiedPlaces) → ℂ) →ₗ[ℂ] G E s → ℂ,
-      ∀ Ψ ∈ schwartzBruhat HasLeftInv, T Ψ = thetaSmall W V' 𝔠 v' Ψ := by
+      ∀ Ψ ∈ schwartzBruhat {y | HasLeftInv y}, T Ψ = thetaSmall W V' 𝔠 v' Ψ := by
   -- `Λ` is linear and is the theta integral on data of polynomial growth
   obtain ⟨Λ, hΛ⟩ := exists_linear_thetaIntegral W V' (rankTwist 𝔠.character n) (upsilonU1 ^ card b)
   let D : (Matrix n b (LocProd 𝔠.ramifiedPlaces) → ℂ) →ₗ[ℂ] 𝒮 (W.hom V') :=
@@ -248,7 +252,7 @@ lemma exists_linear_thetaLarge (σ : b ⊕ a ≃ n) (hn : 2 ∣ card n) {v : Pai
   -- the theta integral does not see the action of `U(V)` on the datum
   have h_invariant (g : GL a (LocProd 𝔠.ramifiedPlaces))
       (Φ : Matrix a n (LocProd 𝔠.ramifiedPlaces) → ℂ)
-      (hΦ : Φ ∈ schwartzBruhat fun x ↦ HasLeftInv xᵀ) :
+      (hΦ : Φ ∈ schwartzBruhat {x | HasLeftInv xᵀ}) :
       localChar 𝔠.ramifiedPlaces 𝔠.character.baseChange (card n) g.val.det • Λ
         (D fun x ↦ Φ (g.val * x)) = Λ (D Φ) := by
     obtain ⟨k, hk, rfl⟩ := 𝔠.exists_atPlaces_eq g
@@ -300,8 +304,8 @@ lemma exists_isEquivariantLift_eq_thetaLarge_sub_smul (σ : b ⊕ a ≃ n) (hn :
   obtain ⟨T', hT'⟩ := exists_linear_thetaSmall W V' 𝔠 hv'
   have h_sb {Φ : Matrix a n (LocProd 𝔠.ramifiedPlaces) → ℂ}
     {Ψ : Matrix n b (LocProd 𝔠.ramifiedPlaces) → ℂ}
-      (hp : (Φ, Ψ) ∈ sameSectionPairs χ σ) : (Φ ∈ schwartzBruhat fun x ↦ HasLeftInv xᵀ) ∧
-        Ψ ∈ schwartzBruhat HasLeftInv := (Submodule.mem_inf.1 hp).1
+      (hp : (Φ, Ψ) ∈ sameSectionPairs χ σ) : (Φ ∈ schwartzBruhat {x | HasLeftInv xᵀ}) ∧
+        Ψ ∈ schwartzBruhat {y | HasLeftInv y} := (Submodule.mem_inf.1 hp).1
   have h_diff {Φ : Matrix a n (LocProd 𝔠.ramifiedPlaces) → ℂ}
     {Ψ : Matrix n b (LocProd 𝔠.ramifiedPlaces) → ℂ}
       (hp : (Φ, Ψ) ∈ sameSectionPairs χ σ) :

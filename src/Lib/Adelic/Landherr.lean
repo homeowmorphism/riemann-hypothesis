@@ -1,4 +1,6 @@
-import Lib.ClassField.Global.CMSplittingCharacters
+module
+
+public import Lib.ClassField.Global.CMSplittingCharacters
 
 /-!
 # Sums of two squares, Landherr's theorem and the Hasse principle for unitary cocycles
@@ -45,6 +47,8 @@ Landherr, Äquivalenz Hermitescher Formen über einem beliebigen algebraischen Z
 Sem. Hamburg 11 (1936) 245-248; M. Kneser, Lectures on Galois cohomology of classical groups, TIFR
 47 (1969), §5.5.
 -/
+
+@[expose] public section
 
 /-!
 ## A totally positive number as a sum of two squares
@@ -229,8 +233,8 @@ lemma Core.exists_norm_eq_norm_one_add_mul (σ : Matrix Unit Unit (𝔸 E)) :
   obtain ⟨a', b', h_shear, h_norm⟩ := h_fin (σ () ()).2
   refine ⟨of fun _ _ ↦ (fun w ↦ a ((σ () ()).1 w), a'),
     of fun _ _ ↦ (fun w ↦ b ((σ () ()).1 w), b'), ?_, ?_⟩
-  · simp [← ext_iff, mul_apply, Prod.ext_iff, hab, h_shear, funext_iff]
-  · simpa [← ext_iff, mul_apply, Prod.ext_iff, h_norm, funext_iff] using fun w ↦ (hab _).2
+  · simp [← ext_iff, Matrix.mul_apply, Prod.ext_iff, hab, h_shear, funext_iff]
+  · simpa [← ext_iff, Matrix.mul_apply, Prod.ext_iff, h_norm, funext_iff] using fun w ↦ (hab _).2
 
 /-- Let `K` be a matrix over `E` that represents `1` over the adeles, into which `toAdele` embeds
 `E`, and let `S` be finite. Then the value of `K` at some rational vector has positive real part
@@ -260,7 +264,7 @@ lemma Core.exists_form_pos_and_unit {K : Matrix n n E} (z : Matrix n Unit (𝔸 
       h_mem.1 w (mem_univ w)
   · -- It is `0` at `w` and at its conjugate as well.
     have hw_conj : star w ∈ S.conjClosure := by simpa [conjClosure, or_comm] using hw
-    simpa [U, hw, hw_conj, idem_apply, -compl_union, -mem_union, ← Matrix.map_mul,
+    simpa [U, hw, hw_conj, idem_apply, -compl_union, -compl_sup, -mem_union, ← Matrix.map_mul,
       Matrix.mul_assoc, Matrix.mul_add, Matrix.add_mul] using mem_iInter₂.1 h_mem.2 w hw
 
 /-- Hasse principle for representing `1`: let `E` satisfy `New.HasPrimitiveRoot5040` and let `K` be
@@ -328,7 +332,7 @@ lemma Core.exists_form_eq_one [HasPrimitiveRoot5040 E]
     field_simp
     linear_combination h_re_coe + hα + (N v * N u - B ^ 2 : E) * hβ
       + (star α * β - star β * β * B) * hB + (form v u - B) * h_cross
-  exact ⟨w, ext fun _ _ ↦ by simpa only [form, Matrix.mul_assoc, one_apply_eq] using h_norm⟩
+  exact ⟨w, ext fun _ _ ↦ by simpa only [form, Matrix.mul_assoc, Matrix.one_apply_eq] using h_norm⟩
 
 /-- If `uᴴ u = 1`, and `u` and `uᴴ` are eigenvectors of `D` with eigenvalue `c`, then shearing by
 `1 + u ρ` adds `c (u ρ + (u ρ)ᴴ + ρᴴ ρ)` to `D`. -/
@@ -465,7 +469,7 @@ lemma Space.exists_x_eq_and_ratEmbed_conj_eq (V W : Space E n s) :
   obtain ⟨a, ha⟩ := V.landherr W
   -- `a * W.x` is a second frame of `V.J`, so `V.x⁻¹ * a * W.x` preserves the standard form.
   have h_unitary : V.x⁻¹ * (a.map toAdele * W.x) ∈ U (stdForm E s) :=
-    gram_mul_of_gram_eq (gram_inv_of_gram_eq V.gram_point)
+    mem_unitaryGroupOf_iff.2 <| gram_mul_of_gram_eq (gram_inv_of_gram_eq V.gram_point)
       (gram_mul_of_gram_eq (by simp [← ha, Matrix.mul_assoc]) W.gram_point)
   refine ⟨a, G.toUnitary.symm ⟨_, h_unitary⟩, ha, by simp [mul_assoc], fun γ ↦ ?_⟩
   simp [ratEmbed, toRatCoords, U.map, MulEquiv.symm_apply_eq, mul_assoc, Subtype.ext_iff]
@@ -576,19 +580,20 @@ lemma U.hasse_principle_coboundary [IsCMField E']
   have h_infinite (w : InfinitePlace E) :
       (g.map (lift E' (Φ w))).1ᴴ * signMatrix (1 : n → ℤˣ) * (g.map (lift E' (Φ w))).1 =
         J.1.map (Φ w) := by
-    simpa [← ext_iff, mul_apply] using congrArg (Matrix.map · (lift E' (Φ w))) hJ_mat
+    simpa [← ext_iff, Matrix.mul_apply] using congrArg (Matrix.map · (lift E' (Φ w))) hJ_mat
   have h_adelic : (g.map a).1ᴴ * 1 * (g.map a).1 = J.1.map (a ∘ algebraMap E E') := by
-    simpa [← ext_iff, mul_apply, a] using congrArg (Matrix.map · a) hJ_mat
+    simpa [← ext_iff, Matrix.mul_apply, a] using congrArg (Matrix.map · a) hJ_mat
   have h_finite : y.1ᴴ * 1 * y.1 = J.1.map (algebraMap E (𝔸f E)) := by
     apply map_injective (adeleMap_injective (algebraMap E E'))
     -- `y` becomes `u⁻¹ g` over `E'`, and `u⁻¹` is unitary.
     simpa [← hy, comp_def, ↓map_conjTranspose_mul_mul, adeleMap_star] using!
-      gram_mul_of_gram_eq u⁻¹.2 h_adelic
+      gram_mul_of_gram_eq (mem_unitaryGroupOf_iff.1 u⁻¹.2) h_adelic
   -- Landherr's theorem compares the space of `J` with the standard space `stdSpace E n`.
   let V : Space E n 1 := ⟨J, _, gram_mkAdelicGL (fun w ↦ gram_inv_of_gram_eq (h_infinite w))
     (gram_inv_of_gram_eq h_finite)⟩
   obtain ⟨l, hl : l.1ᴴ * J.1 * l.1 = (stdSpace E n).J⟩ := V.landherr (stdSpace E n)
-  refine ⟨⟨g * l.map (algebraMap E E'), gram_mul_of_gram_eq hJ_mat ?_⟩, eq_inv_mul_of_mul_eq ?_⟩
+  refine ⟨⟨g * l.map (algebraMap E E'), mem_unitaryGroupOf_iff.2 (gram_mul_of_gram_eq hJ_mat ?_)⟩,
+     eq_inv_mul_of_mul_eq ?_⟩
   · simp [← map_conjTranspose_mul_mul, map_star_CM, hl, stdSpace]
   · -- `σ` fixes `l`, so `s σ(g l) = s σ(g) l = g l`.
     ext

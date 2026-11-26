@@ -1,4 +1,6 @@
-import Lib.Shimura.HeckeTower.Model
+module
+
+public import Lib.Shimura.HeckeTower.Model
 
 /-!
 # Reduction of isogeny kernels: Cartier density, the tangent line and torsion sections
@@ -45,6 +47,8 @@ Known; see `Lib.Shimura.AbelianScheme.IsogenyFlatness`,
 `Lib.Shimura.CongruenceRelation.HeckeNeighbours`, `Lib.Shimura.Deformation.TangentBound` and
 `Lib.Shimura.ThetaModuli.UniversalFamily` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Cartier's theorem on density of characteristic zero points
@@ -400,7 +404,7 @@ lemma exists_isLieLine {R : Type} [CommRing R] [IsLocalRing R] [Algebra R k]
     refine ⟨∑ j, ξ j • snd (tangentCoords z (p v) j),
       hZ_uniq _ _ (by simp [r, hv]) (funext fun i ↦ ?_)⟩
     have h_fst : ∀ j, fst (tangentCoords z (p v) j) = 0 :=
-      h_chart.map_tangentCoords_eq_zero h_zero (h_tiny.2 hv)
+      IsEtaleChart.map_tangentCoords_eq_zero h_zero (h_tiny.2 hv)
     have hb_zero : algebraMap R k ((Spec.preimage (x ≫ τ)).hom (D.β - b)) = 0 := by
       simpa only [hρ, ThetaObject.baseHom] using! hb
     simp [h_lin (h_tiny.2 hv), map_smul, smul_sum, h_fst, eq_add_of_sub_eq h_rank,

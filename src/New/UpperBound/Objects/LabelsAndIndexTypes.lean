@@ -1,5 +1,7 @@
-import Lib.LocalGL.Green.LabelCharacters
-import New.Reduction.Data.LevelAndTwists
+module
+
+public import Lib.LocalGL.Green.LabelCharacters
+public import New.Reduction.Data.LevelAndTwists
 
 /-!
 # Good labels, index types of hermitian spaces, the group 𝖦 and idempotent e₀
@@ -35,6 +37,8 @@ Notions from other files:
 * `New.tupleIdem`: the tensor product of the label idempotents e_c of a tuple of polynomials.
 * `New.piTensorElem`: the pure tensor ⊗ x_i in ℂ[∏ G_i] of elements x_i of ℂ[G_i].
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -211,12 +215,6 @@ lemma BlockIndex.nonempty_equiv_sum {S T α : Type} (ν : S ≃ α) (j : ℕ) :
 def BlockIndex.equivSum (ν : S ≃ α) : (j : ℕ) → BlockIndex S T j ≃ α ⊕ Fin j × T
   | 0 => ν.trans (Equiv.sumEmpty α (Fin 0 × T)).symm
   | j + 1 => (nonempty_equiv_sum ν (j + 1)).some
-
-/-- For `j = 0` the bijection `equivSum ν 0` from `BlockIndex S T 0` to `α ⊕ Fin 0 × T` sends `x` to
-`Sum.inl (ν x)`, that is, it is `ν` followed by the left inclusion. -/
-lemma BlockIndex.equivSum_zero_apply (ν : S ≃ α) (x : S) :
-    (equivSum ν 0 : BlockIndex S T 0 ≃ α ⊕ Fin 0 × T) x = Sum.inl (ν x) :=
-  rfl
 
 variable [Fintype S] [Fintype T]
 

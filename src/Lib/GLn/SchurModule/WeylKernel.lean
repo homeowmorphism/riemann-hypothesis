@@ -1,6 +1,8 @@
-import Lib.Adelic.Unitary.Defs
-import Lib.GLn.SchurModule.TensorModel
-import Lib.Shimura.ComplexTheta.AppellHumbertData
+module
+
+public import Lib.Adelic.Unitary.Defs
+public import Lib.GLn.SchurModule.TensorModel
+public import Lib.Shimura.ComplexTheta.AppellHumbertData
 
 /-!
 # The Weyl kernel and its Gram matrix: the hook number bound, positivity, Schur's lemma
@@ -36,6 +38,8 @@ Notions from other files:
 
 Known; see `Lib.GLn.SchurModule.SchurNorm` and `Lib.GLn.Dual` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Positivity and a bound for the hook number
@@ -218,7 +222,7 @@ section
 omit [DecidableEq Φ] [∀ τ : Φ, DecidableEq (n τ)]
 
 lemma map_weylKernel : MvPolynomial.map φ (weylKernel n κ y) = weylKernel n κ (φ ∘ y) := by
-  simp [weylKernel, rowSubst, map_bind₁, ← C_mul']
+  simp [weylKernel, rowSubst, map_aeval_eq_aeval_map_map, -map_aeval, ← C_mul']
 
 /-- `f(yᵀ x)` as a polynomial in `x`: the product of the leading minors of `yᵀ x`. -/
 lemma rowSubst_highestPoly :

@@ -1,5 +1,7 @@
-import Lib.General.LinearAlgebra.HermitianMatrices
-import Lib.General.Measure.HaarNormalisation
+module
+
+public import Lib.General.LinearAlgebra.HermitianMatrices
+public import Lib.General.Measure.HaarNormalisation
 
 /-!
 # Cayley chart and an explicit Haar measure on the unitary group U(J)
@@ -35,6 +37,8 @@ Notions from other files:
 Part of a known result: the Haar measure of U(J) in Cayley coordinates.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New
@@ -64,7 +68,7 @@ theorem det_mulLeft_mulRight_real {m : Type _} [Fintype m] [DecidableEq m] (P : 
   set T : Matrix m n ℂ →ₗ[ℂ] Matrix m n ℂ :=
     mulRightLinearMap m ℂ Q ∘ₗ mulLeftLinearMap n ℂ P
   have h_matrix : toMatrix (stdBasis ℂ m n) (stdBasis ℂ m n) T = kronecker P Qᵀ := by
-    simp [T, ← ext_iff, toMatrix_apply, stdBasis, mul_apply, Pi.single_apply, ite_apply]
+    simp [T, ← ext_iff, toMatrix_apply, stdBasis, Matrix.mul_apply, Pi.single_apply, ite_apply]
   have h_det : T.det = P.det ^ card n * Q.det ^ card m := by
     rw [← det_toMatrix (stdBasis ℂ m n), h_matrix, kronecker, det_kronecker, det_transpose]
   exact T.det_restrictScalars.trans (by simp [h_det, norm_complex_eq, pow_mul, Complex.sq_norm])
@@ -76,7 +80,7 @@ theorem exists_U_coe_eq (h_form : xᴴ * J * x = J) : ∃ g : U J, g = x :=
 
 /-- For a hermitian involution J, sending an element of U(J) to its matrix is a closed embedding. -/
 lemma isClosedEmbedding_U : IsClosedEmbedding fun g : U J ↦ (g : Matrix n n ℂ) :=
-  U.isClosedEmbedding_coe isUnit
+  Matrix.unitaryGroupOf.isClosedEmbedding_val isUnit
 
 /-- For a hermitian involution J, a map to U(J) is continuous if and only if it is continuous as a
 map to matrices. -/
@@ -161,7 +165,7 @@ theorem conjTranspose_logDerivU (h_diff : DifferentiableAtU Φ p) (v : V) :
   let g (x : V) : Matrix n n ℂ := Φ x
   let D : Matrix n n ℂ := fderiv ℝ g p v
   have h_const : (fun x : V ↦ star (g x) * J * g x) = fun _ : V ↦ J :=
-    funext fun x ↦ mem_U.1 (Φ x).property
+    funext fun x ↦ mem_unitaryGroupOf_iff.1 (Φ x).property
   have h_product :
       fderiv ℝ (fun x : V ↦ star (g x) * J * g x) p v = (g p)ᴴ * J * D + Dᴴ * J * g p := by
     rw [((h_diff.hasFDerivAt.star.mul_const' J).fun_mul' h_diff.hasFDerivAt).fderiv]
@@ -256,7 +260,7 @@ exp(-π q) has lower integral 1. -/
 theorem lintegral_gaussian_eq_one : ∫⁻ x : V, ‖rexp (-π * q x)‖ₑ = 1 := by
   -- The Gaussian is integrable because its integral is `1 ≠ 0`, and it equals its norm.
   have h_one : ∫ x, rexp (-π * q x) = 1 := by simpa using h_gauss.integral_exp_eq pi_pos
-  rw [← ofReal_integral_norm_eq_lintegral_enorm
+  rw [← ofReal_integral_norm_eq_lintegral_eNorm
     (.of_integral_ne_zero (h_one.trans_ne one_ne_zero))]
   simpa using h_one
 
@@ -383,12 +387,6 @@ lemma volU_pos (j : ℕ) : 0 < volU j := by
   unfold volU
   positivity
 
-/-- For J = 1 the denominator 1 - (`New.skewOfReal` y) / 2 of the Cayley chart is invertible for
-every y, because its hermitian part is the identity. -/
-@[simp]
-lemma det_cayleyDenom_one_ne_zero : (cayleyDenom 1 y).det ≠ 0 :=
-  IsAccretive.det_ne_zero (by norm_num [IsAccretive, PosDef.ofNat, cayleyDenom])
-
 section
 
 variable {J J' y} [IsHermitianInvolution J']
@@ -435,7 +433,8 @@ theorem logDerivU_cayleyChart (h_det : (cayleyDenom J y).det ≠ 0) :
     simp [hd.fderiv, hM_def, nonsing_inv_eq_ringInverse]
   have h_swap : (cayleyChart J y : Matrix n n ℂ)ᴴ * J * M = Mᴴ * J := by
     have hM : M = (2 : ℂ)⁻¹ • ((cayleyChart J y : Matrix n n ℂ) + 1) := by simp [h_coe, hM_def]
-    simp [hM, Matrix.mul_add, Matrix.add_mul, mem_U.1, add_comm]
+    simp [hM, Matrix.mul_add, Matrix.add_mul, ← star_eq_conjTranspose, mem_unitaryGroupOf_iff.1,
+      add_comm]
   calc logDerivU (cayleyChart J) y v
       = (cayleyChart J y : Matrix n n ℂ)ᴴ * J * M * (J⁻¹ * skewOfReal v) * M := by
         simp [logDerivU, h_fderiv, Matrix.mul_assoc]
@@ -488,7 +487,7 @@ theorem measurableEmbedding_cayleyChart :
     MeasurableEmbedding
       ({y : Matrix n n ℝ | (cayleyDenom J y).det ≠ 0}.domRestrict (cayleyChart J)) := by
   have := (measurableSet_det_cayleyDenom_ne_zero (J := J)).standardBorel
-  exact (measurable_cayleyChart.comp measurable_subtype_coe).measurableEmbedding
+  exact (measurable_cayleyChart.comp measurable_subtypeVal).measurableEmbedding
     cayleyChart_injOn.injective
 
 /-- The integral of any f : U(J) → [0, ∞] (no measurability needed) for `volume` = `New.haarU` J,
@@ -611,6 +610,7 @@ theorem differentiableAt_cayleyChartInv_mul {Φ : V → U J} {p : V} (hΦ : Diff
   -- `Ring.inverse` is differentiable at the unit `c * Φ p + 1`
   fun_prop (disch := assumption)
 
+open scoped Pointwise in
 /-- For any complex matrix x, the matrix e^{it} x + 1 is invertible for almost every real t; here
 the scalar e^{it} is taken as the element `New.circleScalar` t of U(J). -/
 theorem ae_isUnit_circleScalar_mul_add_one (x : Matrix n n ℂ) :
@@ -648,8 +648,8 @@ theorem Haar.lintegral_chart_rotate_le [FiniteDimensional ℝ V] [MeasureSpace V
   -- Fubini for null sets, against the image of the measure on `A` in the space of matrices
   have h_meas : MeasurableSet {z : Matrix n n ℂ × ℝ |
       IsUnit (((circleScalar z.2 : U J) : Matrix n n ℂ) * z.1 + 1)} := by
-    simp only [isUnit_iff_isUnit_det, isUnit_iff_ne_zero]
-    measurability
+    simp only [isUnit_iff_isUnit_det, isUnit_iff_ne_zero, circleScalar, U.val_of_coe]
+    exact (by fun_prop : Continuous _).isOpen_support.measurableSet
   have h_swap : ∀ᵐ t, ∀ᵐ x ∂(volume.restrict A).map fun p ↦ (Φ p : Matrix n n ℂ),
       IsUnit (((circleScalar t : U J) : Matrix n n ℂ) * x + 1) :=
     (ae_ae_comm h_meas).1 (.of_forall ae_isUnit_circleScalar_mul_add_one)
@@ -770,7 +770,7 @@ instance : (volume (α := U J)).IsHaarMeasure := by
   -- A σ-finite left invariant measure is a multiple of Haar measure. The multiple is neither
   -- `0` nor `∞`, because some set has positive finite measure.
   have : SigmaFinite (haarU J) := by
-    apply_rules [(measurePreserving_subtype_coe _).sigmaFinite,
+    apply_rules [(measurePreserving_subtypeVal _).sigmaFinite,
       measurableEmbedding_cayleyChart.sigmaFinite_map, measurableSet_det_cayleyDenom_ne_zero]
   have : (haarU J).IsMulLeftInvariant :=
     ⟨fun g ↦ (measurePreserving_haarU g 1 1 (.mulLeft g) (by simp) (by simp)).map_eq⟩
@@ -781,11 +781,11 @@ instance : (volume (α := U J)).IsHaarMeasure := by
       exact continuous_cayleyDenom.matrix_det.isOpen_support.measure_pos _
         ⟨0, by simp [cayleyDenom]⟩
     · exact fun y (hy : (cayleyDenom J y).det ≠ 0) ↦ by simp [hy, det_ne_zero]
-    all_goals measurability
+    measurability
   obtain ⟨s, -, -, hs_pos, hs_fin⟩ := exists_subset_measure_lt_top .univ h_pos
   rw [haarMeasure_unique volume Classical.ofNonempty] at hs_pos hs_fin ⊢
   refine IsHaarMeasure.smul _ (fun h_zero ↦ by simp [h_zero] at hs_pos) fun h_top ↦ ?_
-  rw [h_top, Measure.smul_apply, smul_eq_mul] at hs_pos hs_fin
+  rw [h_top, smul_apply, smul_eq_mul] at hs_pos hs_fin
   exact hs_fin.ne (ENNReal.top_mul (right_ne_zero_of_mul hs_pos.ne'))
 
 end

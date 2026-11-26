@@ -1,6 +1,8 @@
-import Lib.Weil.Construction.AdelicRepresentation
-import Lib.Weil.Fock.PolynomialVectors
-import Lib.Weil.MixedModel.SchwartzBruhat
+module
+
+public import Lib.Weil.Construction.AdelicRepresentation
+public import Lib.Weil.Fock.PolynomialVectors
+public import Lib.Weil.MixedModel.SchwartzBruhat
 
 /-!
 # Vacuum projections and the finite part of the Weil representation
@@ -48,6 +50,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.MixedModel.ZeroTerm` and `Lib.Weil.Fock.OscillatorPair` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -345,7 +349,7 @@ lemma dataInner_vacElem_smul_vacElem :
   -- By definition, the finite vacuum is `semichar` on the lattice and `0` off it.
   have h_finVac (y) : finVac y = (stdLattice E n : Set (n → 𝔸f E)).indicator semichar y := rfl
   simp [← integral_indicator, indicator_smul_left, ← heisenbergRep_right_rho, finHeisenbergOp,
-    isOpen_stdLattice, IsOpen.measurableSet, h_finVac]
+    isOpen_stdLattice, IsOpen.measurableSet, h_finVac, Set.conjClosure]
   -- What remains is the definition of `projReal`: integrating the real vacuum against the real
   -- Heisenberg operators; a rewrite lemma for it does not match the implicit arguments here.
   rfl
@@ -386,7 +390,7 @@ lattice, then `L (projOn S f) = c`, as the standard lattice has measure `1` for
 lemma map_projOn_eq_const {f : 𝒮 V} {c : Y}
     (hc : ∀ y ∈ stdLattice E n, L (V.finHeisenbergOp (idem S.conjClosure • y) f) = c) :
     L (V.projOn S f) = c := by
-  simp [V.map_projOn L hc, Measure.real]
+  simp [V.map_projOn L hc, Measure.real, Set.univ_inter]
 
 /-- For `y` in the standard lattice, `finHeisenbergOp (idem S.conjClosure • y)` fixes
 `projOn S f`. -/
@@ -518,37 +522,6 @@ lemma projOn_finHeisenbergOp_vacElem (y : n → 𝔸f E) :
       if y ∈ integralBox n S.conjClosure then V.finHeisenbergOp y V.vacElem else 0 := by
   rw [V.projOn_finHeisenbergOp V.projOn_vacElem, boxIndicator, ite_smul, one_smul, zero_smul]
 
-/-- The translates ϱ_f(y) vac and ϱ_f(y') vac of the vacuum are orthogonal when y − y' is not in
-the standard lattice Ô^n. -/
-lemma dataInner_finHeisenbergOp_vacElem_eq_zero_of_sub_notMem {y y' : n → 𝔸f E}
-    (h_sub : y - y' ∉ stdLattice E n) :
-    V.dataInner (V.finHeisenbergOp y V.vacElem) (V.finHeisenbergOp y' V.vacElem) = 0 := by
-  -- Apply the unitary `ϱ_f(-y')` to both vectors: up to scalars they become `ϱ_f(y - y') vac`
-  -- and `vac`, whose inner product is `0`.
-  have h_shift (z : n → 𝔸f E) : V.finHeisenbergOp (-y') (V.finHeisenbergOp z V.vacElem) =
-      selfDualAddChar E (star traceOneAdele * star z ⬝ᵥ -y') •
-        V.finHeisenbergOp (z - y') V.vacElem := by
-    rw [V.finHeisenbergOp_finHeisenbergOp, neg_add_eq_sub]
-  have h_zero : V.dataInner (V.finHeisenbergOp (y - y') V.vacElem) V.vacElem = 0 := by
-    rw [V.dataInner_finHeisenbergOp_vacElem_vacElem, ite_eq_right h_sub]
-  rw [← V.dataInner_finHeisenbergOp (-y'), h_shift, h_shift, sub_self,
-    finHeisenbergOp_vacElem (zero_mem _)]
-  simp [h_zero]
-
-open scoped Classical in
-/-- Let r choose a representative of each class of finite adelic vectors modulo the standard
-lattice Ô^n. Then the translates ϱ_f(r q) vac of the vacuum are orthonormal. -/
-lemma dataInner_finHeisenbergOp_rep_vacElem {r : (n → 𝔸f E) ⧸ stdLattice E n → n → 𝔸f E}
-    (hr : ∀ q : (n → 𝔸f E) ⧸ stdLattice E n, (r q : (n → 𝔸f E) ⧸ stdLattice E n) = q)
-    (q q' : (n → 𝔸f E) ⧸ stdLattice E n) :
-    V.dataInner (V.finHeisenbergOp (r q) V.vacElem) (V.finHeisenbergOp (r q') V.vacElem) =
-      if q = q' then 1 else 0 := by
-  split_ifs with h_eq
-  · rw [h_eq, V.dataInner_finHeisenbergOp, dataInner_vacElem_vacElem]
-  · refine V.dataInner_finHeisenbergOp_vacElem_eq_zero_of_sub_notMem fun h_mem ↦ h_eq ?_
-    rw [← hr q, ← hr q']
-    exact QuotientAddGroup.eq_iff_sub_mem.mpr h_mem
-
 /-- P^S = `projOn S` multiplies the value of f at an adelic vector y by the indicator of the
 condition that the finite coordinate `finCoord y` of y is integral above S ∪ S̄. -/
 lemma projOn_val (f : 𝒮 V) (y : n → 𝔸 E) :
@@ -643,7 +616,7 @@ lemma map_eq_zero_of_map_integrated_eq_zero {f : 𝒮 V} (hf_fix : V.projOn S f 
   -- `S.conjClosure`.
   suffices h_box : finCoord y ∈ integralBox n S.conjClosure →
       L (V.integrated w (V.finHeisenbergOp (finCoord y) V.vacElem)) = 0 by
-    show L (V.projOn S (V.ω 1 (V.ϱ y V.vacElem))) = 0
+    change L (V.projOn S (V.ω 1 (V.ϱ y V.vacElem))) = 0
     simpa [projOn_finHeisenbergOp, apply_ite, hw] using h_box
   intro hy
   have h_int : idem S.conjClosure • finCoord y ∈ stdLattice E n := hy
@@ -692,7 +665,7 @@ invertible matrix. -/
     realMultiplier, finMultiplier_inv]
   -- What remains: `projOn S` commutes with `finHeisenbergOp y`, as `y` is `0` above
   -- `S.conjClosure`, and the real vacuum takes the value `1` at `0`.
-  show V.integrated (polyVector (realSigns E s) P)
+  change V.integrated (polyVector (realSigns E s) P)
         (V.projOn S (V.finHeisenbergOp y (V.ω (1, g) V.vacElem))) =
       realVac 0 • V.integrated (polyVector (realSigns E s) P)
         (V.finHeisenbergOp y (V.projOn S (V.ω (1, g) V.vacElem)))
@@ -769,7 +742,7 @@ lemma omega_vacElem_sum {g : Gf E n} :
   have h_mean : V.ω g (V.projOn univ (V.ω ↑g⁻¹ V.vacElem)) =
       ∫ y in stdLattice E n, F y ∂latticeMeasure E n := by
     refine V.map_projOn _ fun y _ ↦ ?_
-    simp [F, rep_apply_apply, mk_one_one]
+    simp [F, rep_apply_apply, mk_one_one, Set.conjClosure]
   have h_const (x y : stdLattice E n) (hxy : -x.val + y ∈ Λ') : F y = F x := by
     simpa only [add_neg_cancel_left] using
       V.finHeisenbergOp_mulVec_add_vacElem x.property (add_mem (neg_mem x.property) y.property) hxy
@@ -819,29 +792,6 @@ lemma finHeisenbergOp_mem_finitePart (hf : f ∈ V.finitePart) :
   | zero => simp
   | add f₁ f₂ _ _ h₁ h₂ => simpa using add_mem h₁ h₂
   | smul c f₁ _ h₁ => simpa using smul_mem _ c h₁
-
-variable (V) in
-/-- Let r choose a representative of each class of finite adelic vectors modulo the standard
-lattice Ô^n. Then the translates ϱ_f(r q) vac of the vacuum span the finite part 𝒮_f. They are
-orthonormal by `New.Space.dataInner_finHeisenbergOp_rep_vacElem`. -/
-lemma span_finHeisenbergOp_rep_vacElem {r : (n → 𝔸f E) ⧸ stdLattice E n → n → 𝔸f E}
-    (hr : ∀ q : (n → 𝔸f E) ⧸ stdLattice E n, (r q : (n → 𝔸f E) ⧸ stdLattice E n) = q) :
-    span ℂ (range fun q : (n → 𝔸f E) ⧸ stdLattice E n ↦ V.finHeisenbergOp (r q) V.vacElem) =
-      V.finitePart := by
-  refine le_antisymm (span_le.mpr ?_) (span_le.mpr ?_)
-  · rintro _ ⟨q, rfl⟩
-    exact finHeisenbergOp_mem_finitePart (r q) vacElem_mem_finitePart
-  · -- A translate `ϱ_f(z) vac` is a multiple of the translate by the representative of `z`, as
-    -- the two vectors differ by a lattice vector, which fixes the vacuum.
-    rintro _ ⟨z, rfl⟩
-    have h_mem : r z - z ∈ stdLattice E n := QuotientAddGroup.eq_iff_sub_mem.mp (hr z)
-    have h_rep : V.finHeisenbergOp z V.vacElem =
-        selfDualAddChar E (star traceOneAdele * star (r z - z) ⬝ᵥ z) •
-          V.finHeisenbergOp (r z) V.vacElem := by
-      nth_rw 1 [← finHeisenbergOp_vacElem h_mem]
-      rw [finHeisenbergOp_finHeisenbergOp, add_sub_cancel]
-    simpa only [SetLike.mem_coe, h_rep] using
-      smul_mem _ _ (subset_span (mem_range_self (z : (n → 𝔸f E) ⧸ stdLattice E n)))
 
 /-- The finite part is stable under the Heisenberg operators ϱ(x) of finite adelic vectors x. -/
 lemma rho_finVec_mem_finitePart (hf : f ∈ V.finitePart) : V.ϱ (finVec x) f ∈ V.finitePart :=
@@ -933,6 +883,7 @@ lemma exists_eq_smul_omega_vacElem {g : Gf E n} (hf : f ∈ V.finitePart)
   let f' : 𝒮 V := V.ω (1, g⁻¹) f
   have h_fin : V.projOn univ f' = f' := by
     refine V.map_projOn_eq_const (ContinuousLinearMap.id ℂ (𝒮 V)) fun y hy ↦ ?_
+    rw [show (univ : Set (FinPlace E)).conjClosure = univ from Set.univ_union _, idem_univ, one_smul]
     simpa using congrArg (V.ω (1, g⁻¹)) (h_fix y hy)
   have h_real : V.projReal f' = f' := projReal_eq_self_of_mem_finitePart (omega_mem_finitePart _ hf)
   have h_vac : V.dataInner V.vacElem f' • V.vacElem = f' := by

@@ -1,4 +1,6 @@
-import Lib.Shimura.CongruenceRelation.KernelReduction
+module
+
+public import Lib.Shimura.CongruenceRelation.KernelReduction
 
 /-!
 # Counting w-torsion points bounds a space of natural semilinear functions by n − 1
@@ -14,6 +16,8 @@ kernel. A morphism `specOver k C ⟶ x.groupScheme` is a `C`-point, and `placeTo
 
 Known; see `Lib.Shimura.Deformation.TangentBound` for sources.
 -/
+
+@[expose] public section
 
 namespace New.Variety
 
@@ -47,7 +51,7 @@ lemma mem_powers_card_of_isLinearMap_pow (F : Type*) {i : ℕ} [Field F] [Finite
   let V : Submodule F k := Φ.fixedSubmodule.copy (rootSet P k) h_roots
   let V_fintype : Fintype V := rootSetFintype _ k
   have h_card : Fintype.card F * i = Fintype.card F ^ finrank F V := calc
-    _ = P.natDegree := (X_pow_card_sub_X_natDegree_eq F h_two).symm
+    _ = P.natDegree := (natDegree_X_pow_sub_X h_two).symm
     _ = Fintype.card V := (card_rootSet_eq_natDegree h_sep (splits _)).symm
     _ = _ := card_eq_pow_finrank
   -- The exponent is not `0`, so one factor `q` cancels.
@@ -399,7 +403,7 @@ lemma eq_zero_of_isLocalParameter (h_ker : RingHom.ker x.baseHom ≠ ⊥)
       · rw [h_pow_eq_div (pt a + pt b) (a + b) (by simp [h_pt])]
         simp [h_pow_eq_div _ _ (h_pt _), add_div]
       · -- the scalar `a` of `F` acts on `k` through `x.baseHom`
-        show (x.baseHom a * b) ^ i = x.baseHom a * b ^ i
+        change (x.baseHom a * b) ^ i = x.baseHom a * b ^ i
         rw [h_pow_eq_div (a • pt b) (x.baseHom a * b) (by simp [h_pt, hL_smul]),
           h_pow_eq_div _ _ (h_pt b)]
         simp [mul_div_assoc, smul_eq_mul]
@@ -471,7 +475,7 @@ lemma finrank_le_of_placeTorsion (hw : D.IsGoodAt (RingHom.ker x.baseHom)) {V : 
     have h_index : ν.ker.index = Nat.card (placeTorsion x k) := by
       rw [AddSubgroup.index_ker, ν.range_eq_top.mpr hν, AddSubgroup.card_top]
     rw [← natCard_eq_pow_finrank, ← h_index, ν.ker.card_mul_index]
-    exact (card_torsionBySet_adelicTorsion h_ker).symm
+    rw [card_torsionBySet_adelicTorsion h_ker, Ideal.absNorm_eq_natCard]
   have h_lt {i : ℕ} (hi : τ ^ q ^ i ≠ 0) : i < card D.Index - finrank F (placeTorsion x k) := by
     have h_lt_card : q ^ i < Nat.card ν.ker := by
       simpa using (fun h_le ↦ pow_eq_zero_of_le h_le hT.pow_eq_zero).mt hi

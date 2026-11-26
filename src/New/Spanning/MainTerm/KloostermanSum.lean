@@ -1,4 +1,6 @@
-import New.Spanning.Frames.BesselVector
+module
+
+public import New.Spanning.Frames.BesselVector
 
 /-!
 # The orbital integral at the finite places is a Kloosterman sum
@@ -31,16 +33,18 @@ Notions from other files:
 See `New.Spanning.MainTerm.EnergyEstimate` for related work.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 open MeasureTheory Measure Function
 
-/-- Let `μ` be a left invariant measure on a group `G` and `J` an open subgroup of finite volume.
+/-- Let `μ` be a left invariant measure on a group `G` and `J` an open subgroup.
 The integral of a function on the cosets `y J` is the volume of `J` times its sum over the cosets.
 If the sum does not converge, both sides are zero. -/
 lemma New.integral_comp_quotientMk {G : Type*} [Group G] [TopologicalSpace G] [IsTopologicalGroup G]
     [SecondCountableTopology G] [MeasurableSpace G] [BorelSpace G] (μ : Measure G)
-    [μ.IsMulLeftInvariant] {J : Subgroup G} (hJ : IsOpen (J : Set G)) (_h_fin : μ J ≠ ⊤)
+    [μ.IsMulLeftInvariant] {J : Subgroup G} (hJ : IsOpen (J : Set G))
     (f : G ⧸ J → ℂ) : ∫ y : G, f y ∂μ = μ.real J • ∑' q : G ⧸ J, f q := by
   -- The image of `μ` on the countable discrete quotient is `μ J` times the counting measure.
   have : DiscreteTopology (G ⧸ J) := QuotientGroup.discreteTopology hJ
@@ -235,8 +239,6 @@ theorem IntegralPlace.IsLargeLatticeData.besselOrbitalIntegral_besselVector_appl
     rw [← extendedBesselChar_eq_of_inv_mul_mem h_first,
       ← extendedBesselChar_eq_of_inv_mul_mem h_second]
   have h_open : IsOpen (F.congruenceSubgroup : Set T.G) := unitaryLevel_open_compact.1
-  have h_fin : F.groupMeasure F.congruenceSubgroup ≠ ⊤ :=
-    groupMeasure_ne_top unitaryLevel_le_unitaryLevel_one
   calc
     _ = ∫ y : T.G, extendedBesselChar F.levelUnit (y * (a.out : T.G)⁻¹) *
           star (extendedBesselChar F.levelUnit (x⁻¹ * y * (b.out : T.G)⁻¹)) ∂F.groupMeasure := by
@@ -247,7 +249,7 @@ theorem IntegralPlace.IsLargeLatticeData.besselOrbitalIntegral_besselVector_appl
       simp only [mul_assoc, mul_inv_cancel, mul_one]
     _ = ∫ y : T.G, Φ y ∂F.groupMeasure := by simp only [h_coset]
     _ = F.groupMeasure.real F.congruenceSubgroup • ∑' q : T.G ⧸ F.congruenceSubgroup, Φ q :=
-      integral_comp_quotientMk F.groupMeasure h_open h_fin Φ
+      integral_comp_quotientMk F.groupMeasure h_open Φ
     _ = _ := by rw [tsum_extendedBesselChar_mul_star_extendedBesselChar x hs]
 
 end New.Floors

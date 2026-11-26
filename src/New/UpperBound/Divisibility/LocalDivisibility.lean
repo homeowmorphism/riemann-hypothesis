@@ -1,8 +1,10 @@
-import New.UpperBound.Divisibility.ColengthAtLevel
-import New.UpperBound.Divisibility.MarkOperator
-import New.UpperBound.Divisibility.ValuationAtLevel
-import New.UpperBound.Divisibility.ValuationAtNonSplitPrimes
-import New.UpperBound.Size.Estimates
+module
+
+public import New.UpperBound.Divisibility.ColengthAtLevel
+public import New.UpperBound.Divisibility.MarkOperator
+public import New.UpperBound.Divisibility.ValuationAtLevel
+public import New.UpperBound.Divisibility.ValuationAtNonSplitPrimes
+public import New.UpperBound.Size.Estimates
 
 /-!
 # The divisibility of the composite lift at each prime
@@ -43,9 +45,7 @@ row, the exponents below are built from the following numbers.
   integral members have colength at most l in the integral source forms, with
   l ≤ allowedLoss(p) · dim (source forms), and on whose ramified members the composite lift of a
   chain datum has valuation at least gain(p) − allowedLoss(p).
-* `New.Data.exists_err_gaugeLe_compositeLift`: the same bound for all primes p, on a submodule of
-  the integral ramified source forms, with losses err(p) such that every finite sum ∑ err(p) log p
-  is at most `New.Data.errorUnit`.
+  The sum of these explicit losses is bounded by `New.Data.sum_allowedLoss_mul_log_le`.
 
 Notions from other files:
 * `New.GaugeLe d c φ`: for every `g`, the p-adic gauge of the value `φ g` at `g * d` is at most `c`.
@@ -76,6 +76,8 @@ Rallis, Langlands' functoriality and the Weil representation, 1982; V. Lafforgue
 valuations p-adiques des valeurs propres des opérateurs de Hecke, 2011; Z. Liu, Test Schwartz
 functions at p for theta lifts of Hida families, arXiv 2510.21644, 2025.
 -/
+
+@[expose] public section
 
 open Module Finset Submodule Real
 
@@ -203,7 +205,7 @@ lemma IsWeakChainDatum.gaugeLe_restrictedChain_collisionSum (hΨ : IsWeakChainDa
       -D.divisibilityBound p j ∅ ≤ D.collisionSum p ∅ + (D.loss p - D.gain p) / D.m := by
     have h_bound : D.gain p / D.m - D.collisionSum p ∅ - D.f * D.logB ^ 2 * (D.a / p) / D.m ≤
         D.divisibilityBound p j ∅ := by
-      simpa using le_divisibilityBound (mem_range.1 hj) hp_small ∅
+      simpa [Finset.inter_empty _] using le_divisibilityBound (mem_range.1 hj) hp_small ∅
     have h_loss : D.f * D.logB ^ 2 * (D.a / p) / D.m ≤ D.loss p / D.m :=
       div_le_div_of_nonneg_right (D.le_loss p) hm_pos.le
     rw [sub_div]
@@ -464,7 +466,6 @@ theorem exists_colengthDvd_gaugeLe_compositeLift {P : Parameters} {D : Data P} {
     -- gain zero.
     rw [allowedLoss, ite_eq_right h_mem, ite_eq_left hN]
     subst hN
-    have h_size : 0 ≤ D.m * D.f * D.b := (HasLogBound.pos D).le
     obtain ⟨l, hl, h_index⟩ : ∃ l : ℕ, l ≤ D.m * D.f * D.b * finrank ℂ D.SourceForm ∧
         ColengthDvd (integralFormsAt D.SourceForm 1) D.upIntegralForms (D.N ^ l) :=
       D.exists_colengthDvd_upIntegralForms_pow
@@ -478,51 +479,5 @@ theorem exists_colengthDvd_gaugeLe_compositeLift {P : Parameters} {D : Data P} {
       fun ϑ Ψ hΨ _ φ hφ h_ram ↦ ?_⟩
     rw [D.gain_eq_zero (.inr D.le_of_hasLogBound), sub_zero]
     exact D.gaugeLe_compositeLift_at_N hΨ h_ram hφ
-
-/-- **Divisibility of the composite lift.** There are real numbers `err p` with these properties.
-* (a) Each `err p` is non-negative.
-* (b) If `p ≠ N`, and `chiK d p = 1` (split primes) or `x₁ ≤ p`, then `err p = 0`.
-* (c) Every finite sum `∑ err p * log p` is at most `errorUnit`.
-* (d) For every prime `p` and every embedding `ιₚ` of `ℂ` in `ℂ_p`, the module of integral ramified
-  source forms has a submodule `S`, over the ring `embValRing` of numbers that `ιₚ` sends to
-  `p`-adic integers, of index dividing `p ^ l` for a natural number `l ≤ err p * dim`, such that the
-  composite lift of every source form in `S` has valuation at least `gain p - err p`, for all twists
-  `ϑ` of level prime to `p` and all chain data `Ψ`.
-
-Here `dim` is the dimension of the space of source forms, `N` the level, `x₁` the second cut-off and
-`chiK d` the quadratic character `χ_K` of the prime parameter `d`. -/
-theorem exists_err_gaugeLe_compositeLift {P : Parameters} (D : Data P) :
-    ∃ err : ℕ → ℝ,
-      -- (a)
-      (∀ p : ℕ, 0 ≤ err p) ∧
-      -- (b)
-      (∀ p : ℕ, p ≠ D.N → chiK P.d p = 1 ∨ D.x₁ ≤ p → err p = 0) ∧
-      -- (c)
-      (∀ U : Finset ℕ, ∑ p ∈ U, err p * log p ≤ D.errorUnit) ∧
-      -- (d)
-      ∀ (p : ℕ) [Fact p.Prime] [PadicPlace p], ∃ (l : ℕ) (S : Submodule embValRing D.SourceForm),
-        l ≤ err p * finrank ℂ D.SourceForm ∧
-        S ≤ D.integralSourceForms ⊓ D.ramifiedSourceForms.restrictScalars embValRing ∧
-        ColengthDvd (D.integralSourceForms ⊓ D.ramifiedSourceForms.restrictScalars embValRing) S
-          (p ^ l) ∧
-        ∀ (ϑ : D.Twist) (Ψ : D.Translations →₀ ℂ), IsChainDatum ϑ Ψ → p.Coprime ϑ.normQ →
-          ∀ φ ∈ S, GaugeLe 1 (p ^ (err p - D.gain p)) (compositeLift ϑ Ψ φ) := by
-  -- The errors are the allowed losses.
-  refine ⟨D.allowedLoss, D.allowedLoss_nonneg, fun p hN h_cases ↦ ?_, D.sum_allowedLoss_mul_log_le,
-    fun p _ _ ↦ ?_⟩
-  · have h_notMem : p ∉ D.smallNonsplitPrimes := by
-      simp only [mem_filter, mem_range, Nat.lt_ceil]
-      exact fun ⟨hp_lt, _, hp_nonsplit⟩ ↦ h_cases.elim hp_nonsplit hp_lt.not_ge
-    rw [allowedLoss, ite_eq_right h_notMem, ite_eq_right hN]
-  · -- Intersect the module `S` found at `p` with the integral ramified source forms.
-    obtain ⟨l, S, hl, h_index, h_gauge⟩ :=
-      exists_colengthDvd_gaugeLe_compositeLift (D := D) (p := p)
-    set M : Submodule embValRing D.SourceForm :=
-      D.integralSourceForms ⊓ D.ramifiedSourceForms.restrictScalars embValRing
-    have h_index_inf : ColengthDvd M (M ⊓ S) (p ^ l) :=
-      h_index.comap .id inf_le_left fun φ hφ_M hφ_S ↦ ⟨hφ_M, hφ_S⟩
-    refine ⟨l, M ⊓ S, hl, inf_le_left, h_index_inf, ?_⟩
-    rintro ϑ Ψ hΨ hQ φ ⟨⟨-, h_ram⟩, hφ_S⟩
-    exact h_gauge ϑ Ψ hΨ hQ φ hφ_S h_ram
 
 end New.Data

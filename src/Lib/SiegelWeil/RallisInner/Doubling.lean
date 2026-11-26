@@ -1,5 +1,7 @@
-import Lib.SiegelWeil.Formula.WeilRange
-import Lib.SiegelWeil.UnramifiedSeries.VacuumCoefficients
+module
+
+public import Lib.SiegelWeil.Formula.WeilRange
+public import Lib.SiegelWeil.UnramifiedSeries.VacuumCoefficients
 
 /-!
 # Doubling: clean data, the doubling identity and the inner product formula
@@ -42,6 +44,8 @@ S. Rallis, L-functions and the oscillator representation, LNM 1245 (1987); J.-S.
 Eischen–Harris–Li–Skinner 4.1.4.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 section InnerProductFormula
@@ -59,9 +63,6 @@ variable {E n m : Type} [Field E] [CMType E] [WeilData E] [Fintype n] [Decidable
 `Hom(S, T)`, where `conj f = negSource.map f` is the transport of `f` to `Hom(S⁻, T)`; see
 `norm_negSourceFactor` and `theta_negSourceFactor_smul`. -/
 def negSourceFactor (S : Space E n s) (T : Space E m t) : ℂ := (exists_theta_negSource S T).choose
-
-lemma norm_negSourceFactor (S : Space E n s) (T : Space E m t) : ‖negSourceFactor S T‖ = 1 :=
-  (exists_theta_negSource S T).choose_spec.1
 
 /-- The theta functional of `S⁻, T` at the transport of `f`, multiplied by `negSourceFactor S T`,
 is the complex conjugate of the theta functional of `S, T` at `f`. -/
@@ -433,7 +434,7 @@ lemma exists_doubling_bound (h_rank : 2 * card n < card m) : ∃ C : ENNReal, C 
       ‖θ ((S.sum S.neg).hom T) (splitWeil (S.sum S.neg) T (1, x) d)‖ₑ ≤ N x * ‖d‖ₑ := by
     simpa [-theta_apply] using hN x 0 d
   let Z : ENNReal := ∑' δ : U S.J, ‖(graphSplitting S δ⁻¹).lagrangian.zeroTerm T‖ₑ
-  have hZ : Z ≠ ⊤ := tsum_enorm_ne_top_iff_summable_norm.2 <|
+  have hZ : Z ≠ ⊤ := tsum_eNorm_ne_top_iff_summable_norm.2 <|
     (siegel_weil T (graphSplitting S 1) h_rank).1.comp_injective graphSplitting_lagrangian_injective
   refine ⟨(∫⁻ x, N x ∂T.quotMeasure + Z) * ‖doubleDatum (S := S) (T := T)‖ₑ, by finiteness,
     fun a b f f' g g' ↦ ?_⟩
@@ -451,7 +452,7 @@ lemma exists_doubling_bound (h_rank : 2 * card n < card m) : ∃ C : ENNReal, C 
     calc _ ≤ Z * ‖d‖ₑ := by
           rw [← e.tsum_eq, ← ENNReal.tsum_mul_right]
           refine ENNReal.tsum_le_tsum fun δ ↦ .trans (le_of_eq ?_) (le_opENorm _ d)
-          exact congrArg enorm (zeroTerm_graphSplitting_doubleDatum b f f' g g' δ).symm
+          exact congrArg eNorm (zeroTerm_graphSplitting_doubleDatum b f f' g g' δ).symm
       _ ≤ _ := by grw [hd, mul_assoc, ← le_add_self]
 
 open ContinuousLinearMap in
@@ -559,7 +560,7 @@ theorem inner_product_formula (h_rank : 2 * card n < card m) (a b : AutChar E)
     gcongr with p
     calc ∫⁻ γ : S.Γ, ‖Φ (p.1, p.1⁻¹ * (γ * p.2))‖ₑ ∂.count
         = ‖y' p.1‖ₑ * ‖y p.2‖ₑ * ∑' γ : S.Γ, ‖weilMatrixCoeff b f f' (p.1⁻¹ * (γ * p.2))‖ₑ := by
-          simp [lintegral_count, hΦ_unfold, enorm_mul, ENNReal.tsum_mul_left]
+          simp [lintegral_count, hΦ_unfold, eNorm_mul, ENNReal.tsum_mul_left]
       _ ≤ _ := by grw [(h_bound p.2 p.1).2, enorm_mul_height_pow_le hB hB']
   have h_swap : Integrable
       (Function.uncurry fun (p : G E s × G E s) x ↦ conj (y' p.1) * y p.2 * Θ p.2 p.1 x)
@@ -569,7 +570,7 @@ theorem inner_product_formula (h_rank : 2 * card n < card m) (a b : AutChar E)
     gcongr with p
     calc ∫⁻ x, ‖conj (y' p.1) * y p.2 * Θ p.2 p.1 x‖ₑ ∂T.quotMeasure
         = ‖y' p.1‖ₑ * ‖y p.2‖ₑ * ∫⁻ x, ‖Θ p.2 p.1 x‖ₑ ∂T.quotMeasure := by
-          simp [enorm_mul, lintegral_const_mul', ENNReal.mul_eq_top]
+          simp [eNorm_mul, lintegral_const_mul', ENNReal.mul_eq_top]
       _ ≤ _ := by grw [(h_bound p.2 p.1).1, enorm_mul_height_pow_le hB hB']
   have h_fubini (g : G E s) : weilMatrixCoeff b f f' g *
       S.petersson y' (rightRegular ℂ (G E s) ℂ g y) = ∫ g', Φ (g', g) ∂S.quotMeasure := by
@@ -644,10 +645,10 @@ lemma exists_integral_isotropic_frame (h_rank : 2 * card n ≤ card m) :
   · -- Distinct columns have disjoint supports, and a column has norm `1 + ε̄ ε = 0`.
     refine Matrix.ext fun (j k : n) ↦ ?_
     have h_entry : ((of col)ᵀᴴ * (of col)ᵀ) j k = if j = k then 1 + star ε * ε else 0 := by
-      by_cases h_eq : j = k <;> simp [col, Matrix.mul_apply, apply_ite star, Pi.single_apply,
+      by_cases h_eq : j = k <;> simp [col, Function.swap, Matrix.mul_apply, apply_ite star, Pi.single_apply,
         mul_add, add_mul, Finset.sum_add_distrib, h_eq, eq_comm (a := k)]
     exact h_entry.trans (by simp [ε, star_normNegOne_mul_self])
-  · simp [col, funext_iff, eq_comm, Pi.single_apply]
+  · simp [col, Function.swap, funext_iff, eq_comm, Pi.single_apply]
 
 end New.SiegelWeil
 

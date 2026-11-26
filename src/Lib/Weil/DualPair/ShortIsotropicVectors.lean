@@ -1,5 +1,7 @@
-import Lib.Adelic.Reduction.FirstMinimumShortBases
-import Lib.Weil.DualPair.Defs
+module
+
+public import Lib.Adelic.Reduction.FirstMinimumShortBases
+public import Lib.Weil.DualPair.Defs
 
 /-!
 # Short isotropic vectors and means of theta functionals over isotropic subspaces
@@ -34,6 +36,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.DualPair.KernelDecay` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -206,7 +210,7 @@ lemma map_schrodingerOp_eq_zero_of_invariant {P : Set (FinPlace E)} (hP : Set.Is
     (Set.forall_mem_range.2 hℓ) (fun y hy ↦ ?_) f
   let K (i : p) (j : q) (x : n' × n) : 𝔸f E := (X x.1 i * star (Y x.2 j)).2
   obtain ⟨i, j, h_ne⟩ : ∃ (i : p) (j : q), star (K i j) ⬝ᵥ y ≠ 0 := by
-    simpa [← ext_iff, K, dotProduct, Fintype.sum_prod_type, mul_apply, vecToMatrix,
+    simpa [← ext_iff, K, dotProduct, Fintype.sum_prod_type, Matrix.mul_apply, vecToMatrix,
       Finset.mul_sum, mul_assoc, mul_comm, mul_left_comm] using h_supp y hy
   have h_col : (fun x : n' × n ↦ ((shiftMatrix s X Y *ᵥ Pi.single (i, j) 1) x).2) = K i j :=
     funext fun x ↦ by simp [K, shiftMatrix, stdForm]
@@ -528,7 +532,7 @@ lemma Space.exists_norm_le_of_differences {E n : Type} [Field E] [CMType E] [Wei
     h_fock _ (L ∘L J) (by positivity) fun _ ↦ h_diff
   calc ‖(L ∘L J) v‖
     _ ≤ C * ‖L ∘L J‖ * (C₀ * δ) ^ l * (fockMoment l v).toReal := by
-      rw [← toReal_enorm, ← toReal_ofReal_mul _ _ (by positivity)]
+      rw [← toReal_eNorm, ← toReal_ofReal_mul _ _ (by positivity)]
       exact toReal_mono (mul_ne_top ofReal_ne_top hv) h_enorm
     _ ≤ C * (‖L‖ * ‖J‖) * (C₀ * δ) ^ l * (fockMoment l v).toReal := by grw [L.opNorm_comp_le]
     _ = _ := by ring

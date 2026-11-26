@@ -1,6 +1,8 @@
-import Lib.DiscreteSeries.Holomorphic.ModelFunction
-import Lib.DiscreteSeries.Holomorphic.PeaksAwayFromCusp
-import New.OneLift.ComparisonOperator.ExchangeData
+module
+
+public import Lib.DiscreteSeries.Holomorphic.ModelFunction
+public import Lib.DiscreteSeries.Holomorphic.PeaksAwayFromCusp
+public import New.OneLift.ComparisonOperator.ExchangeData
 
 /-!
 # Decay of Fock matrix coefficients, sparse theta sums and the isolation estimate
@@ -48,6 +50,8 @@ Notions from other files:
 See `New.OneLift.ComparisonOperator.ProductsSpan` for related work. See
 `Lib.Weil.DualPair.ThetaLiftConvergence` and `Lib.Adelic.Reduction.FiniteVolume` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Decay of Heisenberg matrix coefficients of homogeneous Fock vectors
@@ -105,7 +109,7 @@ theorem New.Fock.norm_fockInner_realHeisenbergOp_le {ι : Type} [Fintype ι] [De
   have norm_v (x : ι → ℂ) :
       ‖v x‖ = ‖v_scaled (c⁻¹ • x)‖ / exp (‖toLp 2 x‖ ^ 2 / (n + A) / 2) ^ n := by
     simp (disch := positivity) [v_scaled, *, realVac, star_dotProduct_self_eq_norm_sq, sq, c,
-      ← exp_nat_mul, mul_assoc, ← exp_add, field, star_trivial, Complex.norm_exp]
+      ← exp_natCast_mul, mul_assoc, ← exp_add, field, star_trivial, Complex.norm_exp]
   have G_int : Integrable G (normalizedVolume ι) :=
     (integrable_norm_sq v_scaled).comp_smul (by positivity)
   have preserving : MeasurePreserving (σ • · + y) (normalizedVolume ι) (normalizedVolume ι) :=
@@ -116,7 +120,7 @@ theorem New.Fock.norm_fockInner_realHeisenbergOp_le {ι : Type} [Fintype ι] [De
       grw [add_comm, hA]
       simp [field]
     have c_pow : (c ^ 2) ^ (card ι + d) ≤ exp n := by
-      grw [sq_sqrt (by positivity), add_one_le_exp, ← exp_nat_mul, exponent_le]
+      grw [sq_sqrt (by positivity), add_one_le_exp, ← exp_natCast_mul, exponent_le]
     calc _ = (c ^ 2) ^ card ι * ((c ^ 2) ^ d * ∫ x, ‖v x‖ ^ 2 ∂normalizedVolume ι) := by
           -- ↓ changes variables before simp rewrites inside the integral.
           simp [G, ↓(normalizedVolume ι).integral_comp_inv_smul (‖v_scaled ·‖ ^ 2), v_scaled,
@@ -207,7 +211,7 @@ theorem firstMinimum_mul_le_hom [Nonempty n] [Nonempty n']
   · -- both minima are at most `1` and the denominator is a natural number
     grw [firstMinimum_le_one, firstMinimum_le_one]
     · simp [Nat.cast_inv_le_one, ← Nat.cast_mul]
-    all_goals simp [firstMinimum_pos, le_of_lt]
+    simp [firstMinimum_pos, le_of_lt]
   choose Y Y_mem Y_short using S.exists_short_basis hN_mem
   -- `k`, the matrix of `z` in adelic coordinates, takes the coordinates of `y` to those of `z y`
   let k : Matrix n' n (𝔸 E) := vecToMatrix ((S.hom T).vecAtPoint z)

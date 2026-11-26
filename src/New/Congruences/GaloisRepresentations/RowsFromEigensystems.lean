@@ -1,6 +1,8 @@
-import New.Congruences.GaloisRepresentations.RowsAndColumnsFromLabels
-import New.OneLift.ComparisonOperator.ExchangeData
-import New.Spanning.SecondMoment.SpanningTheorem
+module
+
+public import New.Congruences.GaloisRepresentations.RowsAndColumnsFromLabels
+public import New.Determinant.AuxiliaryForms.RegularParameters
+public import New.OneLift.ComparisonOperator.ExchangeData
 
 /-!
 # Main summand conditions on Hodge–Tate jumps and existence of main summands for Hecke eigensystems
@@ -47,6 +49,8 @@ the inverse Galois problem, 2008; Arias-de-Reyna–Dieulefait–Shin–Wiese, Co
 symplectic Galois representations III, 2015.
 -/
 
+@[expose] public section
+
 namespace New.Selmer
 
 /-! ## The jumps of descent pairs and of main pairs satisfy the conditions on a main summand -/
@@ -77,7 +81,6 @@ lemma abs_descentPair_weight_add_liftWeight_le (j : ℕ) (σ : D.E →+* ℂ) {q
     |cmSign σ * u + D.liftWeight j (InfinitePlace.mk σ)| ≤ D.t := by
   -- The left side is `|± t / 2 - targetParameter q|`, with `|targetParameter q| ≤ k / 2` and
   -- `k ≤ t`.
-  have hk_le : D.k ≤ D.t := D.k_le_r.trans (Nat.le_of_add_right_le D.r_add_six_le_t)
   have hσ : (cmSign σ : ℤ) = 1 ∨ (cmSign σ : ℤ) = -1 := Int.isUnit_iff.1 (cmSign σ).isUnit
   rw [targetParameter_eq, ite_eq_left hq] at hu
   grind
@@ -279,7 +282,6 @@ lemma IsRepOfType.isMainSummandLike_twistByChar [PadicIso ℓ]
     obtain ⟨j, -, hψ : O.tamePart = D.chiMLocal ^ (j : ℤ) * (1 : D.Twist).tamePart⟩ :=
       hO.exists_tamePart_eq_chiMLocal_zpow_mul
     aesop
-
   have h_weight_eq : (O.rankDiff - 1 : ℕ) + (2 * a - 0) = (card r - 1 : ℕ) := by
     grind [IsLiftSetting]
   have h_type (σ : D.E →+* ℂ) (u : ℤ) : u + -(O.hasWeight.inv.toAlgebraic 0 a).val.2.toAdd σ =
@@ -307,7 +309,6 @@ lemma neg_coeff_eq_of_hasLiftHeckePolynomial [DecidableEq n] (r_pos : 0 < Fintyp
     -H.coeff (Fintype.card n - 1) =
       w.q ^ V.rankDiff * V.charW.frobValue r w / V.charV.frobValue n w * b w 1 +
         (∑ i ∈ Finset.range V.rankDiff, (w.q : ℂ) ^ i) * V.charW.frobValue r w := by
-
   have monic : H.IsMonicOfDegree (card n) := hH.isMonicOfDegree hy_ne
   -- `y` is spherical at `w` with Hecke eigenvalues `s j`
   obtain ⟨y_sph, s, rfl : H = heckePoly w.q (card n) s, y_hecke⟩ := hH
@@ -365,10 +366,10 @@ lemma eventually_trace_frob_eq_of_hasLiftHeckePolynomial (ι : PadicIso ℓ) [De
       heckeCoeff θ₀.val.1 ∅ x.place * heckeCoeff θ.val.1 ∅ x.place := by
     simp [θ₀, θ, HasWeight.toAlgebraic, field, HeckeChar.atUniformizer, heckeCoeff, hμ, ← ha,
       AutChar.frobValue, zpow_sub₀, Exchange.spaceChar_rankTwist n_even, FinPlace.coe_q_eq_sq_sqrt,
-      pow_sub₀, O.rank_lt.le]
+      pow_sub₀, O.rank_lt.le, IsDedekindDomain.HeightOneSpectrum.ne_bot]
     ring
   have ν_ne : V.charW.frobValue r x.place ≠ 0 := by
-    simp [AutChar.frobValue, HeckeChar.atUniformizer]
+    simp [AutChar.frobValue, HeckeChar.atUniformizer, IsDedekindDomain.HeightOneSpectrum.ne_bot]
   have normalised_eq : (V.charW.frobValue r x.place)⁻¹ * -(H x.place).coeff (card n - 1) =
       heckeCoeff θ₀.val.1 ∅ x.place * heckeCoeff θ.val.1 ∅ x.place * b x.place 1 +
         ∑ e ∈ .range V.rankDiff, (x.place.q : ℂ) ^ e := by

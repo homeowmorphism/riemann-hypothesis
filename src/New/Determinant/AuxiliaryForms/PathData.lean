@@ -1,8 +1,10 @@
-import Lib.Weil.DualPair.Flip
-import New.Determinant.AuxiliaryForms.GridPaths
-import New.Determinant.Chain.SquareLaw
-import New.Determinant.Twist.FitTwists
-import New.OneLift.ComparisonOperator.ExchangeData
+module
+
+public import Lib.Weil.DualPair.Flip
+public import New.Determinant.AuxiliaryForms.GridPaths
+public import New.Determinant.Chain.SquareLaw
+public import New.Determinant.Twist.FitTwists
+public import New.OneLift.ComparisonOperator.ExchangeData
 
 /-!
 # Moduli, spaces, moves, path data and periods on the two grids
@@ -36,6 +38,8 @@ Notions from other files:
 * `New.Exchange.IsEdgeFamily`: a family of characters over two pairs of conjugate cuspidal types
   which, with a polynomial, form an edge for the real Weil representation.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -173,15 +177,6 @@ def gridChar : AutChar D.E :=
   D.liftChar (bif c then ϑ.pow (l + 1) else TameChar.one) (l + 1) *
     WeilData.upsilonU1 ^ ((card n + (!c).toNat) / 2)
 
-lemma gridChar_true :
-    gridChar ϑ true l n =
-      D.liftChar (ϑ.pow (l + 1)) (l + 1) * WeilData.upsilonU1 ^ (card n / 2) :=
-  rfl
-
-lemma gridChar_false :
-    gridChar ϑ false l n =
-      D.liftChar .one (l + 1) * WeilData.upsilonU1 ^ ((card n + 1) / 2) :=
-  rfl
 
 /-- The tame part of `gridChar`: that of `liftChar` with the twist `ϑ ^ (l + 1)` if `c`, and with
 the trivial twist otherwise. -/
@@ -591,7 +586,7 @@ lemma sum_tuplesOn_insert {edges : Finset (GridNode × GridNode)} {e : GridNode 
   refine sum_nbij' (fun S ↦ (update S e 0, S e)) (fun p ↦ update p.1 e p.2)
     (fun S hS ↦ ?_) (fun p hp ↦ ?_) (fun S _ ↦ by simp) (fun p hp ↦ ?_) fun S _ ↦ by simp
   · refine mem_product.2 ⟨mem_tuplesOn.2 fun e' he' ↦ ?_, mem_univ _⟩
-    show update S e 0 e' = 0
+    change update S e 0 e' = 0
     grind [mem_tuplesOn]
   · refine mem_tuplesOn.2 fun e' he' ↦ ?_
     show update p.1 e p.2 e' = 0

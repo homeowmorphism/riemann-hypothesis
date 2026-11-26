@@ -1,7 +1,9 @@
-import Lib.General.Groups.IndexOfProduct
-import Lib.SiegelWeil.RallisInner.SharpData
-import New.OneLift.HeckeValues.CharacterLift
-import New.Spanning.Multiplicities.HeckeEigensystems
+module
+
+public import Lib.General.Groups.IndexOfProduct
+public import Lib.SiegelWeil.RallisInner.SharpData
+public import New.OneLift.HeckeValues.CharacterLift
+public import New.Spanning.Multiplicities.HeckeEigensystems
 
 /-!
 # The lift Θ_W, its adjoint and its norm
@@ -50,6 +52,8 @@ Cossutta–Marshall, Theta lifting and cohomology growth in p-adic towers, arXiv
 Rallis, Injectivity properties of liftings associated to Weil representations, 1984; Rallis,
 L-functions and the oscillator representation, 1987.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -572,7 +576,8 @@ lemma DescentPair.isSharpFn_blockFn [WeilData E] :
     have h_all : stdLevel.reduceFamily O.placeAt k = 1 := O.ker_reductionGL_eq.le hk
     exact mem_levelOf.2 ⟨k.property, funext fun i ↦ congrFun h_all (.inl i)⟩
   ne_zero h := by
-    have h_normSq : star O.blockFn ⬝ᵥ O.blockFn ≠ 0 := by simp [O.blockFn_normSq, prod_eq_zero_iff]
+    have h_normSq : star O.blockFn ⬝ᵥ O.blockFn ≠ 0 := by
+      simp [O.blockFn_normSq, prod_eq_zero_iff, IsDedekindDomain.HeightOneSpectrum.ne_bot]
     simp [h] at h_normSq
   fixes k hk := by
     -- This is the transformation law of the datum for the pair `(k, 1)`.
@@ -859,15 +864,6 @@ theorem coe_adjoint_singleLift {j : D.LiftIndex} (Ξ : (D.descentPair ϑ j).Form
   have h_eq : (D.singleLift ϑ j).adjoint Ξ = descentForm := ext_inner_left ℂ fun y ↦ by
     rw [LinearMap.adjoint_inner_right, inner_singleLift, Submodule.coe_inner, inner_eq_petersson]
   rw [h_eq]
-
-/-- The descent is the inner product with the kernel: for a form `φ` on `V_j` and `g` in
-`U(W_j)(𝔸)`, the value at `g` of the adjoint of the lift applied to `φ` is the inner product of the
-form `New.DescentPair.vectorKernelForm` at `g` with `φ`. -/
-theorem adjoint_singleLift_apply {j : D.LiftIndex} (φ : (D.descentPair ϑ j).FormV)
-    (g : New.G D.E (D.signsW j)) :
-    ((D.singleLift ϑ j).adjoint φ).val g = inner ℂ ((D.descentPair ϑ j).vectorKernelForm g) φ := by
-  rw [coe_adjoint_singleLift]
-  exact (D.descentPair ϑ j).normalizedDescent_eq_inner_vectorKernelForm φ g
 
 /-- The lift is integration against the kernel: the lift of a form `y` of level `J_M` on `W_j` is
 the integral over `g` in `[U(W_j)]` of `y(g)` times the form `New.DescentPair.vectorKernelForm` at

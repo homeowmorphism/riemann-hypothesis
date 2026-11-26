@@ -1,4 +1,6 @@
-import New.Reduction.Data.LevelAndTwists
+module
+
+public import New.Reduction.Data.LevelAndTwists
 
 /-!
 # Harish-Chandra parameters, weights and lift diagrams of the definite spaces
@@ -36,6 +38,8 @@ Notions from other files:
 * `New.Data.targetParameter`: the sequence `λ^Y = (k/2 - 1, …, 1 - k/2; -κ_{1/2}, -κ_{3/2}, …)` at a
   place, where `κ_{i - 1/2} = κ_i - Δ / 2`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -462,7 +466,6 @@ lemma sortedParamY_sub_paramX (τ : D.Φ) (p : ℕ) :
       targetParameter_k_sub_one_add, Nat.mod_eq_zero_of_dvd h_dvd, twiceBlockEntry, reducedHalfGap]
     omega
   · -- `λ'_p` lies in a block `-κ_i + [t]`.
-    have h_mod : (p + 1 - D.k) % (D.t + 1) ≠ 0 := mt Nat.dvd_of_mod_eq_zero h_dvd
     simp only [ite_eq_right h_head, h_dvd, and_false, ite_false, twiceBlockEntry]
     omega
 
@@ -648,7 +651,7 @@ lemma branchExponent_eq_sum_columns (τ : D.Φ) :
 where `Φ_a = D.aPlaces` is the set of `a`-places and `Δ / 2 = D.halfGap`. -/
 lemma sum_branchExponent :
     (∑ τ : D.Φ, D.branchExponent τ : ℝ) = #D.aPlaces * D.a - D.f * (D.m * D.halfGap) := by
-  simp [branchExponent_eq, firstRowExcess, sum_sub_distrib]
+  simp [branchExponent_eq, firstRowExcess, sum_sub_distrib, Finset.univ_inter]
 
 end Data
 

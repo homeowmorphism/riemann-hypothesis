@@ -1,7 +1,9 @@
-import New.Determinant.Twist.FitTwists
-import New.OneLift.ComparisonOperator.LineCoordinates
-import New.UpperBound.Kernels.DefiniteKernelSize
-import New.UpperBound.Size.Estimates
+module
+
+public import New.Determinant.Twist.FitTwists
+public import New.OneLift.ComparisonOperator.LineCoordinates
+public import New.UpperBound.Kernels.DefiniteKernelSize
+public import New.UpperBound.Size.Estimates
 
 /-!
 # The first factors: P_V along W_j and W^add, integrality and size
@@ -48,6 +50,8 @@ theta data are known in the literature. Related work: T. Yang, Theta liftings an
 1997; Böcherer–Schmidt, p-adic measures attached to Siegel modular forms, 2000; Harris–Li–Skinner,
 The Rallis inner product formula and p-adic L-functions, 2005.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -142,10 +146,10 @@ lemma constantRows_mul_transpose_eq_mul_fromBlocks (j : D.LiftIndex) (i : D.RowC
   · -- A row that is a standard basis vector, in a block where the matrix is the identity.
     obtain z | z | z | z := z
     all_goals
-      simp [constantRows, inclMatrix, one_apply]
-      split <;> simp [one_apply, eq_comm]
+      simp [constantRows, inclMatrix, Matrix.one_apply]
+      split <;> simp [Matrix.one_apply, eq_comm]
   · -- A row of τ(Y), supported on the block of B.
-    obtain z | z | z | z := z <;> simp [constantRows, mul_apply]
+    obtain z | z | z | z := z <;> simp [constantRows, Matrix.mul_apply]
 
 /-- Let `q` be the bound on the number of determinants, `n ≤ (10 m + 1) q` a degree with `n ≤ D.M`
 and `0 < H ≤ (n ^ n) ^ 3` a denominator. Then the constant `chosenGroupOrder ^ 2`, the two class

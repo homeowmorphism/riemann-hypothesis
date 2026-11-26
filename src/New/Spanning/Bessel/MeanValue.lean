@@ -1,6 +1,8 @@
-import Lib.DiscreteSeries.Bessel.FrameFibre
-import Lib.DiscreteSeries.Bruhat.ComplexPlace
-import New.Spanning.Bessel.GramSection
+module
+
+public import Lib.DiscreteSeries.Bessel.FrameFibre
+public import Lib.DiscreteSeries.Bruhat.ComplexPlace
+public import New.Spanning.Bessel.GramSection
 
 /-!
 # The mean value inequality over the Gram matrix of two frames
@@ -48,6 +50,8 @@ Part of the bound on the open cell for the Bessel integrals at a real place; see
 analytische Theorie der quadratischen Formen, Ann. of Math. 36 (1935).
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New.RealPlace
@@ -66,7 +70,7 @@ theorem lintegral_fixerHaar {φ : 𝔰.G₁ → ℝ≥0∞} (hφ : Measurable φ
     ∫⁻ s : 𝔰.G₁, φ s ∂fixerHaar 𝔰 =
       ∫⁻ h : U (1 : Matrix 𝔰.κ 𝔰.κ ℂ), ∫⁻ u : besselU0, φ (u.val * embedH h) ∂𝔰.besselHaar₀ := by
   rw [fixerHaar, Floors.lintegral_mconv_symm hφ, lintegral_map (by fun_prop) (by fun_prop)]
-  exact lintegral_congr fun h ↦ lintegral_map (by fun_prop) measurable_subtype_coe
+  exact lintegral_congr fun h ↦ lintegral_map (by fun_prop) measurable_subtypeVal
 
 /-- The integral for `fixerHaar 𝔰`, the measure on the fixer of the frame, in coordinates: the
 iterated integral of the value at `unipotentOf q * embedH h`, for Lebesgue measure in the parameter
@@ -146,14 +150,14 @@ the first `ϱ` columns. -/
 theorem dualFrameOfGram_apply_inl (T : 𝔰.FrameMatrix) (a : Fin 𝔰.ϱ) (b : Fin (𝔰.ϱ + 1)) :
     dualFrameOfGram T (.inl a) b = (if b = 𝔰.top then 1 else 2⁻¹) * T a.castSucc b := by
   induction b using lastCases <;>
-    simp [dualFrameOfGram, inclMatrix, Matrix.mul_apply, mulVec, dotProduct, one_apply]
+    simp [dualFrameOfGram, inclMatrix, Matrix.mul_apply, mulVec, dotProduct, Matrix.one_apply]
 
 /-- The coefficient of `e*_a`, the basis vector with the index `eStar a`, in column `b` of
 `dualFrameOfGram T` is `1` if `b = a` and `0` otherwise. -/
 theorem dualFrameOfGram_apply_eStar (T : 𝔰.FrameMatrix) (a : Fin 𝔰.ϱ) (b : Fin (𝔰.ϱ + 1)) :
     dualFrameOfGram T (eStar a) b = if b = a.castSucc then 1 else 0 := by
   induction b using lastCases <;> simp [dualFrameOfGram, inclMatrix, Matrix.mul_apply, mulVec,
-    dotProduct, one_apply, (castSucc_lt_last a).ne, eq_comm]
+    dotProduct, Matrix.one_apply, (castSucc_lt_last a).ne, eq_comm]
 
 /-- The coefficient of `z` in `dualFrameOfGram T` is `-1` in the last column and `0` in the
 others. -/
@@ -168,7 +172,7 @@ theorem dualFrameOfGram_apply_indexX₀ (T : 𝔰.FrameMatrix) (b : Fin (𝔰.ϱ
     dualFrameOfGram T (𝔰.indexX₀ i) b =
       if b = 𝔰.top ∧ i = 𝔰.k₀ then (√(1 + (T 𝔰.top 𝔰.top).re) : ℂ) else 0 := by
   induction b using lastCases <;> simp [dualFrameOfGram, inclMatrix, Matrix.mul_apply, mulVec,
-    dotProduct, one_apply, Pi.single_apply]
+    dotProduct, Matrix.one_apply, Pi.single_apply]
 
 /-- Let `T` be a hermitian `(ϱ + 1)×(ϱ + 1)` matrix (`𝔰.FrameMatrix`) with `1 + Re T_{top,top} ≥ 0`.
 Then the tuple `dualFrameOfGram T` has the Gram matrix `T` for `𝔰.J₁`. -/
@@ -179,7 +183,7 @@ theorem gram_dualFrameOfGram {T : 𝔰.FrameMatrix} (hT : Tᴴ = T)
       ∑ c : Fin 𝔰.ϱ, (star (y (eStar c) a) * y (.inl c) b + star (y (.inl c) a) * y (eStar c) b) +
         ∑ i : 𝔰.κ, star (y (𝔰.indexX₀ i) a) * y (𝔰.indexX₀ i) b - star (y 𝔰.z a) * y 𝔰.z b := by
     -- The form pairs each `e_c` with `e*_c`, is the identity on `X₀`, and is `-1` at `z`.
-    simp [Matrix.mul_apply, splitGram, middleGram, one_apply, Finset.sum_add_distrib]
+    simp [Matrix.mul_apply, splitGram, middleGram, Matrix.one_apply, Finset.sum_add_distrib]
     ring
   have h_conj (a b : Fin (𝔰.ϱ + 1)) : starRingEnd ℂ (T a b) = T b a := congrFun₂ hT b a
   have h_real : ((T 𝔰.top 𝔰.top).re : ℂ) = T 𝔰.top 𝔰.top := conj_eq_iff_re.1 (h_conj _ _)
@@ -234,7 +238,7 @@ theorem lintegral_neg_single_add_freeCols_mulVec_eq {K : (𝔰.BesselIndex → �
         -Pi.single 𝔰.z 1 + 𝔰.isotropicCols *ᵥ (a + q.1 *ᵥ h.val.val *ᵥ x) +
           𝔰.definiteCols *ᵥ h.val.val *ᵥ x := by
     simp [funext_iff, val_unipotentOf_coe, val_toBesselH_apply_coe, mulVec, dotProduct,
-      inclMatrix, Matrix.mul_apply, one_apply, Pi.single_apply]
+      inclMatrix, Matrix.mul_apply, Matrix.one_apply, Pi.single_apply]
   let translated (a : Fin 𝔰.ϱ → ℂ) (x : 𝔰.κ → ℂ) : ℝ≥0∞ :=
     K (-Pi.single 𝔰.z 1 + 𝔰.isotropicCols *ᵥ (a + q.1 *ᵥ x) + 𝔰.definiteCols *ᵥ x)
   calc
@@ -287,7 +291,7 @@ theorem lintegral_eq_lintegral_sphereMass_mul_dualFrameOfGram
       𝔰.J₁ * 𝔰.frameCols + 𝔰.freeCols * joinCol (splitLast 𝔰.ϱ) (p, v) = joinCol (splitLast 𝔰.ϱ)
         (𝔰.dualCols + 𝔰.freeCols * p, -Pi.single 𝔰.z 1 + 𝔰.freeCols *ᵥ v) := by
     simp [← ext_iff, forall_fin_succ', mul_joinCol, splitGram, middleGram, inclMatrix,
-      Matrix.mul_apply, one_apply, Pi.single_apply]
+      Matrix.mul_apply, Matrix.one_apply, Pi.single_apply]
   -- With the first `ϱ` vectors fixed, integrate over the last one; `h` fixes the first ones.
   have h_last_vector (t : Matrix (Fin 𝔰.ϱ) (Fin 𝔰.ϱ) ℝ) (q : 𝔰.UnipotentParams) :
       lastIntegral ((unipotentOf q).val.val * firstCols t) =
@@ -376,7 +380,7 @@ the last row `ζ` of `Z⁻¹`. -/
 theorem inv_frameGram_inv_apply (Z : 𝔰.FrameMatrix) (a b : Fin (𝔰.ϱ + 1)) :
     (Z⁻¹ᴴ * (𝔰.frameColsᴴ * 𝔰.J₁ * 𝔰.frameCols) * Z⁻¹) a b =
       -(starRingEnd ℂ (Z⁻¹ 𝔰.top a) * Z⁻¹ 𝔰.top b) := by
-  simp [Matrix.mul_apply, splitGram, middleGram, inclMatrix, one_apply, sum_univ_castSucc]
+  simp [Matrix.mul_apply, splitGram, middleGram, inclMatrix, Matrix.one_apply, sum_univ_castSucc]
 
 /-- For the congruence `T` by `Z⁻¹` of the Gram matrix of the frame, `1 + T_{last,last}` is
 `oneSubNormSqInvCorner Z = 1 - |ξ|²`, with `ξ` the last diagonal entry of `Z⁻¹`. -/
@@ -396,12 +400,12 @@ theorem sectionCoeff_conjTranspose_castSucc_apply (Z : 𝔰.FrameMatrix) (a : Fi
   -- The last factor of `sectionCoeff` doubles the last column of the product of the others.
   have h_prod : (diagLast (𝔰 := 𝔰) 0 * Zᴴ⁻¹ * (1 - diagLast (𝔰 := 𝔰) 2⁻¹) * Z⁻¹) a.castSucc b =
       2⁻¹ * (starRingEnd ℂ (Z⁻¹ 𝔰.top a.castSucc) * Z⁻¹ 𝔰.top b) := by
-    simp [diagLast, Matrix.mul_apply, sum_univ_castSucc, one_apply, diagonal_apply,
+    simp [diagLast, Matrix.mul_apply, sum_univ_castSucc, Matrix.one_apply, diagonal_apply,
       (castSucc_lt_last _).ne', ← conjTranspose_nonsing_inv, mul_comm, mul_left_comm,
       show (1 - 2⁻¹ : ℂ) = 2⁻¹ by norm_num]
   have h_two : diagLast (𝔰 := 𝔰) 2 = diagonal (snoc 1 2) := rfl
   rw [sectionCoeff, h_two, Matrix.sub_apply, mul_diagonal, h_prod]
-  induction b using lastCases <;> simp [diagLast, one_apply, diagonal_apply,
+  induction b using lastCases <;> simp [diagLast, Matrix.one_apply, diagonal_apply,
     mul_right_comm _ _ (2 : ℂ)]
 
 /-- The last row of `sectionCoeff Z Zᴴ` is `(0, …, 0, -1)`. For `Z` in the open cell, the columns of
@@ -430,19 +434,20 @@ theorem dualFrameOfGram_mul_eq_gramSection_mul {Z : 𝔰.FrameMatrix} (hZ : Z �
   -- the coefficient of `e_a`
   · rw [dualFrameOfGram_apply_inl, inv_frameGram_inv_apply,
       ← sectionCoeff_conjTranspose_castSucc_apply]
-    simp [Matrix.mul_apply, inclMatrix, one_apply, sum_univ_castSucc]
+    simp [Matrix.mul_apply, inclMatrix, Matrix.one_apply, sum_univ_castSucc]
   -- the coefficient of `x_i`, in either case for the last column and for the others
   · rw [dualFrameOfGram_apply_indexX₀, one_add_inv_frameGram_inv_top]
     induction b using lastCases <;>
-      simp [Matrix.mul_apply, inclMatrix, one_apply, sum_univ_castSucc, diagLast, diagonal_apply]
+      simp [Matrix.mul_apply, inclMatrix, Matrix.one_apply, sum_univ_castSucc, diagLast,
+        diagonal_apply]
   -- the coefficient of `z`
   · rw [dualFrameOfGram_apply_z, ← sectionCoeff_conjTranspose_top_apply Z]
-    simp [Matrix.mul_apply, inclMatrix, one_apply, sum_univ_castSucc]
+    simp [Matrix.mul_apply, inclMatrix, Matrix.one_apply, sum_univ_castSucc]
   -- the coefficient of `e*_a`
   · rw [dualFrameOfGram_apply_eStar]
     induction b using lastCases <;>
-      simp [Matrix.mul_apply, inclMatrix, one_apply, sum_univ_castSucc, diagLast, diagonal_apply,
-        eq_comm, (castSucc_lt_last _).ne]
+      simp [Matrix.mul_apply, inclMatrix, Matrix.one_apply, sum_univ_castSucc, diagLast,
+        diagonal_apply, eq_comm, (castSucc_lt_last _).ne]
 
 /-- The measure on `G₁` that is the law of `s γ_Z`, for `Z` in the open cell and `s` in the fixer
 `R°` of the frame, under `dZ ds` with the density `2 ^ (-ϱ) π ^ k 𝗀(Z) ^ (k - 1) / (k - 1)!`. Here

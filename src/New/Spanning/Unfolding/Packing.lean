@@ -1,4 +1,6 @@
-import New.Spanning.Unfolding.ReducedPoints
+module
+
+public import New.Spanning.Unfolding.ReducedPoints
 
 /-!
 # Class cutoffs and counting frames in boxes
@@ -30,6 +32,9 @@ Notions from other files:
 * `New.Filling.IsAdmissible`: the standing hypotheses, among them the size inequalities between
   `S.b`, `S.realM v` and `S.N`.
 -/
+
+@[expose] public section
+
 section BoxPartition
 
 open ENNReal Fin Matrix Module Set Norms.L2Operator Subgroup
@@ -64,22 +69,6 @@ lemma frameVector_sub_eq_sum {γ γ' : S.G E}
   rw [PiLp.sub_apply, h_coord, h_coord, Fintype.sum_sum_type, Fintype.sum_sum_type]
   simp only [h_lower]
   simp [frameVector, mul_sub, mul_comm]
-
-/-- Reduction of frames: for every class `c` and every point `y` at the infinite places, some `u` in
-the congruence group `S.classUnipotent c` of rational unipotent elements makes all entries of
-`gramSchmidtMatrix` of the components of `u y` at most `S.b ^ 26` in absolute value. Here
-`gramSchmidtMatrix x` is the upper unitriangular matrix expressing the frame vectors
-`x⁻¹ e₁, …, x⁻¹ e_ϱ, x⁻¹ z` in their Gram–Schmidt orthogonalisation. -/
-lemma exists_gramSchmidtMatrix_le [HasPrimitiveRoot5040 E] [S.IsAdmissible]
-    (c : S.Classes) (y : NumberField.InfinitePlace E → 𝔰.G₁) :
-    ∃ u : S.classUnipotent c, ∀ (v : NumberField.InfinitePlace E) (a b : Fin (𝔰.ϱ + 1)),
-      ‖gramSchmidtMatrix (S.ratToInf u v * y v) a b‖ ≤ S.b ^ 26 := by
-  obtain ⟨D, hD⟩ : ∃ D : Set (NumberField.InfinitePlace E → ℂ), S.IsResidueDomain D :=
-    S.exists_isResidueDomain
-  obtain ⟨u, hu⟩ : ∃ u₀ : S.classUnipotent c, ∀ u : S.classUnipotent c,
-      S.ratToInf u * y ∈ S.reducedPoints D ↔ (u * u₀⁻¹).val ∈ S.classUnipotent₀ c :=
-    hD.exists_mul_mem_reducedPoints_iff_rightCoset c y
-  exact ⟨u, hD.norm_gramSchmidtMatrix_le ((hu u).2 (by simp))⟩
 
 /-- The indicator of the reduced points for the chosen set of representatives is a partition of
 unity in boxes (`IsBoxPartitionOfUnity`) for every class `c`. -/
@@ -164,7 +153,7 @@ lemma frameImage_inr_eq_of_frameProducts_eq {g : S.G E} {a : Fin (𝔰.ϱ + 1)}
   have h_unitary :
       ((g : Matrix 𝔰.BesselIndex 𝔰.BesselIndex E)ᴴ * (S.ratMiddle E).splitGram * g).diag
         (𝔰.besselFrame a) = (S.ratMiddle E).splitGram.diag (𝔰.besselFrame a) :=
-    congr_fun₂ g.prop (𝔰.besselFrame a) (𝔰.besselFrame a)
+    congr_fun₂ (mem_unitaryGroupOf_iff.1 g.prop) (𝔰.besselFrame a) (𝔰.besselFrame a)
   have h_isotropic : star (w ∘ Sum.inl) ⬝ᵥ S.ratMiddle E *ᵥ (w ∘ Sum.inl) = 0 := by
     -- Expand `h_unitary`; the terms pairing `e_i` with `e*_i` vanish by `h_dual`.
     cases a using lastCases with
@@ -397,7 +386,7 @@ theorem encard_image_frameImage_le {c : S.Classes} {y : NumberField.InfinitePlac
       h_over q q.2
     -- The inverse of the term `p⁻¹ q` sends `p⁻¹ y` to `q⁻¹ y`, whose frame vectors are close.
     refine frameImage_inv_mul_eq_iff.1 (frameImage_eq_frameImage_one_of_close
-      (.mul (.inv hp_over) hq_over) hR
+      (termsOver.mul (termsOver.inv hp_over) hq_over) hR
       (h_box p p.2) (h_size p p.2) fun v a ↦ lt_of_le_of_lt ?_ h_close)
     have h_point : (S.ratToInf (p.val⁻¹ * q.val) v)⁻¹ * ((S.ratToInf p.val)⁻¹ * y) v =
         ((S.ratToInf q.val)⁻¹ * y) v := by

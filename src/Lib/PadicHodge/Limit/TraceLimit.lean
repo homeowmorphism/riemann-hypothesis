@@ -1,6 +1,8 @@
-import Lib.GaloisRep.Main.LocalConditions
-import Lib.General.LinearAlgebra.TensorChains
-import Lib.PadicHodge.Limit.CrystallineLimit
+module
+
+public import Lib.GaloisRep.Main.LocalConditions
+public import Lib.General.LinearAlgebra.TensorChains
+public import Lib.PadicHodge.Limit.CrystallineLimit
 
 /-!
 # Hodge–Tate jumps with bounded denominators and local conditions at limits of traces
@@ -78,6 +80,8 @@ représentations cristallines, Compositio Math. 140 (2004) 1473–1498; for the 
 the image of the group ring, P. Wake, C. Wang-Erickson, Deformation conditions for
 pseudorepresentations, Forum Math. Sigma 7 (2019).
 -/
+
+@[expose] public section
 
 /-!
 ## Bounded denominators of Hodge–Tate projectors for jumps in [0, n]
@@ -191,7 +195,7 @@ private lemma New.Period.sum_thetaBdR_mul_trace_eq_jump_of_isHodgeFrame {p : ℕ
   -- The entry `(i, c)` of `F` is a map `φ` of weight `k₁ i` on `T`, hence a combination of the
   -- `β l` with `k l = k₁ i` with algebraic coefficients (`hodgeTateMaps.mem_span_same_weight`).
   have h_entry (y : T) : F y i c = b i (u y *ᵥ Pi.single c 1) := by
-    simp [pi_eq_sum_univ' (col _ c), F, ← hbP, ↓mul_apply, mul_comm]
+    simp [pi_eq_sum_univ' (col _ c), F, ← hbP, ↓Matrix.mul_apply, mul_comm]
   -- `φ` pulls `b i` back along the equivariant map `y ↦ u y *ᵥ Pi.single c 1`.
   let φ : hodgeTateMaps ρ (ofId ℤ_[p] ℂ_[p]) (k₁ i) :=
     hodgeTateMaps.pull (φ := algebraMap ℤ_[p] (PadicAlgCl p)) ⟨applyVec u (Pi.single c 1), by simp⟩
@@ -363,7 +367,8 @@ lemma New.GaloisRep.eventually_trace_sub_sum_mem_closedBall {ℓ : ℕ} [ThePrim
   filter_upwards [tendstoUniformly_iff.mp h_conv ε hε] with η hη y
   simpa [lift_apply, Finsupp.sum, mul_sum, univ.sum_comm, smul_sub, smul_sum] using!
     norm_sum_le_of_forall_le_of_nonneg hε.le fun g _ ↦ (norm_smul ..).trans_le
-      ((mul_le_of_le_one_left (by simp) (y.coeff g).prop).trans (mem_ball_iff_norm.mp (hη g)).le)
+      ((mul_le_of_le_one_left (by simp) (y.coeff g).prop).trans
+        ((dist_eq_norm _ _).symm.trans_lt (hη g)).le)
 
 /-- Linear relations pass to the limit. Let `r` have non-degenerate trace form, `F` be a proper
 filter, `S` a finite set of indices `l`, and let the traces of the `ρ η x` weighted by `a * c l`
@@ -635,7 +640,7 @@ theorem tendsto_jump (h : IsTraceLimit r A F a ρ) [PadicPlaceEmbedding E A ℓ]
     (hL η).factors o y
   have h_iso {x : PadicAlgCl ℓ} : ‖γ x‖ = ‖x‖ := by
     obtain ⟨g, hg⟩ := exists_gp_eq_algHom γ
-    simp [hg, ← smul_coe_Cp]
+    simp [hg, ← UniformSpace.Completion.algEquiv_smul_coe]
   -- In the twist the jump w is w - (-d).
   obtain ⟨t, ht⟩ := exists_uniform_trace_sum_eq_jump Δ (2 * d) (w - -d)
   choose z hz h_proj using fun θ ↦ ht (finBasis ℤ_[ℓ] (L θ)) 1 ((hL θ).isCrystallineUpTo (h_in θ))

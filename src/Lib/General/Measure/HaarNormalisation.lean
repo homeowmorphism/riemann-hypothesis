@@ -1,4 +1,6 @@
-import Lib.Adelic.Hecke.Basic
+module
+
+public import Lib.Adelic.Hecke.Basic
 
 /-!
 # Uniqueness of Haar measure, integrals over subgroups and Gaussian normalisation of volumes
@@ -21,6 +23,8 @@ to finite sums. A normalisation of volumes by Gaussian integrals is defined. It 
 * `New.lintegral_inv_add_rpow`: the integral of `(c + q x) ^ (-s)`, computed through the Gamma
   function.
 -/
+
+@[expose] public section
 
 /-! ## Uniqueness of Haar measure -/
 
@@ -76,7 +80,7 @@ lemma setIntegral_char (hM : IsOpen (M : Set V)) {χ : V → ℂ}
     (h_add : ∀ x y : V, χ (x + y) = χ x * χ y) :
     ∫ x : V in M, χ x ∂ν = if ∀ x ∈ M, χ x = 1 then (ν.real M : ℂ) else 0 := by
   split_ifs with h_triv
-  · simp [setIntegral_congr_fun hM.measurableSet h_triv]
+  · simp [setIntegral_congr_fun hM.measurableSet h_triv, Set.univ_inter]
   · -- Translating by `m ∈ M` multiplies the integral by `χ m` and leaves it unchanged,
     -- and some `χ m` is not `1`.
     obtain ⟨m, hm, hm_ne⟩ : ∃ m ∈ M, χ m ≠ 1 := by simpa using h_triv
@@ -189,7 +193,7 @@ lemma lintegral_inv_add_rpow [h : HasGaussianIntegral a q] {s c : ℝ} (hc : 0 <
         rw [div_rpow pi_pos.le ht.le, sub_right_comm, rpow_sub ht (s - 1) a]
         ring
   rw [lintegral_congr h_point, lintegral_lintegral_swap (by fun_prop),
-    setLIntegral_congr_fun measurableSet_Ioi h_slice,
+    setLIntegral_congr_fun measurableSet_Ioi fun t ht ↦ h_slice t (Set.mem_Ioi.1 ht),
     lintegral_const_mul_rpow_mul_exp_neg_mul_Ioi (sub_pos.2 ha) hc (by positivity)]
 
 /-- The Gaussian integral on `ℝ`: the integral of `exp (-t x²)` is `(π / t) ^ (1 / 2)`. -/

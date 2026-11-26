@@ -1,4 +1,6 @@
-import Lib.Cohomology.SmoothBaseChange
+module
+
+public import Lib.Cohomology.SmoothBaseChange
 
 /-!
 # The primitive comparison theorem and finiteness of p-adic cohomology
@@ -44,6 +46,8 @@ Thm 1.1; by duality, Zavyalov arXiv 2301.03821 Appl. 1.3.4.
 
 See also `Lib.PadicComparison.HodgeTate.PeriodMap`.
 -/
+
+@[expose] public section
 
 /-! ## The primitive comparison theorem and flat base change -/
 
@@ -117,7 +121,7 @@ lemma PadicTest.bijective_generic_points {Y : Over (Spec R)} [IsProper Y.hom] (c
   have hx_over : x ≫ Y.hom = a := by
     -- both sides are determined by their restrictions to the cells, where `hl_right` holds
     refine pointsPi_injective _ _ (funext fun i ↦ ?_)
-    show Spec.map (π i) ≫ x ≫ Y.hom = Spec.map (π i) ≫ a
+    change Spec.map (π i) ≫ x ≫ Y.hom = Spec.map (π i) ≫ a
     rw [← Category.assoc, hx_eq, hl_right]
   -- The restriction of `x` to `c.GenericRing` and `z` agree after each `φ i`.
   refine ⟨⟨homMk x hx_over⟩,
@@ -128,7 +132,7 @@ lemma PadicTest.bijective_generic_points {Y : Over (Spec R)} [IsProper Y.hom] (c
     simp [hr]
   · -- after `Spec (φ i)`, the restriction of `x` to `c.GenericRing` is `x` on the cell, that is
     -- `l i`, which extends `z`
-    show Spec.map (ofHom (φ i)) ≫ Spec.map (ofHom (algebraMap c.ProdRing c.GenericRing)) ≫ x =
+    change Spec.map (ofHom (φ i)) ≫ Spec.map (ofHom (algebraMap c.ProdRing c.GenericRing)) ≫ x =
       Spec.map (ofHom (φ i)) ≫ z.down.left
     rw [(sq i).w_assoc, hx_eq, hl_left]
 

@@ -1,4 +1,6 @@
-import Lib.General.NumberTheory.PadicLimitsValuation
+module
+
+public import Lib.General.NumberTheory.PadicLimitsValuation
 
 /-!
 # The height of a family over all places: products, monotonicity and the product formula
@@ -21,6 +23,8 @@ The multiplier H, and so the bound at infinity, does not depend on ι, while y �
 may use its own twist. Related work: Gaudron, Pentes des fibrés vectoriels adéliques sur un corps
 global, 2006; Bombieri–Gubler, Heights in Diophantine Geometry, ch. 1, 2006.
 -/
+
+@[expose] public section
 
 open Algebra Module Real Finset Filter IntermediateField AdjoinSimple Padic PadicAlgCl
 
@@ -58,12 +62,12 @@ lemma log_product_formula {M : ℕ} {q : ℚ} (h_num_lt : q.num.natAbs < M) (h_d
   · simp
   have log_nat {n : ℕ} (hn : n ≠ 0) (hnM : n < M) :
       log n = ∑ p ∈ range M with p.Prime, padicValNat p n * log p := by
-    conv_lhs => rw [← Nat.prod_pow_prime_padicValNat n hn M hnM]
-    simp +contextual [log_prod, Nat.Prime.ne_zero]
+    conv_lhs => rw [← Nat.prod_pow_prime_multiplicity n hn M hnM]
+    simp +contextual [log_prod, Nat.Prime.ne_zero, Nat.padicValNat_def]
   have log_q : log q = log q.num.natAbs - log q.den := by simp [q.cast_def, log_div, hq]
   have log_norm (p : ℕ) :
       log (padicNorm p q) = (padicValNat p q.den - padicValNat p q.num.natAbs) * log p := by
-    simp [padicNorm.eq_zpow_of_nonzero hq, padicValRat, padicValInt]
+    simp [padicNorm.eq_zpow_of_ne_zero hq, padicValRat, padicValInt, Nat.padicValNat_def]
   rw [log_q, log_nat (by simpa using hq) h_num_lt, log_nat q.den_nz h_den_lt]
   simp [log_norm, sub_mul]
 
@@ -184,7 +188,7 @@ lemma norm_algebraMap_norm_gen_le {F : Type} [NormedField F] [CharZero F] [IsAlg
     simpa [← hι] using hb ι
   calc _ = ∏ σ : ℚ⟮H⟯ →ₐ[ℚ] F, ‖σ (gen ℚ H)‖ := by rw [norm_eq_prod_embeddings, norm_prod]
     _ ≤ ∏ _σ : ℚ⟮H⟯ →ₐ[ℚ] F, exp b := prod_le_prod₀ (fun _ _ ↦ norm_nonneg _) fun σ _ ↦ conj_le σ
-    _ = exp (finrank ℚ ℚ⟮H⟯ * b) := by simp [exp_nat_mul]
+    _ = exp (finrank ℚ ℚ⟮H⟯ * b) := by simp [exp_natCast_mul]
 
 /-- If the constant family `1` has height at most `c`, then `0 ≤ c`. This is a form of the product
 formula. -/

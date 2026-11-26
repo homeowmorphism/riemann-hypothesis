@@ -1,6 +1,8 @@
-import Lib.Shimura.AbelianScheme.TangentCoordinates
-import Lib.Shimura.ThetaGroup
-import Lib.Shimura.ThetaModuli.PELThetaTori
+module
+
+public import Lib.Shimura.AbelianScheme.TangentCoordinates
+public import Lib.Shimura.ThetaGroup
+public import Lib.Shimura.ThetaModuli.PELThetaTori
 
 /-!
 # Theta objects of PEL moduli problems, their pull-backs, and rigidity over local rings
@@ -40,6 +42,8 @@ Known; see `Lib.Shimura.ThetaModuli.UniversalFamily`,
 `Lib.Cohomology.ProjectiveLine.ConstantLineFormula` and `Lib.Shimura.IntegralModel.UniversalFamily`
 for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -377,7 +381,7 @@ lemma exists_isTangentLog {b : ℤ} (hb : y.baseHom (D.β - b) = 0) :
     { map_smul := fun c ↦ ?_
       smul_eq_zero_of_eq_zero := fun h_log_zero ↦ (p t).injective ?_
       map_add := fun x' hx' ↦ by simp [h_linear h_tiny, (h_tiny_p hx').smul]
-      infinitesimal := by simp [h_chart.map_tangentCoords_eq_zero h_zero_mem h_tiny]
+      infinitesimal := by simp [IsEtaleChart.map_tangentCoords_eq_zero h_zero_mem h_tiny]
       naturality := fun C₁ χ t₁ a ha ↦ ?_ }
   · -- `c` acts on the line of `Y` by `baseHom c`
     have h_eigen_k :

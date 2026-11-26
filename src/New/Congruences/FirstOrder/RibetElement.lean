@@ -1,5 +1,7 @@
-import New.Congruences.FirstOrder.RibetLemma
-import New.Congruences.FirstOrder.TraceRelations
+module
+
+public import New.Congruences.FirstOrder.RibetLemma
+public import New.Congruences.FirstOrder.TraceRelations
 
 /-!
 # Ribet's element for conjugate self-dual representations
@@ -55,6 +57,8 @@ Related work: Dasgupta–Kakde–Silliman–Wang, The residually indistinguishab
 for GL2, 2023; Bellaïche–Chenevier, Families of Galois representations and Selmer groups, 2009;
 Urban, Selmer groups and the Eisenstein–Klingen ideal, 2001.
 -/
+
+@[expose] public section
 
 namespace New.Selmer
 
@@ -147,9 +151,8 @@ lemma ellVal_add_le_of_addVal_le {O : CoeffRing ℓ} {t' h k nTest nDetect : ℕ
 is the ring of integers of `ℚ̄_ℓ`. Let the `u x` be conjugate self-dual, and for `x ∈ 𝓧` let `u x`
 have the trace of the twisted main summand `ψ (R x)` plus the characters `O(-e)`, `e < t`. Let each
 `x ∈ 𝓧` have, over all large `O`, a model `R₀`, `ψ'`, `ζ'` with a property `Good x O R₀ ψ'`; here
-`IsTwistedLattice` says that `R₀` is a lattice in `R x`, that `ψ'` and `ζ'` are `ψ` and `ζ x` with
-values in `O`, and that the inertial element `γ x` acts on `ψ' R₀` by the scalar `ζ'`, with `ζ' - 1`
-a unit. Then over every large `O` there are such models `R₀ x`, `ψ' x`, `ζ' x`, whose twisted
+`IsTwistedLattice` says that `R₀` is a lattice in `R x`, that `ψ'` is `ψ` with values in `O`, and
+that the inertial element `γ x` acts on `ψ' R₀` by the scalar `ζ'`, with `ζ' - 1` a unit. Then over every large `O` there are such models `R₀ x`, `ψ' x`, `ζ' x`, whose twisted
 lattices span all matrices, and lattices `u' x` in all `u x` that are block diagonal for `x ∈ 𝓧`:
 the twisted lattice, then the characters. -/
 lemma eventually_exists_twistedLattice_and_block_lattices [PadicIso ℓ] {t : ℕ}
@@ -159,17 +162,17 @@ lemma eventually_exists_twistedLattice_and_block_lattices [PadicIso ℓ] {t : �
     (h_summand : ∀ x : 𝓧, IsMainSummandLike D t (J x) (R x))
     (h_trace : ∀ (x : 𝓧) (g : AbsGal D), (u x g).val.trace =
       ψ g * (R x g).val.trace + ∑ e ∈ range t, cyclotomicInv ℓ D.E (PadicAlgCl ℓ) g ^ e)
-    {γ : 𝓧 → AbsGal D} {ζ : 𝓧 → intQpBar ℓ}
+    {γ : 𝓧 → AbsGal D}
     {Good : 𝓧 → ∀ O : CoeffRing ℓ, (AbsGal D →* Matrix r r O) → (AbsGal D →* O) → Prop}
     (h_model : ∀ x : 𝓧, ∀ᶠ O : CoeffRing ℓ in atTop,
       ∃ (R₀ : AbsGal D →* Matrix r r O) (ψ' : AbsGal D →* O) (ζ' : ↑O),
-        IsTwistedLattice ψ (R x) (γ x) (ζ x) R₀ ψ' ζ' ∧ Good x O R₀ ψ')
+        IsTwistedLattice ψ (R x) (γ x) R₀ ψ' ζ' ∧ Good x O R₀ ψ')
     (ϵ : Sigma (SummandCoordIndex r (t := t)) ≃ n) :
     ∀ᶠ O : CoeffRing ℓ in atTop,
       ∃ (R₀ : 𝓧 → AbsGal D →* Matrix r r O) (ψ' : 𝓧 → AbsGal D →* O) (ζ' : 𝓧 → ↑O)
         (u' : Y → AbsGal D →* Matrix n n O),
         (∀ x : 𝓧,
-          IsTwistedLattice ψ (R x) (γ x) (ζ x) (R₀ x) (ψ' x) (ζ' x) ∧ Good x O (R₀ x) (ψ' x)) ∧
+          IsTwistedLattice ψ (R x) (γ x) (R₀ x) (ψ' x) (ζ' x) ∧ Good x O (R₀ x) (ψ' x)) ∧
         (∀ x : 𝓧, Submodule.span O (.range (twistRep (.id O) (ψ' x) (R₀ x))) = ⊤) ∧
         (∀ x : Y, IsLatticeIn (u x) (u' x)) ∧
         ∀ (x : 𝓧) (g : AbsGal D), u' x g = reindex ϵ ϵ (blockDiagonal' fun i : Option (Fin t) ↦
@@ -277,7 +280,7 @@ Hodge–Tate jumps `J'` and level `Q`, the `w j` and their conjugates, on which 
 places acts through the roots of the rescaled polynomials `scaledTypePoly V c i` and `1`
 (`IsRepOfType`), and inertia above `Q` and `Q̄` satisfies `(g - ψ g) (g - 1) = 0`. For `x ∈ 𝓧` let
 `u x` have the trace of `ψ (R x)` plus the characters `O(-e)`, `e < t'`. Here `R x` is a main
-summand, and `ψ (R x)` has a lattice on which `γ x` acts by the scalar `ζ x`. Let `S` be an algebra
+summand, and `ψ (R x)` has a lattice on which `γ x` acts by a scalar. Let `S` be an algebra
 of families, indexed by `Y`, of polynomials in variables `X j`, and let the `S`-module `𝒥` contain
 `ℓ ^ ν` times the traces and the traces of the relations `τ j - 1 - X j (φ j - 1) H j (φ j)`
 (`IsTraceIdeal`), with `H j (1) = 1`. At one `π ∈ 𝓧` let the Selmer group of `ψ (R π)` with
@@ -308,15 +311,15 @@ lemma ribet_columns {ν : ℕ} {w : K → FinPlace D.E} {τ φ : K → AbsGal D}
     (h_summand : ∀ x : 𝓧, IsMainSummandLike D V.rankDiff (J x) (R x))
     (h_trace : ∀ (x : 𝓧) (g : AbsGal D), (u x g).val.trace =
       ψ g * (R x g).val.trace + ∑ e ∈ range V.rankDiff, cyclotomicInv ℓ D.E (PadicAlgCl ℓ) g ^ e)
-    {γ : 𝓧 → AbsGal D} {ζ : 𝓧 → intQpBar ℓ}
-    (h_lat : ∀ x : 𝓧, HasTwistedLattice ψ (R x) (γ x) (ζ x))
+    {γ : 𝓧 → AbsGal D}
+    (h_lat : ∀ x : 𝓧, HasTwistedLattice ψ (R x) (γ x))
     -- the tied relations
     {S : Subalgebra (intQpBar ℓ) (Y → MvPolynomial K (PadicAlgCl ℓ))}
     {𝒥 : Submodule S (Y → MvPolynomial K (PadicAlgCl ℓ))} {H : K → (intQpBar ℓ)[X]}
     (h𝒥 : IsTraceIdeal 𝒥 (fun (x : Y) (g : AbsGal D) ↦ (u x g).val) (ℓ ^ ν) τ φ id H)
     (hH : ∀ j : K, (H j).eval 1 = 1)
     -- the lift, and the Selmer group of its twisted main summand with divisible coefficients
-    (π : 𝓧) {sel : ℝ≥0∞} (h_sel : HasDivisibleSelmerLengthLe ψ (R π) Q (γ π) (ζ π) sel)
+    (π : 𝓧) {sel : ℝ≥0∞} (h_sel : HasDivisibleSelmerLengthLe ψ (R π) Q (γ π) sel)
     (h_fin : sel ≠ ⊤) :
     ∃ d : PadicAlgCl ℓ,
       IsCommonRibetElement 𝒥 (fun (g : AbsGal D) (x : Y) ↦ (1 - (u x g).val).det) π d ∧
@@ -333,7 +336,7 @@ lemma ribet_columns {ν : ℕ} {w : K → FinPlace D.E} {τ φ : K → AbsGal D}
   -- the models: at `π` the one of `h_sel`, with its Selmer bound; elsewhere those of `h_lat`
   have h_lat' (x : 𝓧) : ∀ᶠ O : CoeffRing ℓ in atTop,
       ∃ (u : AbsGal D →* Matrix r r O) (ψ' : AbsGal D →* O) (ζ' : ↑O),
-        IsTwistedLattice ψ (R x) (γ x) (ζ x) u ψ' ζ' ∧
+        IsTwistedLattice ψ (R x) (γ x) u ψ' ζ' ∧
         (x = π → O.normLength (crystallineSelmerLength (twistRep (.id O) ψ' u) Q (γ x)) ≤ sel) := by
     obtain rfl | hx := eq_or_ne x π
     · exact Eventually.mono h_sel fun _ ⟨u, ψ', ζ', h_tw, h_le⟩ ↦ ⟨u, ψ', ζ', h_tw, fun _ ↦ h_le⟩

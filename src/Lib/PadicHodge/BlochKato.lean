@@ -1,5 +1,7 @@
-import Lib.PadicHodge.Crystalline.FixedRatios
-import Lib.PadicHodge.Crystalline.HodgeTateJumps
+module
+
+public import Lib.PadicHodge.Crystalline.FixedRatios
+public import Lib.PadicHodge.Crystalline.HodgeTateJumps
 
 /-!
 # Bloch–Kato crystalline cocycles: reduction modulo p^m, rank and vanishing
@@ -53,6 +55,8 @@ modulo p^m. Source: S. Bloch, K. Kato, L-functions and Tamagawa numbers of motiv
 Festschrift I (1990), Prop. 3.8, Cor. 3.8.4; J. Bellaïche, An introduction to the conjecture of
 Bloch and Kato, Clay Summer School notes (2009), Prop. 2.8, Thm 2.1.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -229,7 +233,7 @@ lemma IsPotentiallyCrystalline.exists_hodge_basis {ι : Type*} [Fintype ι] [Dec
     refine hW.smul_bijective.surjective.exists.trans ?_
     simp [L.symm_apply_eq, mem_hodgeFil, Classical.skolem, ← funext_iff,
       ← h_unit.smul_left_cancel (y := b)]
-    show (∃ x : ι → BdRPlus, (fun i ↦ ((W *ᵥ x) i : BdR)) = L b) ↔
+    change (∃ x : ι → BdRPlus, (fun i ↦ ((W *ᵥ x) i : BdR)) = L b) ↔
       ∃ f : ι → BdRPlus,
         (hodgeMatrix W k *ᵥ fun i ↦ (f i : BdR) * ((tUnit : BdR) ^ k i)⁻¹) = hodgeMatrix W k *ᵥ b
     simp [hL, funext_iff, hodgeMatrix, mulVec_apply_eq_sum]
@@ -863,7 +867,7 @@ lemma crysCocycles.apply_eq_zero_of_cyclotomicGp {a : ℕ}
     -- `y` is invariant modulo `BdRPlus`, so `y = z + b` with `z` in `BdRPlus` and `b` algebraic.
     obtain ⟨b, z, hz⟩ : ∃ (b : PadicAlgCl p) (z : BdRPlus), (y : BdR) = z + b := by
       obtain ⟨b, z, hz⟩ := BdR.exists_sub_mem_of_smul_sub_mem Γ 1 (x := y) fun g ↦
-        ⟨l (c g), by simp [← hy, Algebra.smul_def, ← IsScalarTower.algebraMap_apply]⟩
+        ⟨l (c g), by simp [← hy, ← IsScalarTower.algebraMap_apply]⟩
       exact ⟨b, z, eq_add_of_sub_eq (by simpa [eq_comm, Algebra.smul_def] using hz)⟩
     -- Thus `p ^ n * y - x` is fixed by `φ` and lies in `BdRPlus`: it is a `p`-adic number `r`.
     have h_phi : frobEnd (p ^ n * y - x : Bmax) = p ^ n * y - x := by

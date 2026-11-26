@@ -1,5 +1,7 @@
-import Lib.Adelic.Hecke.Basic
-import Lib.General.Groups.BesselGroups
+module
+
+public import Lib.Adelic.Hecke.Basic
+public import Lib.General.Groups.BesselGroups
 
 /-!
 # Integral matrices over subrings: Smith normal form, Gelfand's condition and lattices
@@ -23,6 +25,9 @@ unitary groups.
   the denominator of `a`. An infinite index is read as `0`.
 * `New.colLattice`, `New.preimageLattice`: the span of the columns of `M`, and the vectors `M` makes
   integral.
+* `New.HasLeftInv`, `New.IsPrimitiveMatrix`: a matrix has a left inverse, or has both its entries
+  and those of a left inverse in a specified subring.
+* `New.colSpan`: the submodule spanned by the columns of a matrix.
 * `New.unitaryLevel`: the principal congruence subgroup of the unitary group `New.U J`.
 
 Notions from other files:
@@ -46,6 +51,8 @@ Part of a known result: the valuation pairs and integral matrices of this file a
 Witt's extension theorem for unimodular hermitian lattices and for the Iwasawa decomposition (see
 `Lib.Adelic.Witt.IwasawaDecomposition`).
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -153,7 +160,8 @@ the identity form, the g in GL_n(A) with gᴴg = 1. -/
 def U.cutAt (he : IsIdempotentElem e) [StarRing A] (hs : star e = e) :
     U (1 : Matrix n n A) →* U (1 : Matrix n n A) :=
   ((cutGL he).comp (U 1).subtype).codRestrict (U 1) <| by
-    simp_all [mem_U, cutGL, he.eq, mul_add, add_mul, smul_smul, mul_sub]
+    simp_all [Matrix.mem_unitaryGroupOf_iff, Matrix.star_eq_conjTranspose,
+      cutGL, he.eq, mul_add, add_mul, smul_smul, mul_sub]
 
 end New
 
@@ -209,7 +217,7 @@ lemma New.IsValuationPair.exists_pivot_dvd {A n : Type*} [CommRing A] {R : Subri
   refine ⟨c.fst, c.snd, fun i j ↦ mem_span_singleton.1 ?_⟩
   change B c i j ∈ R ∙ B c p p
   rw [show B c i j = ∑ s : n, c.snd s j • ∑ r : n, c.fst i r • y r s by
-    simp [B, mul_apply, R.smul_def, mul_comm]]
+    simp [B, Matrix.mul_apply, R.smul_def, mul_comm]]
   exact sum_smul_mem _ _ fun s _ ↦ sum_smul_mem _ _ fun r _ ↦ y_mem r s
 
 /-- One elimination step. Let every entry `M i j` be the multiple `w i j * M p p` of the pivot, with
@@ -228,7 +236,7 @@ lemma New.exists_eq_mul_diagonal_mul_of_pivot_dvd {A n : Type*} [CommRing A] {R 
   let D : n → A := Sum.elim (fun _ ↦ M p p) d ∘ e.symm
   have block_entry (i j : {i : n // i ≠ p}) :
       M i j - w i p * M p j = ∑ s : {i : n // i ≠ p}, k i s * d s * l s j := by
-    simpa [↓mul_diagonal, mul_apply, R.smul_def] using congrFun₂ h_block i j
+    simpa [↓mul_diagonal, Matrix.mul_apply, R.smul_def] using congrFun₂ h_block i j
   have default_val : ((default : {i : n // i = p}) : n) = p := rfl
   refine ⟨lower, upper, D, (reindex e.symm e.symm).injective ?_⟩
   suffices M.submatrix e e =
@@ -247,7 +255,7 @@ lemma New.exists_eq_mul_diagonal_mul_of_pivot_dvd {A n : Type*} [CommRing A] {R 
   · simp [e, Unique.eq_default j, default_val, hw]
   · suffices M i j = w i p * M p p * w p j + ∑ s : {i : n // i ≠ p}, k i s * d s * l s j by
       -- `↓`: the product with a diagonal matrix is simplified before `mul_apply` expands it
-      simpa [e, ↓mul_diagonal, mul_apply, default_val]
+      simpa [e, ↓mul_diagonal, Matrix.mul_apply, default_val]
     rw [← block_entry, ← hw p j]
     ring
 
@@ -554,6 +562,30 @@ class Floors.IsHermitianUnit (J : Matrix n n A) : Prop where
 end New
 
 end AdelicRingDefs
+
+/-! ## Left invertible and primitive matrices -/
+
+section PrimitiveMatrices
+
+open Matrix
+
+namespace New
+
+variable {R n k : Type*} [DecidableEq k] [CommRing R] [Fintype n]
+  (O : Subring R) (X : Matrix n k R)
+
+/-- The n × k matrix X over R has a left inverse over R. -/
+abbrev HasLeftInv : Prop := ∃ L : Matrix k n R, L * X = 1
+
+/-- The submodule of R^n spanned by the columns of the matrix X. -/
+abbrev colSpan [Fintype k] : Submodule R (n → R) := X.mulVecLin.range
+
+/-- The matrix X has entries in the subring O and a left inverse with entries in O. -/
+def IsPrimitiveMatrix : Prop := IsIntMatrix O X ∧ ∃ L : Matrix k n R, IsIntMatrix O L ∧ L * X = 1
+
+end New
+
+end PrimitiveMatrices
 
 namespace New
 

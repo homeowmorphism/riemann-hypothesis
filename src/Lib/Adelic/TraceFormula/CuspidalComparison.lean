@@ -1,6 +1,8 @@
-import Lib.Adelic.AutomorphicForms.HeckeEigenforms
-import Lib.Adelic.TraceFormula.LevelCut
-import Lib.Adelic.TraceFormula.TraceComparison
+module
+
+public import Lib.Adelic.AutomorphicForms.HeckeEigenforms
+public import Lib.Adelic.TraceFormula.LevelCut
+public import Lib.Adelic.TraceFormula.TraceComparison
 
 /-!
 # Comparison of traces for a cuspidal test function
@@ -15,6 +17,8 @@ simple zero and counts the spherical vectors through its determinant (`trace_eq_
 
 Known; see `Lib.Adelic.TraceFormula.TraceComparison` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -33,7 +37,7 @@ lemma eventually_mem_spanOn_atPlace_mem_localIntGL (a : ℂ[Gf E n]) :
       ∀ g ∈ a.coeff.support, g.atPlace v ∈ localIntGL n v :=
     a.coeff.support.eventually_all.2 fun g _ ↦ g.eventually_atPlace_mem_localIntGL
   filter_upwards [h_support] with v hv
-  exact Submodule.span_mono (Set.image_mono hv) a.mem_span_support_coeff
+  exact Submodule.span_mono (Set.image_mono fun g hg ↦ hv g hg) a.mem_span_support_coeff
 
 variable [HasPrimitiveRoot5040 E]
 

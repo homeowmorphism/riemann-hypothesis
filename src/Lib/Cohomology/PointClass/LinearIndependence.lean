@@ -1,4 +1,6 @@
-import Lib.Cohomology.PointClass.ProjectiveNonvanishing
+module
+
+public import Lib.Cohomology.PointClass.ProjectiveNonvanishing
 
 /-!
 # The Hodge–Tate map keeps classes of points on a projective variety linearly independent
@@ -45,6 +47,8 @@ by transfer along a finite linear projection. Source: Faltings, p-adic Hodge the
 (compatibility with traces and cycle classes); for transfer, Suslin–Voevodsky, Singular homology of
 abstract algebraic varieties, Invent. Math. 123 (1996), §§4–6.
 -/
+
+@[expose] public section
 
 open CategoryTheory Function CommAlgCat New.Variety CutsOutLocus IsCoordsWithUnit projSpace
   MvPolynomial Finset RingHom Fin CommAlg IsLocalization Away Field Submodule Algebra Ideal
@@ -157,7 +161,7 @@ lemma New.Variety.injective_aeval_of_isNoetherNormalization {k A F ι : Type} [F
     rw [evalForms_map, Function.comp_def, ← comp_aeval_apply]
     simp [aeval_rename, h_eval, hw₁, hP]
   -- By `hΛ` the form `G` is zero; setting `X 0 = 1` in it gives back `P`.
-  simpa [h_eval, comp_def, bind₁_rename] using
+  simpa [h_eval, comp_def, aeval_rename, aeval_X_left_apply] using
     h_indep.map (aeval (cons (1 : MvPolynomial (Fin n) k) X)) hG hGw
 
 /-- The fibre of a linear projection over a general point lies in a given open set. Let `L` embed
@@ -296,6 +300,9 @@ lemma New.Variety.exists_etale_projection {k : Type} [Field k] [CharZero k] {R :
     .of_restrict_scalars_finitePresentation k ..
   have h_etaleAt : IsEtaleAt S (⊥ : Ideal c.coordRing) := by
     -- The localisation at `⊥` is the fraction field, which is separable over that of `S`.
+    have : Algebra.IsAlgebraic (FractionRing S) (FractionRing c.coordRing) :=
+      IsFractionRing.comap_isAlgebraic_iff.mp
+        ((IsFractionRing.isAlgebraic_iff' S c.coordRing (FractionRing c.coordRing)).mp h_alg)
     change Algebra.FormallyEtale S (Localization (⊥ : Ideal c.coordRing).primeCompl)
     rw [primeCompl_bot]
     exact .comp S (FractionRing S) (FractionRing c.coordRing)
@@ -316,7 +323,7 @@ lemma New.Variety.exists_etale_projection {k : Type} [Field k] [CharZero k] {R :
   have h_dim : n = d := equiv_iff_eq.mp ⟨b_U.indexEquiv b_c⟩
   -- Algebraicity over `S` puts the fibre over a general point `[1 : q]` into `U`.
   have h_root (r : c.coordRing) (hr : r ≠ 0) : ∃ P : Polynomial S, P.coeff 0 ≠ 0 ∧ P.aeval r = 0 :=
-    (h_alg.isAlgebraic r).exists_nonzero_coeff_and_aeval_eq_zero (mem_nonZeroDivisors_of_ne_zero hr)
+    (h_alg.isAlgebraic r).exists_coeff_ne_zero_and_aeval_eq_zero (mem_nonZeroDivisors_of_ne_zero hr)
   have h_memU : PointsIn.map κ c.point ∈ U.locus.obj (of k F) := ⟨⟨χ⟩, hχ⟩
   obtain ⟨q, h_fibre⟩ :=
     exists_fibre_mem_of_isOpenSubfunctor hκ hw₁ h_root (hw.comp κ) U.isOpenSubfunctor h_memU
@@ -543,7 +550,7 @@ lemma New.Variety.exists_map_separating_class {p : ℕ} {k : Type} [Field k] [Em
   let Q : (projSpace k n).obj (of k k) := projSpace.affinePoint 0 q
   -- `Γ` is the graph of the projection; its first projection `π` is injective.
   let Γ : Subfunctor (algPointsOf k R Y ⊗ projSpace k n) :=
-    ⟨fun _ x ↦ ∃ v h, IsCoordsWithUnit L x.1 v ∧ x.2 = projSpace.mk (evalForms Λ v) h,
+    ⟨fun _ ↦ {x | ∃ v h, IsCoordsWithUnit L x.1 v ∧ x.2 = projSpace.mk (evalForms Λ v) h},
       fun φ _ ⟨v, _, hv, e⟩ ↦ ⟨φ ∘ v, evalForms_map Λ φ.hom' _ ▸ ⟨_, hv.comp φ, congrArg _ e⟩⟩⟩
   let π : Γ.toFunctor ⟶ algPointsOf k R Y := Γ.ι ≫ fst (algPointsOf k R Y) (projSpace k n)
   have h_mono : Mono π := mono_of_app_injective <| by

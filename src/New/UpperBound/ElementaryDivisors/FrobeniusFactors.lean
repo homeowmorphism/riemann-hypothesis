@@ -1,4 +1,6 @@
-import New.UpperBound.ElementaryDivisors.RootLemma
+module
+
+public import New.UpperBound.ElementaryDivisors.RootLemma
 
 /-!
 # The substitution by Frobenius powers of generic matrices; weight and defect
@@ -52,6 +54,8 @@ Notions from other files:
 
 Here `h` is a matrix in `GL_k(W)`, not a form.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -280,7 +284,7 @@ lemma _root_.New.adjugate_transpose_mem (G : ℝ → AddSubgroup R) [IsRealFiltr
     · simpa [level, hi] using hM i j
   have h_sum : ∑ i : Fin k, level i = -x b - k * v + v := by
     simp [level, Finset.sum_update_of_mem, Finset.sum_sub_distrib, hx_sum, Finset.card_sdiff,
-      cast_pred b.pos]
+      Finset.inter_univ, cast_pred b.pos]
     ring
   rw [transpose_apply, adjugate_apply, ← det_transpose, det_apply]
   exact sum_mem fun π _ ↦ zsmul_mem
@@ -299,7 +303,7 @@ lemma _root_.New.symPowMatrix_mem (G : ℝ → AddSubgroup R) [IsRealFiltration 
     rw [X, smul_monomial, smul_eq_mul, mul_one]
     exact monomial_mem_gaussFiltration (by simpa [weight_single] using hM b c)
   have h_monomial : linSubst M (monomial γ.val 1) ∈ gaussFiltration G (-y) 0 := by
-    simpa [linSubst, bind₁_monomial] using
+    simpa [linSubst, aeval_monomial, Finsupp.prod] using
       prod_pow_mem_graded (gaussFiltration G (-y)) 0 _ γ.val fun c _ ↦ h_var c
   change (linSubst M (monomial γ.val 1)).coeff β.val ∈ G (weight y β.val)
   simpa [weight_eq_sum] using h_monomial β.val
@@ -563,7 +567,7 @@ lemma conjFrobGenericMatrix_mem_gaussFiltration {ω : ZMod N × Fin k × Fin k �
     rw [T.sqrtPrime_sq, map_natCast]
     exact (T.map C).p_dvd_letterConj_pow_sub
   have h_error : T.sqrtPrime ^ 2 ∣ M.coeff μ - (X (s - d, b, c) ^ T.P ^ d).coeff μ := by
-    simpa only [coeff_sub] using (C_dvd_iff_dvd_coeff _ _).1 h_mod μ
+    simpa only [AddMonoidAlgebra.coeff_sub_apply] using (C_dvd_iff_dvd_coeff _ _).1 h_mod μ
   have h_main : T.sqrtPrime ^ ⌈t - weight ω μ⌉₊ ∣ (X (s - d, b, c) ^ T.P ^ d).coeff μ :=
     mem_gaussFiltration_adicFiltration_iff.1 (pow_mem_graded _ X_mem_gaussFiltration) μ
   exact (dvd_sub_left h_main).1 ((pow_dvd_pow _ h_le).trans h_error)

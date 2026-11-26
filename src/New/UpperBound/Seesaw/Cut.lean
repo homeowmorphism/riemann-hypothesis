@@ -1,6 +1,8 @@
-import Lib.Weil.Periods.LatticeBounds
-import New.UpperBound.Seesaw.IntegralAsCosetSum
-import New.UpperBound.Seesaw.UnfoldingStages
+module
+
+public import Lib.Weil.Periods.LatticeBounds
+public import New.UpperBound.Seesaw.IntegralAsCosetSum
+public import New.UpperBound.Seesaw.UnfoldingStages
 
 /-!
 # The outer variables: finitely many classes, with weights
@@ -24,6 +26,8 @@ Notions from other files:
 
 See `New.UpperBound.Seesaw.SeesawIdentity` for related work.
 -/
+
+@[expose] public section
 
 open Function Finset MulAction
 noncomputable section
@@ -119,7 +123,8 @@ lemma exists_isStageCut (j : ℕ) (hj : j ≤ 2 * D.ϱ + 1) :
       (fun x hx ↦ ⟨h_int x hx, exists_conj_pow_mem_stdLevel ϑ (h_off x hx)⟩) hC_meets
   refine ⟨T, h_stable, h_integral, fun x hx ↦ h_dvd x (.inl hx), fun x hx ↦ ?_⟩
   obtain ⟨n, hn⟩ := h_dvd x (.inr hx)
-  exact ne_zero_of_dvd_ne_zero (pow_ne_zero n (by simp [prod_eq_zero_iff])) hn
+  exact ne_zero_of_dvd_ne_zero
+    (pow_ne_zero n (by simp [prod_eq_zero_iff, IsDedekindDomain.HeightOneSpectrum.ne_bot])) hn
 
 /-- The classes `Ω_j` modulo `levelY ϑ j` over which the `j`-th outer variable is summed: the
 classes of the elements of `D.chosenLevel` (integral points that reduce to `1` at the chosen places)

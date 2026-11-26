@@ -1,4 +1,6 @@
-import Lib.CM.GoodReduction
+module
+
+public import Lib.CM.GoodReduction
 
 /-!
 # Galois conjugates of CM curves: conjugate sections, isogenies and translates of θ
@@ -46,6 +48,8 @@ Part of a known result: Main theorem of complex multiplication for elliptic curv
 `Lib.CM.ChowlaSelberg`. No reciprocity law is used: the conjugate lattice comes from uniformisation,
 and points are matched by transporting sections.
 -/
+
+@[expose] public section
 
 /-!
 ## Transport of sections and points to a conjugate curve
@@ -475,7 +479,7 @@ lemma thetaQuotient_eq_one (hD : D.a₁ = σ C.a₁) : thetaQuotient C σ D = 1 
   by_contra h_ne
   obtain ⟨n, W, hW, h_fac⟩ :
       ∃ (n : ℕ) (W : ℂ⟦X⟧), ¬X ∣ W ∧ thetaQuotient C σ D - 1 = X ^ n * W :=
-    WfDvdMonoid.max_power_factor (sub_ne_zero.2 h_ne) X_irreducible
+    WfDvdMonoid.max_power_factor (sub_ne_zero.2 h_ne) irreducible_X
   let ω : ℂ := quadGen d
   have hω_mem : ω ∈ quadInt d := quadGen_mem_quadInt
   have hω_norm : 1 < ‖ω‖ := one_lt_norm_quadGen

@@ -1,5 +1,7 @@
-import Lib.ClassField.Places.DecompositionCyclotomic
-import Lib.General.NumberTheory.ImaginaryQuadraticField
+module
+
+public import Lib.ClassField.Places.DecompositionCyclotomic
+public import Lib.General.NumberTheory.ImaginaryQuadraticField
 
 /-!
 # The parameters q₀ and d, the field E = K(ζ), its infinite places and its roots of unity
@@ -32,14 +34,15 @@ The basic facts on the field `E` are proved in `Lib` or in
 * the ring of integers: `New.Parameters.adjoin_betaKInE_zetaInt_eq_top`, in the latter file;
 * the different of `E` over its real subfield and the places fixed by conjugation:
   `New.differentIdeal_eq_top_of_add_star_eq_one`, `New.two_notMem_of_star_eq` and
-  `New.exists_sq_eq_q_of_star_eq` in `Lib`, `New.Parameters.natCast_eq_neg_one_of_star_eq` in the
-  latter file.
+  `New.exists_sq_eq_q_of_star_eq` in `Lib`.
 
 Notions from other files:
 * `New.chiK d` is the Legendre symbol `(· / d)`, the character of `ℚ(√-d)` for `d ≡ 3 mod 4`.
 * `New.CMType E` is a choice, for each infinite place of the CM field `E`, of an embedding in `ℂ`
   that induces it; `Φ v` is the embedding chosen at `v`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -388,7 +391,7 @@ lemma star_zeta : star (P.ζ s) = (P.ζ s)⁻¹ := by
 `v`, that is, the image of `v` in `(ℤ/q₁)ˣ` under `New.Parameters.placeMulEquiv`. -/
 lemma galOfPlace_zeta (v : P.Φ s) :
     P.galOfPlace s v (P.ζ s) = P.ζ s ^ (P.placeMulEquiv s v : ZMod (P.q₁ s)).val := by
-  simp [placeMulEquiv, ζ]
+  exact autEquivPow_spec _ (P.irreducible_cyclotomic s) _
 
 lemma two_pow_dvd_q₁ : 2 ^ (s + 1) ∣ P.q₁ s :=
   (dvd_of_eq (pow_succ' 2 s)).trans (mul_dvd_mul P.two_dvd_q₀ (dvd_mul_left _ _))
@@ -409,7 +412,7 @@ lemma placeMulEquiv_placeOfInt {ν : ℤ} (h_cop : IsCoprime ν P.q₀) :
   have h_two : IsCoprime 2 ν := h_cop.symm.mono (mod_cast P.two_dvd_q₀) dvd_rfl
   have h_three : IsCoprime 3 ν := h_cop.symm.mono (mod_cast P.three_dvd_q₀) dvd_rfl
   have h_unit : IsUnit (ν : ZMod (P.q₁ s)) := by
-    simp [towerDeg, coe_int_isUnit_iff_isCoprime, IsCoprime.mul_left_iff, IsCoprime.pow_left,
+    simp [towerDeg, isUnit_intCast_iff_isCoprime, IsCoprime.mul_left_iff, IsCoprime.pow_left,
       h_cop.symm, h_two, h_three]
   simp [placeOfInt, h_unit]
 
@@ -464,7 +467,7 @@ lemma placeClass_placeOfInt_eq_neg_one_iff {ν : ℤ} (h_dvd : P.q₀ ∣ P.q₁
     split_ifs at h_val
     · exact h_val
     · exact absurd h_val (by simpa using P.d_pow_ne_neg_one 0)
-  · have h_cop : IsCoprime ν P.q₀ := ((coe_int_isUnit_iff_isCoprime ..).1 (by simp [h])).symm
+  · have h_cop : IsCoprime ν P.q₀ := ((isUnit_intCast_iff_isCoprime ..).1 (by simp [h])).symm
     simp [Units.ext_iff, placeClass_placeOfInt h_cop, h]
 
 end New.Parameters

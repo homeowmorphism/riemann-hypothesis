@@ -1,4 +1,6 @@
-import Lib.General.NumberTheory.PadicLimitsValuation
+module
+
+public import Lib.General.NumberTheory.PadicLimitsValuation
 
 /-!
 # Notation at a prime, and elements of prime-power norm at split primes
@@ -39,6 +41,8 @@ Known result: decomposition of primes in `ℚ(√-d)` and elements of prime-powe
 The existence of `α` follows from the finiteness of the class group. The numbers `ρ_p`, `γ_p` and
 the sets of exponents are notation, and the sum for `γ_p` is a geometric series.
 -/
+
+@[expose] public section
 
 section PrimeNotation
 
@@ -140,7 +144,6 @@ lemma gammaPrime_of_inert {d p : ℕ} [Fact d.Prime] [Fact p.Prime] (h_inert : c
   grind [gammaPrime, varpiValuation_of_inert h_inert]
 
 lemma gammaPrime_self (d : ℕ) [Fact d.Prime] : gammaPrime d d = 1 / (2 * d - 2) := by
-  have hd : (1 : ℝ) < d := mod_cast (Fact.out : d.Prime).one_lt
   grind [gammaPrime, varpiValuation_self d]
 
 lemma gammaPrime_nonneg (d p : ℕ) [Fact d.Prime] [Fact p.Prime] : 0 ≤ gammaPrime d p :=
@@ -357,7 +360,7 @@ lemma QuadField.star_ne_of_chiK_eq_one {d p : ℕ} [PrimeSevenModEight d] [Fact 
   -- `n`. If `w` is its own conjugate, `star (betaK d)` is congruent to `n` too; their difference
   -- `sqrtNegDInt d = √-d` is then in `w`, so `p ∣ d`.
   have h_card : Nat.card (𝓞 (QuadField d) ⧸ w.asIdeal) = p :=
-    (q_eq_iff_chiK_ne_neg_one w hw).2 (by simp [hp])
+    Ideal.absNorm_eq_natCard w.asIdeal ▸ (q_eq_iff_chiK_ne_neg_one w hw).2 (by simp [hp])
   have : Nontrivial (𝓞 (QuadField d) ⧸ w.asIdeal) :=
     Ideal.Quotient.nontrivial_iff.2 w.isPrime.ne_top
   obtain ⟨n, hn⟩ :

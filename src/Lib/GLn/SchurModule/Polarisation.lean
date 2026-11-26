@@ -1,4 +1,6 @@
-import Lib.GLn.SchurModule.SchurOrthogonality
+module
+
+public import Lib.GLn.SchurModule.SchurOrthogonality
 
 /-!
 # Irreducibility under U(n)^Φ, polarisation and averaging of determinant polynomials
@@ -34,6 +36,8 @@ Notions from other files:
 Irreducibility under U(n) is part of the known theory of the contravariant form on Weyl's lattice.
 See `Lib.GLn.SchurModule.SchurNorm`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -112,7 +116,7 @@ omit [DecidableEq Φ] [DecidableEq n] in
 lemma map_pairedDetProd {S S' : Type} [CommRing S] [Algebra ℂ S] [CommRing S'] [Algebra ℂ S']
     (φ : S →ₐ[ℂ] S') (Y : Φ → n → p → S) (η : (τ : Φ) → ι τ → Matrix p n ℂ) :
     φ (pairedDetProd Y η) = pairedDetProd (fun (τ : Φ) (i : n) (k : p) ↦ φ (Y τ i k)) η := by
-  simp [pairedDetProd, det_apply', mul_apply]
+  simp [pairedDetProd, det_apply', Matrix.mul_apply]
 
 omit [DecidableEq Φ] [DecidableEq n] in
 /-- Let `card p < card n` and let `Y τ` be the `n × p` matrix formed by the first `card p` columns
@@ -132,7 +136,7 @@ lemma pairedDetProd_mem_nablaFamily (hp : card p < card n) (η : (τ : Φ) → �
         (of fun s t : Fin (card p) ↦ ∑ i : n, c.submatrix (equivFin p).symm id s i •
           X (R := ℂ) ((⟨τ, i⟩ : Σ _ : Φ, n), (t : ℕ))).det := by
       rw [← det_submatrix_equiv_self (equivFin p).symm]
-      simp [Y, mul_apply, smul_eq_C_mul, Matrix.submatrix]
+      simp [Y, Matrix.mul_apply, smul_eq_C_mul, Matrix.submatrix]
     rw [h_det, det_sum_smul_X]
     exact sum_mem fun I _ ↦ smul_mem _ _ (minor_mem_nabla fun _ ↦ rfl)
   have h_weight :
@@ -157,7 +161,7 @@ lemma rowSubst_pairedDetProd_X (z : Φ → Matrix n n ℂ) (η : (τ : Φ) → �
   congr! 4
   -- Entry by entry, the substitution takes the matrix `Y τ` of variables to `z τ * Y τ`.
   ext : 2
-  simp [rowSubst, mul_apply, smul_eq_C_mul]
+  simp [rowSubst, Matrix.mul_apply, smul_eq_C_mul]
 
 /-- Polarisation. Let `card p < card n`, and let `η₀` be the `p × n` matrix whose row `k` is the
 standard basis vector at `r k`, for an injective `r`. For all complex `p × n` matrices `η τ k`, the
@@ -189,7 +193,7 @@ theorem exists_pairedDetProd_eq_sum_unitary (hp : card p < card n) {r : p → n}
     have h_frame : (1 : Matrix n n ℂ).submatrix r id *
         (of fun (i : n) (k : p) ↦ (1 : Matrix n n ℂ) i (r k)) = 1 := by
       ext
-      simp [mul_apply, one_apply, hr.eq_iff]
+      simp [Matrix.mul_apply, Matrix.one_apply, hr.eq_iff]
     have h_one : φ (P η₀) = 1 := by simp [hφ, pairedDetProd, η₀, h_frame]
     exact ne_zero_of_map (f := φ) (by simp [h_one])
   have h_subst (u : Φ → USign (1 : n → ℤˣ)) :
@@ -306,7 +310,7 @@ lemma exists_forall_eq_mul_map_det_pow (c : Φ → ℕ) (q : MvPolynomial (Φ ×
   have h_point (x u : Φ → USign (1 : n → ℤˣ)) : value x (aeval
       (fun ((τ, j, k) : Φ × n × n) ↦ ∑ i : n, (u τ).val.val i j • X (τ, i, k)) q) =
       value (x * u) q := by
-    simp [value, aeval_bind₁, mul_apply, mul_comm]
+    simp [value, comp_aeval_apply, Matrix.mul_apply, mul_comm]
   have h_value (x : Φ → USign (1 : n → ℤˣ)) : value x mean = a * χ x :=
     calc value x mean = ∫ u, χ u⁻¹ * value (x * u) q := by
           simpa only [AlgHom.toLinearMap_apply, h_point] using h_mean (value x).toLinearMap

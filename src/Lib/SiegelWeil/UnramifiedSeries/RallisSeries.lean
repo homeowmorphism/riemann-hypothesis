@@ -1,5 +1,7 @@
-import Mathlib.LinearAlgebra.Projectivization.Cardinality
-import Lib.SiegelWeil.UnramifiedSeries.VacuumCoefficients
+module
+
+public import Mathlib.LinearAlgebra.Projectivization.Cardinality
+public import Lib.SiegelWeil.UnramifiedSeries.VacuumCoefficients
 
 /-!
 # The series of translates weighted by the coefficients of the vacuum
@@ -62,6 +64,8 @@ for the constant `1` in rank one it is evaluated in `New.vacuumSum_eq_L_div_eule
 lattices uses neighbours in Kneser's sense; see M. Greenberg and J. Voight, Lattice methods for
 algebraic modular forms on classical groups (2014), §5.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -634,7 +638,7 @@ lemma vacuumSum_eq_of_hasProd (h_rank : 2 * card n < card m)
   have h_finite (R : Finset (FinPlace E)) :
       vacuumSum n (card m) b (A ∩ T R) = ∏ u ∈ T R, loc u := by
     induction R using Finset.induction with
-    | empty => simp [T, vacuumSum_empty]
+    | empty => simp [T, vacuumSum_empty, Set.inter_empty]
     | insert w R _ ih =>
       have h_insert : T (insert w R) = {w, star w} ∪ T R := by simp [T]
       have h_star : star w ∈ T R ↔ w ∈ T R := by simp [h_mem, or_comm]

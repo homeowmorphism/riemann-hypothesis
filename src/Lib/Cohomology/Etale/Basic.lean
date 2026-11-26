@@ -1,4 +1,6 @@
-import Lib.General.Algebra.AbsIntegrallyClosed
+module
+
+public import Lib.General.Algebra.AbsIntegrallyClosed
 
 /-!
 # Cohomology of functors as Ext: test rings, points, functoriality, coefficients
@@ -38,6 +40,8 @@ Notions from other files:
 Known; see `Lib.Cohomology.Etale.FilteredLimits` and `Lib.Cohomology.WoodsHole` for sources.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-!
@@ -52,7 +56,7 @@ noncomputable section
 
 section Defs
 
-open CategoryTheory Functor AddCommGrpCat AddMonoidHom Function Abelian Ext FreeAbelianGroup
+open CategoryTheory Functor AddCommGrpCat AddMonoidHom Function Abelian Ext FreeAddCommGroup
 
 namespace New.Variety
 
@@ -292,7 +296,7 @@ def IsComparableRing {A : Type*} [Mul A] (f : A → R) : Prop :=
 
 /-- The integers `m i` add up to zero on every fibre of `v`, that is, `∑ m i • [v i] = 0` in the
 free abelian group on `V`. -/
-def Cancels (m : I → ℤ) (v : I → V) : Prop := ∑ i : I, m i • FreeAbelianGroup.of (v i) = 0
+def Cancels (m : I → ℤ) (v : I → V) : Prop := ∑ i : I, m i • FreeAddCommGroup.of (v i) = 0
 
 /-- If the integers `m i` cancel on the fibres of `v` and `v'` factors through `v` (equal values
 of `v` give equal values of `v'`), then they cancel on the fibres of `v'`. -/
@@ -300,7 +304,7 @@ lemma Cancels.mono {m : I → ℤ} {v : I → V} {v' : I → V'} (h : Cancels m 
     (hv : FactorsThrough v' v) : Cancels m v' := by
   -- Apply to `∑ m i • of (v i) = 0` the additive map that sends `of (v i)` to `of (v' i)`;
   -- it exists because `v'` factors through `v`.
-  let g : V → FreeAbelianGroup V' := extend v (of ∘ v') 0
+  let g : V → FreeAddCommGroup V' := extend v (of ∘ v') 0
   have hg (i : I) : g (v i) = of (v' i) := (hv.comp_left of).extend_apply 0 i
   unfold Cancels at h ⊢
   calc ∑ i : I, m i • of (v' i)
@@ -731,29 +735,17 @@ lemma H.dimension_shift_induction {P : ∀ {F : AbFunctor C} {n : ℕ}, H N F n 
       x.covariant_sequence_exact₁ N hS (eq_zero_of_injective _) rfl
     exact h S hS n y (ih y)
 
-set_option backward.isDefEq.respectTransparency false
 
 lemma mapExactFunctor_mapExactFunctor :
-    (x.mapExactFunctor Φ).mapExactFunctor Θ = x.mapExactFunctor (Φ ⋙ Θ) := by
-  induction x with
-  | h₀ F f => simp [mapExactFunctor_mk₀]
-  | h S hS n x ih => simp [ih, mapExactFunctor_comp, mapExactFunctor_extClass]
+    (x.mapExactFunctor Φ).mapExactFunctor Θ = x.mapExactFunctor (Φ ⋙ Θ) :=
+  (x.comp_mapExactFunctor Φ Θ).symm
 
 /-- For a natural transformation η: Φ → Ψ of exact functors and x in Ext^n(N,F), pushing Φ(x)
 forward along η_F equals pulling Ψ(x) back along η_N, in Ext^n(ΦN,ΨF). -/
 lemma mapExactFunctor_naturality :
     push (Φ.obj N) (η F) n (x.mapExactFunctor Φ) =
-      H.map (Ψ.obj F) (η N) n (x.mapExactFunctor Ψ) := by
-  induction x with
-  | h₀ => simp [H.push, mapExactFunctor_mk₀, H.map]
-  | h S hS n x ih =>
-    -- The connecting classes of `Φ S` and `Ψ S` are compatible with `η` (`h_nat`). After
-    -- unfolding, reassociate the composites and use `h_nat`, then `ih`.
-    have h_nat : (hS.map_of_exact Φ).extClass.comp (mk₀ (η.app S.X₁)) (add_zero 1) =
-        (mk₀ (η.app S.X₃)).comp (hS.map_of_exact Ψ).extClass (zero_add 1) :=
-      extClass_naturality (hS.map_of_exact Φ) (hS.map_of_exact Ψ) (mapNatTrans S η)
-    simp_all [← comp_assoc_of_second_deg_zero, comp_assoc (h₂₃ := rfl), H.push, H.map,
-      mapExactFunctor_comp, mapExactFunctor_extClass]
+      H.map (Ψ.obj F) (η N) n (x.mapExactFunctor Ψ) :=
+  x.mapExactFunctor_comp_mk₀_natTransApp η
 
 namespace H
 
@@ -775,19 +767,15 @@ map. -/
 def mapₗ (F : AbFunctor C) [CoeffAction R F] (α : M ⟶ N) (n : ℕ) : H N F n →ₗ[R] H M F n :=
   { map F α n with map_smul' r := map_push α (CoeffAction.act r : End F).asHom }
 
-lemma mapExactFunctor_restrictAlong_id : x.mapExactFunctor (restrictAlong (𝟭 C)) = x := by
-  induction x with
-  | h₀ F f => simp [mapExactFunctor_mk₀, show (𝟭 C).whiskerLeft f = f from rfl]
-  | h S hS n x ih => simp [ih, mapExactFunctor_comp, mapExactFunctor_extClass]
+lemma mapExactFunctor_restrictAlong_id : x.mapExactFunctor (restrictAlong (𝟭 C)) = x :=
+  x.id_mapExactFunctor
 
 end H
 
 /-- An isomorphism `α : M ⟶ N` induces bijections `Ext^n(N,F) → Ext^n(M,F)` in every degree. -/
-lemma IsCohomEquiv.of_isIso [IsIso α] : IsCohomEquiv F α := by
-  intro n
-  -- pull-back along `inv α` is inverse to pull-back along `α`
-  refine bijective_iff_has_inverse.mpr ⟨map F (inv α) n, fun x ↦ ?_, fun x ↦ ?_⟩ <;>
-    simp [← H.map_comp]
+lemma IsCohomEquiv.of_isIso [IsIso α] : IsCohomEquiv F α := fun n ↦
+  -- pull-back along `α` is the value at `F` of the isomorphism `Ext^n(α, -)`
+  ConcreteCategory.bijective_of_isIso (((Abelian.extFunctor n).map α.op).app F)
 
 /-- If `γ : F ⟶ G` and `γ' : F' ⟶ G'` intertwine the coefficient maps of two comparisons with the
 same functor `c.functor`, then the comparison maps commute with push-forward along `γ` and `γ'`. The
@@ -802,7 +790,8 @@ lemma Comparison.pull_push (β : c.functor ⋙ G ⟶ G') (γ : F ⟶ G) (γ' : F
 @[simp]
 lemma Comparison.id_pull : (id F).pull α = H.map F α := by
   ext n x
-  simp [mapExactFunctor_restrictAlong_id, x.comp_mk₀_id, pull, H.map, H.push, mapExtAddHom]
+  change H.map F α n ((x.mapExactFunctor (restrictAlong (𝟭 C))).comp (mk₀ (𝟙 F)) rfl) = _
+  rw [mapExactFunctor_restrictAlong_id, x.comp_mk₀_id]
 
 /-- The composite of comparisons (φ,β) from F to F' and (φ',β') from F' to F'': the functor φ∘φ'
 with the map Fφφ' → F'φ' → F''. -/
@@ -824,8 +813,9 @@ namespace Comparison
 
 /-- The comparison map of `(𝟭 C, β)` along the identity of `N` is the push-forward along `β`. -/
 lemma pull_id_eq_push : pull ⟨𝟭 C, β⟩ (𝟙 N) n = push N β n := by
-  ext
-  simp [mapExactFunctor_restrictAlong_id, pull, H.map, H.push, mapExtAddHom]
+  ext x
+  change H.map _ (𝟙 N) n (push N β n (x.mapExactFunctor (restrictAlong (𝟭 C)))) = _
+  rw [mapExactFunctor_restrictAlong_id, H.map_id]
 
 /-- For `η : φ ⟶ ψ` and `β : ψ ⋙ F ⟶ F'`, moving `η` from the coefficient map (`η F` before
 `β`) to the source map (`η N` after `α`) does not change the comparison map. The target of `α` is
@@ -1059,7 +1049,7 @@ end LocalTerms
 
 section Representable
 
-open CategoryTheory NatTrans Function FreeAbelianGroup AddCommGrpCat ShortComplex QuotientAddGroup
+open CategoryTheory NatTrans Function FreeAddCommGroup AddCommGrpCat ShortComplex QuotientAddGroup
 
 namespace New.Variety
 
@@ -1071,7 +1061,7 @@ generator [y] to `s A y`. -/
 def freeAb.desc (s : (A : C) → Y.obj A → F.obj A)
     (h : ∀ (A B : C) (f : A ⟶ B) (y : Y.obj A), s B (Y.map f y) = F.map f (s A y)) :
     freeAb.obj Y ⟶ F where
-  app A := ofHom (FreeAbelianGroup.lift (s A))
+  app A := ofHom (FreeAddCommGroup.lift (s A))
   naturality := by aesop (add simp [freeAb, free])
 
 @[simp]
@@ -1079,21 +1069,21 @@ lemma freeAb.desc_of (s : (A : C) → Y.obj A → F.obj A)
     (h : ∀ (A B : C) (f : A ⟶ B) (y : Y.obj A),
       s B ((ConcreteCategory.hom (Y.map f)) y) = (ConcreteCategory.hom (F.map f)) (s A y))
     (A : C) (y : Y.obj A) :
-    desc (F := F) (Y := Y) s h A (FreeAbelianGroup.of y) = s A y := by
+    desc (F := F) (Y := Y) s h A (FreeAddCommGroup.of y) = s A y := by
   -- at `A` the map is the lift of `s A` to the free abelian group
-  show FreeAbelianGroup.lift (s A) (FreeAbelianGroup.of y) = s A y
-  exact FreeAbelianGroup.lift_apply_of (s A) y
+  change FreeAddCommGroup.lift (s A) (FreeAddCommGroup.of y) = s A y
+  exact FreeAddCommGroup.lift_apply_of (s A) y
 
 /-- Two maps ℤ[Y] → F agree if they agree on every generator [y]. -/
 lemma freeAb.hom_ext {z z' : freeAb Y ⟶ F}
     (h : ∀ (A : C) (y : Y.obj A), z A (.of y) = z' A (.of y) := by tauto) : z = z' := by
   ext A : 2
   -- at `A` both maps are additive maps out of a free abelian group, so generators decide
-  exact AddCommGrpCat.hom_ext (FreeAbelianGroup.lift_ext _ _ (h A))
+  exact AddCommGrpCat.hom_ext (FreeAddCommGroup.lift_ext _ _ (h A))
 
 @[simp]
 lemma freeAb.map_of {E : C ⥤ Type 1} (u : E ⟶ Y) (A : C) (y : E.obj A) :
-    freeAb.map u A (FreeAbelianGroup.of y) = FreeAbelianGroup.of (u A y) :=
+    freeAb.map u A (FreeAddCommGroup.of y) = FreeAddCommGroup.of (u A y) :=
   rfl
 
 /-- The universal property of `freeAb`: for a functor `X` to sets and a functor `Y` to abelian
@@ -1158,7 +1148,7 @@ def relFreeAb : C ⥤ Ab := abCoker (freeAb.map U.ι)
 def relFreeAb.π : freeAb Y ⟶ relFreeAb U := abCoker.π (freeAb.map U.ι)
 
 /-- For `x ∈ Y(A)`, the class of the generator [x] in ℤ[Y(A)]/ℤ[U(A)]. -/
-abbrev relFreeAb.mk {A : C} (x : Y.obj A) : (relFreeAb U).obj A := π U A (FreeAbelianGroup.of x)
+abbrev relFreeAb.mk {A : C} (x : Y.obj A) : (relFreeAb U).obj A := π U A (FreeAddCommGroup.of x)
 
 variable {U α} {g : N ⟶ F}
 

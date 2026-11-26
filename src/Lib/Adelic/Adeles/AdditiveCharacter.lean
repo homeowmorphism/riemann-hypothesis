@@ -1,6 +1,8 @@
-import Lib.Adelic.Adeles.Basic
-import Lib.Adelic.QuotientMeasure.Basic
-import Lib.General.Groups.CongruenceSubgroups
+module
+
+public import Lib.Adelic.Adeles.Basic
+public import Lib.Adelic.QuotientMeasure.Basic
+public import Lib.General.Groups.CongruenceSubgroups
 
 /-!
 # The additive character, Haar measures and the rational lattice in the adeles
@@ -37,6 +39,8 @@ Notions from other files:
 For totally complex `E` the file proves a known result: a number field is a discrete subgroup of its
 adeles with compact quotient, here with a measure for which the covolume is one.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -343,7 +347,7 @@ lemma HasFundDomain.isCovolOneLattice [BorelSpace B]
       exact Set.indicator_of_notMem (fun h_mem ↦ hb (by simp [ha_uniq b h_mem])) _
   -- Unfolding the integral of the indicator of `D`: the quotient has the volume of `D`.
   have h_mass : f.range.quotMeasure volume Set.univ = 1 := by
-    simpa [h_once, hD_meas, hD_vol] using
+    simpa [h_once, hD_meas, Set.univ_inter, hD_vol] using
       lintegral_addOrbitMeasure_lintegral (ν := .count) (H := f.range) (μ := volume)
         (measurable_one.indicator hD_meas)
   exact

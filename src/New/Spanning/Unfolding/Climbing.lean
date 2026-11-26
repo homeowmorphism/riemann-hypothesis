@@ -1,5 +1,7 @@
-import Lib.Adelic.QuotientMeasure.UnfoldingInStages
-import New.Spanning.Unfolding.AmplitudeSums
+module
+
+public import Lib.Adelic.QuotientMeasure.UnfoldingInStages
+public import New.Spanning.Unfolding.AmplitudeSums
 
 /-!
 # Residue lifts, lattice charts and common flag vectors: which filling terms contribute
@@ -54,6 +56,8 @@ second moment. Related work: Friedberg, Poincaré series for GL(n), 1987; Y. Liu
 formulae toward Bessel and Fourier–Jacobi periods, 2014; Furusawa–Shalika, Central critical values
 of degree four L-functions for GSp(4), Mem. AMS 782, 2003.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -186,24 +190,6 @@ lemma mulVec_frameImage_one_mulVec {R : Type*} [CommRing R]
   rw [mulVec_mulVec]
   exact congrArg (fun N ↦ N *ᵥ x) (mul_inclMatrix g 𝔰.besselFrame)
 
-/-- Let `besselH` be the fixer of all basis vectors outside `𝔰.κ`, a copy of the unitary group of
-X₀. Its reduction to the residue fields, `S.reducedImage besselH`, fixes every nonzero vector `d` of
-the span of the frame f = (e₁,…,e_ϱ,z), taken modulo a chosen place `w` or modulo its conjugate.
-That is, `S.reducedImage besselH` lies in `S.vectorFixer w d`. -/
-lemma reducedImage_besselH_le_vectorFixer {i : Fin 2} (w : S.chosenPlaces i)
-    (d : S.FrameVector w) : S.reducedImage besselH ≤ S.vectorFixer w d := by
-  rintro _ ⟨k, hk, rfl⟩
-  -- The columns of `k` at the frame are those of `1`, and this passes to the residue field.
-  have h_frame (a : 𝔰.BesselIndex) (b : Fin (𝔰.ϱ + 1)) :
-      (k : S.GFin).val a (𝔰.besselFrame b) = if a = 𝔰.besselFrame b then 1 else 0 := by
-    simpa [one_apply] using congrFun₂ (frameImage_mul_of_mem_agreeWithOneOn hk 1) a b
-  have h_action : frameImage (S.actionAt (S.reduction k) (⟨i, w⟩, d.1)) = frameImage 1 := by
-    rw [actionAt, ← intGL_map_reduceAboveM]
-    ext a b
-    by_cases h_eq : a = 𝔰.besselFrame b <;> simp [intGL.map_apply, h_frame, h_eq, one_apply,
-      ← Submonoid.one_def, ← ZeroMemClass.zero_def]
-  rw [mem_vectorFixer, mulVec_frameImage_one_mulVec, h_action]
-
 /-- The element `s` meets at the place `p` of `E` above `M`: modulo `p`, the span of the frame and
 its image under `s` share a nonzero vector. -/
 def MeetsAt (s : S.ResidueGL) (p : (Σ i : Fin 2, S.chosenPlaces i) × Bool) : Prop :=
@@ -247,13 +233,6 @@ lemma mem_fixer {places : Finset (S.chosenPlaces 0)}
     {vectors : ∀ w : S.chosenPlaces 0, S.FrameVector w} {s : S.ResidueGL} :
     s ∈ S.fixer places vectors ↔ ∀ w ∈ places, s ∈ S.vectorFixer w (vectors w) := by
   simp [fixer, Subgroup.mem_iInf]
-
-/-- The group that fixes given vectors of the span of the frame modulo some places contains the
-reduction of `besselH`, the unitary group of `X₀`. -/
-theorem reducedImage_besselH_le_fixer (places : Finset (S.chosenPlaces 0))
-    (vectors : ∀ w : S.chosenPlaces 0, S.FrameVector w) :
-    S.reducedImage besselH ≤ S.fixer places vectors :=
-  fun _ hs ↦ mem_fixer.2 fun w _ ↦ reducedImage_besselH_le_vectorFixer w (vectors w) hs
 
 open scoped Classical in
 /-- For `w` not in `places`, `s` lies in `S.fixer` for `insert w places` and `update vectors w d`
@@ -330,9 +309,7 @@ lemma isIntMatrix_middleInclusionMatrix_mul_iff {m : Type*} {l : Matrix 𝔰.κ 
       simpa using mul_mem S.piN_mem (h_div j)
     have h_int : IsIntMatrix (Ô E) l := by
       intro i j
-      obtain rfl | hi := eq_or_ne i 𝔰.k₀
-      · exact h_row j
-      · exact h_other i hi j
+      grind
     exact ⟨h_int, fun j ↦ mem_span_unit_iff.2 (h_div j)⟩
   · rintro ⟨h_int, h_span⟩
     have h_star (j : m) : star S.piN.val * l 𝔰.k₀ j ∈ Ô E :=
@@ -669,12 +646,6 @@ lemma IsTopIndex.ne_zero_or_ne_zero (h_top : IsTopIndex x y j) (hx : x ≠ 0) :
   | succ i =>
     exact i.castSucc_lt_succ.not_ge (h_top.2 fun b hb ↦ h_from b (castSucc_lt_iff_succ_le.1 hb))
 
-/-- An index `j` above which the coordinates `x`, `y` vanish, and at which they are not both `0`, is
-the top index. -/
-lemma isTopIndex_of_ne_zero (h_above : ∀ b > j, x b = 0 ∧ y b = 0) (h_ne : x j ≠ 0 ∨ y j ≠ 0) :
-    IsTopIndex x y j :=
-  ⟨h_above, fun _ ha ↦ not_lt.1 fun h_lt ↦ not_and_or.2 h_ne (ha j h_lt)⟩
-
 /-- Suppose that whenever `μ`, `μ'` are the coefficients at an index of a common vector of the flags
 of `P` and `P'`, they are so at the next index. Then coefficients at `j` are coefficients at every
 `l ≥ j`. -/
@@ -757,7 +728,7 @@ lemma pairOccursAt_succ (h_agree : S.CharsAgree γ) {μ μ' : E} (j : Fin 𝔰.�
   obtain ⟨u, hu, hu_sum, hu_eichler⟩ := exists_mem_besselU_eq_eichlerMap j.succ x r hγv hx hm
   obtain ⟨w, hw, hw_sum, hw_eichler⟩ := exists_mem_besselU_eq_eichlerMap j.succ y r hv hy hm'
   have h_comm : u * γ = γ * w := by
-    ext : 2
+    refine Subtype.ext (Units.ext ?_)
     simp [hu_eichler, hw_eichler, hxy, ext_iff_mulVec, U.form_mulVec_mulVec, ← mulVec_mulVec,
       frameImage_mulVec γ.val.val, eichlerMap_mulVec, mulVec_sub, mulVec_add, mulVec_smul]
   -- So the agreement of the characters at `u` and `w` is the claim.
@@ -787,15 +758,6 @@ lemma CharsAgree.mul_star_eq_of_pairOccursAt (h_agree : S.CharsAgree γ) {μ μ'
     h_agree.pairOccursAt_mono h_occurs j.le_last
   rw [mul_comm, star_mul_last_eq_of_frameImage_eq hxy, mul_comm]
 
-/-- Let the characters of `γ` agree. If `μ`, `μ'` are the coefficients at `j` of a common vector of
-the flags of the frame `f` and of `γ f`, then `μ μ̄ = μ' μ̄'`, and `μ`, `μ'` are the coefficients of
-a common vector at every index `l ≥ j`. -/
-lemma mul_star_eq_and_pairOccursAt_of_le (h_agree : S.CharsAgree γ) (j : Fin (𝔰.ϱ + 1)) (μ μ' : E)
-    (h_occurs : PairOccursAt γ μ μ' j) :
-    μ * star μ = μ' * star μ' ∧ ∀ l ≥ j, PairOccursAt γ μ μ' l :=
-  ⟨h_agree.mul_star_eq_of_pairOccursAt h_occurs,
-    fun _ hl ↦ h_agree.pairOccursAt_mono h_occurs hl⟩
-
 /-- Let the characters of `γ` agree, and let a common vector, with coordinates `x` in the frame `f`
 and `y` in `γ f`, have the top index `j` (the least index above which `x` and `y` vanish). Then
 `x j` and `y j` have the same norm. -/
@@ -811,45 +773,7 @@ lemma CharsAgree.mul_star_ne_zero_of_isTopIndex (h_agree : S.CharsAgree γ) {x y
     (h_top : IsTopIndex x y j) : x j * star (x j) ≠ 0 := by
   obtain hxj | hyj : x j ≠ 0 ∨ y j ≠ 0 := h_top.ne_zero_or_ne_zero hx
   · exact mul_ne_zero hxj (star_ne_zero.2 hxj)
-  · rw [h_agree.mul_star_eq_of_isTopIndex hxy h_top]
-    exact mul_ne_zero hyj (star_ne_zero.2 hyj)
-
-/-- Suppose `S.CharsAgree γ`: the unipotent character takes equal values at `u` and `γ⁻¹ u γ` for
-every rational `u` in `𝖴 ∩ γ 𝖴 γ⁻¹`. Let a nonzero vector have coordinates `x` in the frame
-`f = (e₁,…,e_ϱ,z)` (`frameImage 1`) and `y` in `γ f` (`frameImage γ`), with top index `j`. Then for
-every `l ≥ j` some such common vector has top index `l` and the coefficients `x j`, `y j` at `l`. -/
-lemma CharsAgree.exists_isTopIndex_apply_eq (h_agree : S.CharsAgree γ) {x y : Fin (𝔰.ϱ + 1) → E}
-    {j l : Fin (𝔰.ϱ + 1)} (hxy : frameImage 1 *ᵥ x = frameImage γ *ᵥ y) (hx : x ≠ 0)
-    (h_top : IsTopIndex x y j) (hjl : j ≤ l) :
-    ∃ x' y' : Fin (𝔰.ϱ + 1) → E,
-      frameImage 1 *ᵥ x' = frameImage γ *ᵥ y' ∧
-      IsTopIndex x' y' l ∧
-      x' l = x j ∧
-      y' l = y j := by
-  obtain ⟨x', y', hxy', hx', hy', h_above⟩ : PairOccursAt γ (x j) (y j) l :=
-    h_agree.pairOccursAt_mono ⟨x, y, hxy, rfl, rfl, h_top.1⟩ hjl
-  have h_not_both : x' l ≠ 0 ∨ y' l ≠ 0 := by
-    rw [hx', hy']
-    exact h_top.ne_zero_or_ne_zero hx
-  exact ⟨x', y', hxy', isTopIndex_of_ne_zero h_above h_not_both, hx', hy'⟩
-
-/-- Let `γ` satisfy `S.CharsAgree γ`. Let `x ≠ 0` and `y` be the coordinates of one vector in the
-frames `frameImage 1` and `frameImage γ`, with top index `j`. Then
-`x j * star (x j) = y j * star (y j) ≠ 0`. For every `l ≥ j`, some such pair `x'`, `y'` has top
-index `l` with `x' l = x j` and `y' l = y j`. -/
-lemma mul_star_eq_and_ne_zero_and_exists_isTopIndex (h_agree : S.CharsAgree γ)
-    {x y : Fin (𝔰.ϱ + 1) → E} {j : Fin (𝔰.ϱ + 1)}
-    (hxy : frameImage 1 *ᵥ x = frameImage γ *ᵥ y) (hx : x ≠ 0) (h_top : IsTopIndex x y j) :
-    x j * star (x j) = y j * star (y j) ∧
-    x j * star (x j) ≠ 0 ∧
-    ∀ l ≥ j, ∃ x' y' : Fin (𝔰.ϱ + 1) → E,
-      frameImage 1 *ᵥ x' = frameImage γ *ᵥ y' ∧
-      IsTopIndex x' y' l ∧
-      x' l = x j ∧
-      y' l = y j :=
-  ⟨h_agree.mul_star_eq_of_isTopIndex hxy h_top,
-    h_agree.mul_star_ne_zero_of_isTopIndex hxy hx h_top,
-    fun _ hl ↦ h_agree.exists_isTopIndex_apply_eq hxy hx h_top hl⟩
+  · simp [h_agree.mul_star_eq_of_isTopIndex hxy h_top, hyj]
 
 end New.Filling
 

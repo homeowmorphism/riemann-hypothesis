@@ -1,4 +1,6 @@
-import Lib.CM.Sigma.ThetaSections
+module
+
+public import Lib.CM.Sigma.ThetaSections
 
 /-!
 # CM lattices as multiples of fractional ideals, and good reduction of CM curves
@@ -44,6 +46,8 @@ annihilator of `u`. The file proves the case of the point `t`, whose annihilator
 number is the discriminant `a₁⁴ - 64`. Source: Kubert, Lang, Modular Units. Up to sign the numbers
 `s(u)` are the 24-th powers of Weber's functions. Source: Birch, Weber's class invariants, 1969.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -796,10 +800,11 @@ lemma norm_disc_eq_one {p : ℕ} [Fact p.Prime] {d : ℕ} (C : CMLattice d) [Pri
   obtain ⟨D, hD, 𝒞₀, rfl⟩ := C.exists_forall_isInClass
   have h_le (𝒞) : ‖ι ((D 𝒞).scaledDisc (D 𝒞).t)‖₊ ≤ 1 := (norm_scaledDisc_le_one hD ι 𝒞).2
   have h_prod : ∏ 𝒞, ‖ι ((D 𝒞).scaledDisc (D 𝒞).t)‖₊ = 1 := by
-    simp [← nnnorm_prod, ← map_prod, prod_scaledDisc_t hD]
+    simp [← nnNorm_prod, ← map_prod, prod_scaledDisc_t hD]
   have h_unit : ‖ι ((D 𝒞₀).scaledDisc (D 𝒞₀).t)‖₊ = 1 :=
     (prod_eq_one_iff_of_le_one fun 𝒞 _ ↦ h_le 𝒞).1 h_prod 𝒞₀ (mem_univ _)
-  simpa [scaledDisc_t, ← coe_nnnorm, map_ofNat] using h_unit
+  rw [scaledDisc_t, map_sub, map_pow, map_ofNat] at h_unit
+  rw [← coe_nnNorm, h_unit, NNReal.coe_one]
 
 end CMLattice
 

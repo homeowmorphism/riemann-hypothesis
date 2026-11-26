@@ -1,6 +1,9 @@
-import Lib.GLn.SchurModule.SchurNorm
-import Lib.General.LinearAlgebra.BlockEmbeddings
-import Lib.General.LinearAlgebra.MatrixNormBounds
+module
+
+public import Lib.GLn.SchurModule.SchurNorm
+public import Lib.General.LinearAlgebra.BlockEmbeddings
+public import Lib.General.LinearAlgebra.MatrixNormBounds
+public import TauCeti.LinearAlgebra.Matrix.Determinant.ComplementaryMinor
 
 /-!
 # Duality of integral GL(n) representations, mixed weights and the Cartan product
@@ -56,6 +59,8 @@ Representation Theory, 1991, section 15.5; Jantzen 2003; for Jacobi's identity, 
 Introduction to Algebraic Combinatorics, Thm 6.4.48.
 -/
 
+@[expose] public section
+
 namespace New
 
 /-!
@@ -74,35 +79,6 @@ open ComplexOrder Finset Matrix MvPolynomial «GL» SetLike Equiv
 
 variable {Φ : Type} {n : Φ → Type} [Fintype Φ] [∀ τ, Fintype (n τ)]
   [∀ τ, DecidableEq (n τ)] {κ κ' : Φ → ℕ → ℕ}
-
-/-- Jacobi's formula for complementary minors: split the indices by `ρ` and permute the rows by
-`π`; for invertible `A`, the minor of `A` on the second part is, up to the sign of `π`,
-`det A` times the minor of `A⁻¹ᵀ` on the first part. -/
-lemma GL.sign_mul_det_complementary_minor {R m a b : Type*} [CommRing R] [Fintype m] [DecidableEq m]
-    [Fintype a] [DecidableEq a] [Fintype b] [DecidableEq b] {A : Matrix m m R} (hA : IsUnit A.det)
-    (ρ : a ⊕ b ≃ m) (π : Equiv.Perm m) :
-    π.sign * (A.submatrix (π ∘ ρ ∘ Sum.inr) (ρ ∘ Sum.inr)).det =
-      A.det * (A⁻¹ᵀ.submatrix (π ∘ ρ ∘ Sum.inl) (ρ ∘ Sum.inl)).det := by
-  -- Multiply `B`, the rearranged `A`, by `M`, whose columns are columns of `B⁻¹` on the first part
-  -- and unit vectors on the second; `M` and `B * M` are block triangular.
-  let B : Matrix (a ⊕ b) (a ⊕ b) R := (A.submatrix π id).submatrix ρ ρ
-  let M : Matrix (a ⊕ b) (a ⊕ b) R := ((A⁻¹ᵀ.submatrix (π ∘ ρ ∘ .inl) ρ).fromRows (fromCols 0 1))ᵀ
-  have hB : B.det = π.sign * A.det := by rw [det_submatrix_equiv_self, det_permute]
-  have hM : M.det = (A⁻¹ᵀ.submatrix (π ∘ ρ ∘ Sum.inl) (ρ ∘ Sum.inl)).det := by
-    rw [det_transpose, ← (submatrix _ _ ρ).fromCols_toCols, fromRows_fromCols_eq_fromBlocks,
-      det_fromBlocks_zero₂₁, det_one, mul_one]
-    rfl
-  have hBM : B * M = fromBlocks 1 B.toBlocks₁₂ 0 (A.submatrix (π ∘ ρ ∘ Sum.inr) (ρ ∘ Sum.inr)) := by
-    ext (s | s) (t | t)
-    · simp [B, M, transpose_fromRows, hA, Matrix.one_apply]
-    · simp [B, M, mul_apply, toBlocks₁₂, Matrix.one_apply]
-    · simp [B, M, transpose_fromRows, hA]
-    · simp [B, M, mul_apply, toBlocks₁₂, Matrix.one_apply]
-  have h_det : (A.submatrix (π ∘ ρ ∘ Sum.inr) (ρ ∘ Sum.inr)).det = B.det * M.det := by
-    rw [← det_mul, hBM, det_fromBlocks_zero₂₁, det_one, one_mul]
-  -- The sign of `π` squares to `1`.
-  rw [h_det, hB, hM, ← mul_assoc, ← mul_assoc, ← Int.cast_mul, Int.units_coe_mul_self, Int.cast_one,
-    one_mul]
 
 omit [Fintype Φ] in
 /-- For an enumeration `e` of the rows, every family `A` of square matrices is the square part
@@ -207,10 +183,14 @@ lemma GL.exists_sign_minor_columnComplement {m : Type*} [Fintype m] [DecidableEq
   let π : Equiv.Perm m := ρ.symm.trans σ
   have h_rows (s : Fin a ⊕ Fin b) : π (ρ s) = pos.symm (Sum.elim I.val I'.val s) := by simp [π, σ]
   refine ⟨π.sign, fun {R} _ {A} hA ↦ ?_⟩
-  have h_jacobi : π.sign * (A.submatrix (pos.symm ∘ I'.val) (ρ ∘ Sum.inr)).det =
-      A.det * (A⁻¹ᵀ.submatrix (pos.symm ∘ I.val) (ρ ∘ Sum.inl)).det := by
-    simpa [Function.comp_def, h_rows] using sign_mul_det_complementary_minor hA ρ π
-  simpa only [Function.comp_def, h_inl, h_inr] using h_jacobi
+  have h_jacobi := det_submatrix_comp_inr_eq_sign_mul_det_mul_det_submatrix_comp_inl_nonsing_inv
+    A hA ρ 1 π
+  simp only [Function.comp_def, h_rows, Sum.elim_inl, Sum.elim_inr] at h_jacobi
+  simp only [Perm.coe_one, id_eq, h_inl, h_inr, Perm.sign_one, Units.val_one, Int.cast_one, one_mul,
+    ← det_transpose (A⁻¹.submatrix _ _), transpose_submatrix] at h_jacobi
+  simp only [Function.comp_def]
+  rw [h_jacobi, ← mul_assoc, ← mul_assoc, ← Int.cast_mul, Int.units_coe_mul_self, Int.cast_one,
+    one_mul]
 
 /-- For complementary diagrams `κ`, `κ'`, the filling of `κ'` whose column of height `h' > 0` is the
 complement of the matching column of `T`, of height `|n_τ| - h'`. Columns of height `0` are
@@ -292,7 +272,8 @@ lemma GL.exists_star_matrix (e e' : ∀ τ : Φ, n τ ≃ Fin (rankAt n τ))
   · ext T T'
     obtain ⟨S, rfl⟩ := (fillingComplement_bijective hκ).surjective T
     obtain ⟨S', rfl⟩ := (fillingComplement_bijective hκ).surjective T'
-    simp [P, mul_apply, one_apply, (fillingComplement_bijective hκ).injective.eq_iff, eq_comm]
+    simp [P, Matrix.mul_apply, Matrix.one_apply, (fillingComplement_bijective hκ).injective.eq_iff,
+      eq_comm]
   ext T
   -- The minor of an array `x` on the rows listed by a column `I` at `τ`.
   let col (x : (Σ τ : Φ, n τ) × ℕ → R) (τ : Φ) {k : ℕ} (I : IncreasingMap (rankAt n τ) k) : R :=
@@ -609,7 +590,7 @@ lemma nonempty_mixedCartanEmbedding :
   -- The entries of `comulMatrix R` and of `J.map` are casts of integers, so `K R` is the cast of
   -- `K ℤ`.
   have hK_map (R : Type) [CommRing R] : (K ℤ).map ((↑) : ℤ → R) = K R := by
-    aesop (add simp mul_apply) (add simp Matrix.one_apply)
+    aesop (add simp Matrix.mul_apply) (add simp Matrix.one_apply)
   have h_cast : (Int.cast : ℤ → ℤ) = fun x : ℤ ↦ x := funext fun _ ↦ Int.cast_id
   suffices h_emb : MixedCartanEmbedding n kp km (kp + kc) from ⟨h_emb⟩
   exact
@@ -924,14 +905,14 @@ lemma weylNormSq_cartanProduct (hkp : HasColumnsBelow n N kp) (hkm : HasColumnsB
   have h_gram : (weylGram (fun _ : Φ ↦ n) (mixedWeight n kp km)).map (↑) = Mᴴ * G * M := by
     rw [← (mixedCartan n kp km).gram_eq]
     ext i j
-    simp [M, G, mul_apply]
+    simp [M, G, Matrix.mul_apply]
   -- An inclusion `ι` of letters has `ιᴴ ι = 1`, so `S(ι)ᴴ G S(ι) = G S(ιᴴ ι) = G`.
   have h_norm {k : Type} [Fintype k] [DecidableEq k] {κ : Φ → ℕ → ℕ} (hκ : HasColumnsBelow n k κ)
       {f : k → n} (hf : f.Injective) (v : WeylIndex k κ → ℂ) :
       weylNormSq (schur κ (fun _ : Φ ↦ inclMatrix ℂ f) *ᵥ v) = weylNormSq v := by
     have h_incl : (inclMatrix ℂ f)ᴴ * inclMatrix ℂ f = 1 := by
       ext i j
-      simp [inclMatrix, mul_apply, Matrix.one_apply, hf.eq_iff, eq_comm]
+      simp [inclMatrix, Matrix.mul_apply, Matrix.one_apply, hf.eq_iff, eq_comm]
     simp [weylNormSq, star_mulVec_dotProduct, schur_conjTranspose_weylGram_schur hκ.fitsRanks,
       hκ.schurDetExp_eq_zero, h_incl, schur_one]
   calc weylNormSq c
@@ -1063,12 +1044,6 @@ structure IsDualPairing (A : Matrix (WeylIndex n κ') (WeylIndex n κ) ℤ) : Pr
   exists_eq_gramForm (v : WeylIndex n κ → ℂ) :
     ∃ v' : WeylIndex n κ' → ℂ, weylNormSq v' = weylNormSq v ∧
       ∀ u : WeylIndex n κ' → ℂ, u ⬝ᵥ A.map (↑) *ᵥ v = gramForm v' u
-
-lemma IsDualPairing.ofAlgForm_apply {A : Matrix (WeylIndex n κ') (WeylIndex n κ) ℤ}
-    (hA : IsDualPairing κ κ' e e' l A) (s : n → ℤˣ) (η : AlgForm n κ' e') (x : GInf E s)
-    (g : Gf E n) :
-    ofAlgForm (-l) s η (x, g) = η.val g ⬝ᵥ A.map (↑) *ᵥ conjWeylRep κ e x (highestVector κ l) :=
-  hA.ofAlgForm_eq_bilin s η x g
 
 /-- Let `l` list twice the Harish-Chandra parameter of `(κ, e)`, and `-l` that of `(κ', e')`, in the
 sense of `New.IsHCParam`: at each place the entries are distinct values of `hcParameter` at

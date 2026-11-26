@@ -1,7 +1,9 @@
-import Lib.General.Algebra.MultivariatePolynomials
-import Lib.General.Geometry.PointsOfProperSchemes
-import Lib.General.Geometry.ProjectiveSpace
-import Lib.PadicComparison.Descent.TestCategory
+module
+
+public import Lib.General.Algebra.MultivariatePolynomials
+public import Lib.General.Geometry.PointsOfProperSchemes
+public import Lib.General.Geometry.ProjectiveSpace
+public import Lib.PadicComparison.Descent.TestCategory
 
 /-!
 # Projective Noether normalisation and homogeneous coordinates of embedded points
@@ -39,6 +41,8 @@ Notions from other files:
 
 Known; see `Lib.Cohomology.PointClass.LinearIndependence` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Noether normalisation of a cone by linear forms
@@ -78,15 +82,9 @@ lemma aeval_smul_of_isHomogeneous {n : ℕ} (hF : F.IsHomogeneous n) :
 /-- If `χ` kills the kernel of `φ` and `φ ∘ v` lies on the cone of `g`, then so does `χ ∘ v`. -/
 lemma IsHomogeneousSolution.of_ker {D : Type} [CommRing D] [Algebra k D] (χ : A →ₐ[k] D)
     (h_ker : ∀ r : A, φ r = 0 → χ r = 0) (h_sol : IsHomogeneousSolution k g (φ ∘ v)) :
-    IsHomogeneousSolution k g (χ ∘ v) := by
-  intro n F hF h_g
+    IsHomogeneousSolution k g (χ ∘ v) := fun _ F hF h_g ↦
   -- `F (χ ∘ v) = χ (F v)`, and `φ (F v) = F (φ ∘ v) = 0`
-  have h_φ : φ (aeval v F) = 0 := by
-    rw [comp_aeval_apply v φ F]
-    exact h_sol hF h_g
-  have h_χ : χ (aeval v F) = 0 := h_ker _ h_φ
-  rw [comp_aeval_apply v χ F] at h_χ
-  exact h_χ
+  (comp_aeval_apply v χ F).symm.trans (h_ker _ ((comp_aeval_apply v φ F).trans (h_sol hF h_g)))
 
 lemma IsHomogeneousSolution.map : IsHomogeneousSolution k g v → IsHomogeneousSolution k g (φ ∘ v) :=
   of_ker 1 φ (by simp)
@@ -124,12 +122,14 @@ lemma IsHomogeneousSolution.aeval_eq_zero_of_transcendental [Algebra B L] [IsSca
   have hP : P = 0 := transcendental_iff.mp ht P (h_sum.trans h_zero)
   refine sum_eq_zero fun n hn ↦ h_sol (homogeneousComponent_mem n F) ?_
   -- the value `F_n(g)` is the `n`-th coefficient of `P = 0`
-  simpa [P, Polynomial.coeff_monomial, hn] using congrArg (Polynomial.coeff · n) hP
+  simpa [P, Polynomial.coeff_monomial, Finsupp.single_apply, hn] using
+    congrArg (fun p : Polynomial B ↦ p.coeff n) hP
 
 lemma IsHomogeneousSolution.refl : IsHomogeneousSolution k v v := by tauto
 
 /-- An element of a field `L` that lies in every valuation ring containing the image of `f` is
 integral over that image. -/
+@[stacks 090P "part (1), for the integral closure of the image of a ring map"]
 lemma isIntegralElem_of_valuationSubring {f : A →+* L} {x : L}
     (h : ∀ V : ValuationSubring L, (∀ a : A, f a ∈ V) → x ∈ V) :
     f.IsIntegralElem x := by
@@ -213,7 +213,7 @@ lemma aeval_eq_zero_of_eliminated_forms {m : ℕ} {f : MvPolynomial (Fin (d + 1)
     (Λ j).val.aeval x = 0 := by
   -- the relation is a homogeneous equation of `g`, so it holds at `x`
   have h_relx : aeval (evalForms Λ x) f = 0 := by
-    simpa [aeval_bind₁, h_rel] using hx (hf.aeval _ fun j ↦ (Λ j).prop)
+    simpa [comp_aeval_apply, h_rel] using hx (hf.aeval _ fun j ↦ (Λ j).prop)
   -- the values of `Λ` at `x` are proportional to `a`
   obtain ⟨c, h_prop⟩ : ∃ c : K, evalForms Λ x = c • algebraMap k K ∘ a := by
     refine ⟨(a 0)⁻¹ • evalForms Λ x 0, funext (forall_fin_succ.mpr ?_)⟩
@@ -315,7 +315,7 @@ lemma exists_isNoetherNormalization [CharZero k] [Finite ι] (hg : g ≠ 0) :
         exact isIntegralElem_of_no_common_zero h_base φ p v hv_g
     · obtain ⟨m, f, hf, h_rel, hf₀⟩ : ∃ (m : ℕ) (f : MvPolynomial (Fin (n + 1)) k),
           f.IsHomogeneous m ∧ aeval (evalForms Λ g) f = 0 ∧ f ≠ 0 := by
-        simpa [IsHomogeneousSolution] using h_ind
+        simpa [IsHomogeneousSolution, aeval_X_left_apply] using h_ind
       -- `k` is infinite, so the non-zero polynomial `f * X 0` has a non-zero value
       obtain ⟨a, ha⟩ : ∃ a : Fin (n + 1) → k, MvPolynomial.eval a (f * X 0) ≠ 0 := by
         by_contra! h_all
@@ -373,7 +373,7 @@ private lemma ker_aeval_le_ker_aeval_smul_of_transcendental {κ B K Ω : Type} [
   have hwb : IsHomogeneousSolution k w b :=
     .of_ker j (AlgHom.id k B) (fun r hr ↦ by rw [hj_ker r hr, map_zero]) h_tw
   refine fun F hF ↦ (hwb.smul φ u).aeval_eq_zero_of_transcendental ht.integralClosure ?_
-  show aeval (t • toAlgHom k (integralClosure L Ω) Ω ∘ w) F = 0
+  change aeval (t • toAlgHom k (integralClosure L Ω) Ω ∘ w) F = 0
   rw [hw]
   exact (comp_aeval_apply b j F).symm.trans (by rw [RingHom.mem_ker.mp hF, map_zero])
 
@@ -391,7 +391,7 @@ private lemma isIntegral_aeval_of_evalForms_eq {G B : Type} [CommRing B] [Algebr
     simp only [θ, AlgHom.comp_apply, bind₁_X_right, aeval_rename]
     exact congrFun hΛb l
   refine .tower_top θ.toRingHom _ ?_
-  show ((aeval (R := k) ↿b).comp θ).toRingHom.IsIntegral
+  change ((aeval (R := k) ↿b).comp θ).toRingHom.IsIntegral
   rw [hfactor]
   exact hf_fin.to_isIntegral
 
@@ -472,7 +472,7 @@ lemma IsNoetherNormalization.nonempty_galoisClosure (hΛ : IsNoetherNormalizatio
   have h_faithful : FaithfulSMul A Ω := by
     refine (faithfulSMul_iff_algebraMap_injective A Ω).mpr
       (algebraicIndependent_iff.mpr fun F ↦ ?_)
-    simpa using! h_no_rel.aeval_eq_zero_of_transcendental ht
+    simpa [aeval_X_left_apply] using! h_no_rel.aeval_eq_zero_of_transcendental ht
   have h_forms_X : evalForms Λ (t • inc ∘ g) = aeval (R := k) (evalForms Λ (t • inc ∘ g)) ∘ X :=
     funext fun l ↦ (aeval_X _ l).symm
   have h_int (i : ι) : IsIntegral A ((t • inc ∘ g) i) := h_integral (aeval _) X _ h_tg h_forms_X i

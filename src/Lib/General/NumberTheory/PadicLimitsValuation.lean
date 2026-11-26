@@ -1,6 +1,8 @@
-import Lib.GaloisRep.Main.SelmerModules
-import Lib.General.Geometry.GaloisCovers
-import Lib.General.NumberTheory.CoefficientRings
+module
+
+public import Lib.GaloisRep.Main.SelmerModules
+public import Lib.General.Geometry.GaloisCovers
+public import Lib.General.NumberTheory.CoefficientRings
 
 /-!
 # Algebraicity from ℓ-adic bounds, roots of unity as limits, and the ℓ-adic valuation
@@ -35,6 +37,8 @@ rings.
 Known result: Teichmüller representatives as limits of powers. Source: Serre, Local Fields, Chapter
 II.
 -/
+
+@[expose] public section
 
 /-!
 ## An ℓ-adic criterion for algebraicity of complex numbers
@@ -80,7 +84,7 @@ variable {p : ℕ} [hp : Fact p.Prime]
 instance : CharP (ResidueField (valRingCp p)) p := by
   refine (CharP.charP_iff_prime_eq_zero hp.out).2 (residue_eq_iff_valuation_sub_lt_one.2 ?_)
   change ‖(p : valRingCp p).val - 0‖₊ < 1
-  simpa [← NNReal.coe_lt_coe] using norm_p_lt_one
+  simpa [← NNReal.coe_lt_coe] using PadicComplex.norm_p_lt_one p
 
 /-- If `‖u - 1‖ < 1` in `ℂ_p` and `p ∣ q`, then `u ^ q ^ n` tends to `1` as `n → ∞`. -/
 lemma tendsto_pow_pow_of_norm_sub_one_lt {u : ℂ_[p]} (hu : ‖u - 1‖ < 1) {q : ℕ} (hq : p ∣ q) :
@@ -166,7 +170,8 @@ lemma map_I_mul_sqrt_sq : ιₚ (I * √d) ^ 2 = -d := by
 
 /-- The closure in `ℂ_p²` of the set of images under `ιₚ` of the pairs `(α, α ᾱ)`, with `α` an
 integer of `K = ℚ(√-d)`. -/
-def normPairClosure : Set (ℂ_[p] × ℂ_[p]) := closure {(ιₚ a, ιₚ (a * conj a)) | a ∈ quadInt d}
+noncomputable def normPairClosure : Set (ℂ_[p] × ℂ_[p]) :=
+  closure {(ιₚ a, ιₚ (a * conj a)) | a ∈ quadInt d}
 
 /-- If `ζ` is an element of `ℂ_p` of norm `1` with `ζ ^ q_p = ζ`, where `q_p = primeNorm d p`
 (`p ^ 2` if `chiK d p = -1`, else `p`), then `(ζ, ζ ^ (p + 1))` lies in `normPairClosure d`: it is a
@@ -279,7 +284,8 @@ lemma ellVal_pow (k : ℕ) : ellVal (x ^ k) = k * ellVal x := by
 /-- The normalised valuation of a nonzero natural number `n` in ℚ̄_ℓ is its ℓ-adic valuation. -/
 lemma ellVal_natCast {n : ℕ} (hn : n ≠ 0) : ellVal (ℓ := ℓ) n = padicValNat ℓ n := by
   have h_norm : ‖(n : PadicAlgCl ℓ)‖ = ‖(n : ℚ_[ℓ])‖ := mod_cast PadicAlgCl.norm_extends ℓ n
-  simp [hn, h_norm, Padic.norm_eq_zpow_neg_valuation, ellVal, logb_pow, Fact.out, NeZero.ne]
+  simp [hn, h_norm, Padic.norm_eq_zpow_neg_valuation, ellVal, logb_pow, Fact.out, NeZero.ne,
+    Nat.padicValNat_def]
 
 @[simp]
 lemma ellVal_ell : ellVal (ℓ : PadicAlgCl ℓ) = 1 := by
@@ -331,12 +337,6 @@ lemma normLength_addVal (x : ↑O) : O.normLength (addVal O x) = ellVal x.val :=
       n * ENNReal.ofReal (-logb ℓ ‖O.uniformizer.val‖) := by
     simp [← mul_neg, hϖ.ne_zero, hu_norm, ellVal, logb_pow]
   rw [addVal_def' u hϖ n, h_ellVal, normLength_natCast]
-
-/-- The normalised length of `n` is `n v(ϖ)` for every uniformiser `ϖ` of `O`, where v = `ellVal`
-is the normalised valuation on ℚ̄_ℓ. -/
-lemma normLength_natCast_of_irreducible {ϖ : ↑O} (hϖ : Irreducible ϖ) (n : ℕ) :
-    O.normLength n = n * ellVal ϖ.val := by
-  rw [← hϖ.addVal_pow n, normLength_addVal, SubmonoidClass.coe_pow, ellVal_pow]
 
 @[simp]
 lemma normLength_natCast_mul (k : ℕ) (g : ℕ∞) : O.normLength (k * g) = k * O.normLength g := by

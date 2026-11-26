@@ -1,5 +1,7 @@
-import New.Spanning.RemainingTerms.Data
-import New.Spanning.RemainingTerms.FrameCount
+module
+
+public import New.Spanning.RemainingTerms.Data
+public import New.Spanning.RemainingTerms.FrameCount
 
 /-!
 # The part in `X₀` of a frame, moves, and lifts of a lattice
@@ -32,6 +34,8 @@ Notions from other files:
 * `New.Filling.HasCellRank.exists_framePartX₀_sub_eq`: parts in `X₀` that are congruent modulo
   `M δ` differ by `M η Ξ₀`.
 -/
+
+@[expose] public section
 
 namespace New.Filling
 
@@ -184,7 +188,7 @@ lemma coe_mem_saturatedLattice (h_inv : H' * H = 1) {V : Submodule E (κ → E)}
   -- since `H m` has an integral left inverse `p`.
   let m : Matrix κ (Fin (finrank E V)) (𝔸f E) := (sublatticeBasis h_inv V).val
   obtain ⟨⟨-, p, hp_int, hp⟩, y, a, -, hy, hm⟩ : IsPrimitiveMatrix (Ô E) (H * m) ∧
-      ∃ᵉ (y : Matrix κ (Fin (finrank E V)) E) (a : GL (Fin (finrank E V)) (𝔸f E)),
+      ∃ y : Matrix κ (Fin (finrank E V)) E, ∃ a : GL (Fin (finrank E V)) (𝔸f E),
         HasLeftInv y ∧ colSpan y = V ∧ m = finAdeleMatrix y * a.val :=
     (sublatticeBasis h_inv V).property
   obtain ⟨t, rfl⟩ : ∃ t : Fin (finrank E V) → E, y *ᵥ t = v := hy.ge hv
@@ -267,10 +271,11 @@ lemma exists_framePartX₀_mul_eq_sub_smul (c : S.Classes) {η : Matrix 𝔰.κ 
   let v : Matrix 𝔰.BesselIndex (Fin 𝔰.ϱ) E := fromRows 0 ((η.fromRows 0).fromRows 0)
   let x : Matrix 𝔰.BesselIndex (Fin 𝔰.ϱ) E := inclMatrix E Sum.inl
   have hv_int : IsIntMatrix (Ô E) (S.classCoord c * finAdeleMatrix v) := by
-    simpa [v, classCoord_eq_fromBlocks, IsIntMatrix, mul_apply] using hη
+    simpa [v, classCoord_eq_fromBlocks, IsIntMatrix, Matrix.mul_apply] using hη
   have hv_frame (b : Fin 𝔰.ϱ) (a : Fin (𝔰.ϱ + 1)) :
       (vᴴ * S.ratGram) b (𝔰.besselFrame a) = 0 := by
-    cases a using Fin.lastCases <;> simp [v, Shape.Form.splitGram, Shape.middleGram, mul_apply]
+    cases a using Fin.lastCases <;> simp [v, Shape.Form.splitGram, Shape.middleGram,
+      Matrix.mul_apply]
   obtain ⟨u, -, hu, τ, hu_eq⟩ : ∃ u ∈ S.classUnipotent c,
       ((∀ (b : Fin 𝔰.ϱ) (a : Fin (𝔰.ϱ + 1)), (vᴴ * S.ratGram) b (𝔰.besselFrame a) = 0) →
         u ∈ S.classUnipotent₀ c) ∧
@@ -287,7 +292,7 @@ lemma exists_framePartX₀_mul_eq_sub_smul (c : S.Classes) {η : Matrix 𝔰.κ 
     rw [← Matrix.mul_assoc, inclMatrix_conjTranspose_mul_frameImage]
   simp only [hu_eq, Matrix.add_mul, Matrix.sub_mul, Matrix.smul_mul, Matrix.mul_assoc,
     Matrix.one_mul, h_products]
-  simp [x, v, framePartX₀, frameMiddle, inclMatrix, mul_apply, sub_eq_add_neg]
+  simp [x, v, framePartX₀, frameMiddle, inclMatrix, Matrix.mul_apply, sub_eq_add_neg]
 
 omit [HasPrimitiveRoot5040 E] in
 /-- The middle part of the frame of the translate by class representatives `h_c⁻¹ γ h_c'`, in the
@@ -298,7 +303,7 @@ lemma frameMiddle_translateByClassReps (c c' : S.Classes) (γ : S.G E) :
       (S.classCoordX₀ c).fromCols (fromRows 0 (1 : Matrix Unit Unit (𝔸f E))) *
         finAdeleMatrix (frameMiddle γ.val.val) := by
   refine Matrix.ext fun i b ↦ ?_
-  simp [frameMiddle, frameImage_translateByClassReps, classCoord_eq_fromBlocks, mul_apply]
+  simp [frameMiddle, frameImage_translateByClassReps, classCoord_eq_fromBlocks, Matrix.mul_apply]
 
 omit [HasPrimitiveRoot5040 E] in
 /-- The `frameMiddle` of the translate gives the coordinates in `X₀ ⊕ Ez` of the image of the frame
@@ -324,7 +329,7 @@ lemma frameMiddle_translateByClassReps_mul_classCoordX₀ (c c' : S.Classes) (γ
     Matrix.mul_assoc _ _ (S.latticeMiddle (𝔸f E)),
     Matrix.mul_assoc, h_gram]
   refine Matrix.ext fun b k ↦ ?_
-  simp [framePartX₀, middleGram, mul_apply, Matrix.one_apply]
+  simp [framePartX₀, middleGram, Matrix.mul_apply, Matrix.one_apply]
 
 omit [HasPrimitiveRoot5040 E] in
 /-- Let `Λ` be the lattice of the class `c`. The parts in `X₀` of two frames of terms over `c` with
@@ -341,7 +346,7 @@ lemma col_framePartX₀_sub_mem {c c' c'' : S.Classes} {s s' : S.ResidueGL} {γ 
       frameMiddle (S.translateByClassReps c c'' γ').val.val k i -
         frameMiddle (S.translateByClassReps c c' γ).val.val k i := by
     rw [frameMiddle_translateByClassReps, frameMiddle_translateByClassReps]
-    simp [framePartX₀, hz_eq, mul_apply, mulVec, dotProduct, mul_sub]
+    simp [framePartX₀, hz_eq, Matrix.mul_apply, mulVec, dotProduct, mul_sub]
   change (S.classCoordX₀ c *ᵥ ((↑) : E → 𝔸f E) ∘ (framePartX₀ γ' - framePartX₀ γ).col i) k ∈ Ô E
   rw [h_entry]
   exact sub_mem (termsOver.isIntMatrix_translateByClassReps h_over' _ _)

@@ -1,7 +1,9 @@
-import Lib.DiscreteSeries.Rigidity.RepresentationsAndCasimirs
-import Lib.GLn.SchurModule.Basic
-import Lib.General.Algebra.MultivariatePolynomials
-import Lib.Weil.Fock.Basic
+module
+
+public import Lib.DiscreteSeries.Rigidity.RepresentationsAndCasimirs
+public import Lib.GLn.SchurModule.Basic
+public import Lib.General.Algebra.MultivariatePolynomials
+public import Lib.Weil.Fock.Basic
 
 /-!
 # Fock space oscillator actions, joint harmonics and Fischer decomposition
@@ -42,6 +44,8 @@ Notions from other files:
 
 Known; see `Lib.DiscreteSeries.Theta.LocalCorrespondence` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -304,10 +308,6 @@ def oscRows : GlModule R (MvPolynomial ι ℂ) where
 section
 
 omit [Fintype ι]
-
-theorem oscRows_apply (X : Matrix R R ℂ) :
-    T.oscRows X = ∑ a : R, ∑ b : R, X a b • T.oscRowsUnit a b := by
-  simp [oscRows, liftLinear_apply]
 
 theorem oscRows_E (a b : R) : T.oscRows.E a b = T.oscRowsUnit a b := by
   simp [oscRows, E]

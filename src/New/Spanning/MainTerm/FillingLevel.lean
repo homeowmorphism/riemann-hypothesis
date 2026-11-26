@@ -1,5 +1,7 @@
-import New.Spanning.Frames.StandardLevel
-import New.Spanning.MainTerm.GlobalSieve
+module
+
+public import New.Spanning.Frames.StandardLevel
+public import New.Spanning.MainTerm.GlobalSieve
 
 /-!
 # The place and level of a set of primes, orbit sums and the set of entries
@@ -30,6 +32,8 @@ Notions from other files:
 
 See `New.Spanning.MainTerm.EnergyEstimate` for related work.
 -/
+
+@[expose] public section
 
 namespace New.Filling
 
@@ -154,9 +158,10 @@ lemma ratToInf_weylElem (p : ℕ → Eˣ) (v : InfinitePlace E) :
   -- `basisScale` multiplies the entries on the pair of floor `a` by `S.frameScaleSq v a` or by its
   -- inverse, and keeps the others.
   ext i j
+  simp only [ratToInf_apply, weylElem, weylOn, Matrix.of_apply, Units.isUnit, and_true, and_self]
   rcases j with a | (a | a) | a
   all_goals
-    simp [weylElem, weylOn, BesselIndex.level, basisScale, frameScaleSq, unitOrOne, two_mul,
+    simp [BesselIndex.level, basisScale, frameScaleSq, unitOrOne, two_mul,
       pow_add, Nat.add_sub_assoc, Nat.Prime.ne_zero]
     split_ifs with hi
     · simp [field, ← Complex.ofReal_pow, hi, Nat.Prime.ne_zero]
@@ -195,11 +200,12 @@ theorem exists_isIntegralOff_toPlaces_eq (y : U (S.latticeMiddle (LocProd T)).sp
     have h_left (M : Matrix 𝔰.BesselIndex 𝔰.BesselIndex (LocProd T)) :
         φ (J.map (evalPlaces T) * M) = J * φ M := by
       ext i j : 1
-      simp only [hφ, mul_apply, _root_.map_sum, Matrix.map_apply, adeleOfLocal_evalPlaces_mul]
+      simp only [hφ, Matrix.mul_apply, _root_.map_sum, Matrix.map_apply,
+        adeleOfLocal_evalPlaces_mul]
     have h_right (M : Matrix 𝔰.BesselIndex 𝔰.BesselIndex (LocProd T)) :
         φ (M * J.map (evalPlaces T)) = φ M * J := by
       ext i j : 1
-      simp only [hφ, mul_apply, _root_.map_sum, Matrix.map_apply, mul_comm (M _ _),
+      simp only [hφ, Matrix.mul_apply, _root_.map_sum, Matrix.map_apply, mul_comm (M _ _),
         mul_comm (adeleOfLocal T _), adeleOfLocal_evalPlaces_mul]
     have h_star (M : Matrix 𝔰.BesselIndex 𝔰.BesselIndex (LocProd T)) : φ Mᴴ = (φ M)ᴴ := by
       ext i j : 1
@@ -209,7 +215,7 @@ theorem exists_isIntegralOff_toPlaces_eq (y : U (S.latticeMiddle (LocProd T)).sp
       add_left_surjective 1 y.val.val
     have hy : (1 + z)ᴴ * J.map (evalPlaces T) * (1 + z) = J.map (evalPlaces T) := by
       rw [hz, S.map_splitGram_latticeMiddle (evalPlaces T)]
-      exact mem_U.1 y.prop
+      exact mem_unitaryGroupOf_iff.1 y.prop
     have h_zero : zᴴ * (J.map (evalPlaces T) * z) + zᴴ * J.map (evalPlaces T) +
         J.map (evalPlaces T) * z = 0 := by
       rw [conjTranspose_add, conjTranspose_one] at hy
@@ -217,13 +223,14 @@ theorem exists_isIntegralOff_toPlaces_eq (y : U (S.latticeMiddle (LocProd T)).sp
     have h_map : (φ z)ᴴ * (J * φ z) + (φ z)ᴴ * J + J * φ z = 0 := by
       rw [← h_star, ← h_left, ← h_right, ← map_mul, ← map_add, ← map_add, h_zero, map_zero]
     have hfy : (f y).val = 1 + φ z := by simp [f, ← hz]
+    rw [mem_unitaryGroupOf_iff]
     change (f y).valᴴ * J * (f y).val = J
     rw [hfy, conjTranspose_add, conjTranspose_one]
     linear_combination (norm := noncomm_ring) h_map
   have h_int (g : GL 𝔰.BesselIndex (LocProd T)) : IsIntMatrix (integralOff T) (f g).val :=
     IsIntMatrix.one.add fun _ _ ↦ adeleOfLocal_mem_integralOff T _
   refine ⟨⟨f y, h_unitary⟩, ?_, mem_intGL.2 ⟨h_int y, h_int y⁻¹⟩, ?_⟩
-  · ext i j : 3
+  · ext i j : 2
     change evalPlaces T ((f y).val i j) = y.val.val i j
     simp [hf, Matrix.one_apply]
   · -- Both subgroups ask certain entries to be those of `1`, and `f` keeps this.
@@ -288,7 +295,7 @@ lemma exists_isAddHaarMeasure_skewAdjoint {i τ : LocProd T} (hi : i ∈ O) (hτ
   let B : Set (skewAdjoint (LocProd T)) := {b : skewAdjoint (LocProd T) | b.val ∈ O}
   let ν : Measure (skewAdjoint (LocProd T)) :=
     addHaarMeasure ⟨⟨B, isCompact_O.preimage_val isClosed_skewAdjoint⟩, 0,
-      isOpen_O.preimage_val.interior_eq.ge O.zero_mem⟩
+      isOpen_O.preimage_val.interior_eq.ge (by simp [O.zero_mem])⟩
   have hν : ν B = 1 := addHaarMeasure_self
   let π : skewAdjoint (LocProd T) × skewAdjoint (LocProd T) →+ LocProd T :=
     .mk' (fun p ↦ τ * i * p.1.val + p.2.val) fun p q ↦ by simp [mul_add, add_add_add_comm]
@@ -310,7 +317,7 @@ lemma exists_isAddHaarMeasure_skewAdjoint {i τ : LocProd T} (hi : i ∈ O) (hτ
       mem_of_eq_of_mem h_trace (mul_mem (neg_mem hi) (add_mem hx (IsStarStable.star_mem hx)))
     exact ⟨ha, (add_mem_cancel_left (mul_mem (mul_mem hτ hi) ha)).1 hx⟩
   have h_map : (ν.prod ν).map π = volume := by
-    simpa [h_pre, SemilocalField.volume_O, hν] using measure_smul_map_restrict_eq_smul_neg
+    simpa [h_pre, SemilocalField.volume_O, hν, Set.inter_univ] using measure_smul_map_restrict_eq_smul_neg
       (ν.prod ν) volume (by measurability) .univ h_lift isCompact_O.measurableSet
   exact ⟨ν, inferInstance, hν, by fun_prop, h_map⟩
 
@@ -343,7 +350,7 @@ lemma exists_plancherel_kernel {ψ : AddChar (LocProd T) ℂ}
   · calc
       _ = ∫⁻ z : LocProd T, (O : Subring (LocProd T)).carrier.indicator 1 z := by
         simp_rw [h_transform]
-        simp [G, indicator_apply, apply_ite enorm, apply_ite Complex.ofReal]
+        simp [G, indicator_apply, apply_ite eNorm, apply_ite Complex.ofReal]
       _ ≤ 1 := (lintegral_indicator_one_le _).trans_eq volume_O
 
 section
@@ -386,8 +393,8 @@ lemma ofReal_genIndex_le_enorm_prod_sq (x : LocProd T) :
     _ ≤ ENNReal.ofReal (∏ w : T, (1 + √(‖x w‖⁻¹ - 1)) ^ 2) := by
       gcongr with w
       exact h_real _
-    _ ≤ ‖∏ w : T, (1 + √(‖x w‖⁻¹ - 1)) ^ 2‖ₑ := Real.ofReal_le_enorm _
-    _ = _ := by rw [Finset.prod_pow, enorm_pow]
+    _ ≤ ‖∏ w : T, (1 + √(‖x w‖⁻¹ - 1)) ^ 2‖ₑ := Real.ofReal_le_eNorm _
+    _ = _ := by rw [Finset.prod_pow, eNorm_pow]
 
 end
 
@@ -427,7 +434,7 @@ theorem exists_integralPlace : ∃ P : IntegralPlace (LocProd T), P.ψ = S.charO
       modulus := modulus
       ψ := S.charOnPlaces T
       kernelBound := 1
-      continuous_psi := continuous_ψf.subtype_val.comp ((continuous_adeleOfLocal T).const_mul _)
+      continuous_psi := continuous_ψf.subtypeVal.comp ((continuous_adeleOfLocal T).const_mul _)
       measurable_modulus := by
         simp [modulus, genIndex_eq_inv_prod_norm]
         fun_prop
@@ -482,15 +489,17 @@ theorem isMulLeftInvariant_haar_inv [P : IntegralPlace (LocProd T)] :
   have h_int : π ⁻¹' unitaryLevel O 1 (S.latticeMiddle (LocProd T)).splitGram ∩ X =
       stdLevel E 𝔰.BesselIndex := by
     ext g
-    exact (and_comm.trans mem_latticeStabilizer_iff.symm).trans (Subgroup.le_normalizer hk _).symm
+    exact (and_comm.trans (mem_latticeStabilizer_iff (x := c g)).symm).trans
+      (Subgroup.le_normalizer hk g).symm
   -- The measure `volume (stdLevel E _) • haar.inv` is left invariant, and `stdLevel E _` has volume
   -- one.
   have h_inv :
       (volume (stdLevel E 𝔰.BesselIndex : Set (Gf E 𝔰.BesselIndex)) •
         (haar (G := (S.latticeMiddle (LocProd T)).G)).inv).IsMulLeftInvariant := by
     rw [← h_int]
-    exact isMulLeftInvariant_measure_smul_inv volume haar (h_pr.comp hc).measurable
-      hX.measurableSet h_lift P.measurableSet_unitaryLevel
+    have hπ : Measurable π := (h_pr.comp hc).measurable
+    exact isMulLeftInvariant_measure_smul_inv volume haar (π := π) hπ hX.measurableSet
+      h_lift P.measurableSet_unitaryLevel
   simpa using h_inv
 
 section

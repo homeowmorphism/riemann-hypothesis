@@ -1,6 +1,8 @@
-import Lib.General.LinearAlgebra.GramDeterminant
-import New.Reduction.Lattices.Colength
-import New.Reduction.Lattices.Heights
+module
+
+public import Lib.General.LinearAlgebra.GramDeterminant
+public import New.Reduction.Lattices.Colength
+public import New.Reduction.Lattices.Heights
 
 /-!
 # Twisted lattices
@@ -37,6 +39,8 @@ Size-versus-divisibility bounds for a determinant are known in the literature. R
 Algebraic leaves of algebraic foliations over number fields, 2001; Laurent, Linear forms in two
 logarithms and interpolation determinants, 1994.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -242,20 +246,6 @@ lemma indexLe_card_mul {y : S → V} {δ : ℝ} {κ : Type} {A : κ → Set V} (
 
 end Index
 
-section FormGram
-
-variable {I S S' : Type} [Fintype I] (G : Matrix I I ℂ) (v : S → I → ℂ) (w : S' → I → ℂ)
-
-/-- The upper left block of the Gram matrix of the union of `v` and `w` is the Gram matrix
-of `v`. -/
-lemma toBlocks₁₁_formGram_sumElim : (formGram G (Sum.elim v w)).toBlocks₁₁ = formGram G v := rfl
-
-/-- The lower right block of the Gram matrix of the union of `v` and `w` is the Gram matrix
-of `w`. -/
-lemma toBlocks₂₂_formGram_sumElim : (formGram G (Sum.elim v w)).toBlocks₂₂ = formGram G w := rfl
-
-end FormGram
-
 section Covolume
 
 variable {V T S : Type} [AddCommGroup V] [Module ℂ V] [One T] (L : TwistedLattice V T)
@@ -354,12 +344,6 @@ def volume (ξ : T) : ℂ := (L.lift ξ).normDet ^ 2
 
 variable {L}
 
-/-- If the space `L.Space ξ` for `ξ` has finite dimension, the volume `Z(ξ) = L.volume ξ` is the
-determinant of `Θ_ξ* Θ_ξ` on `V`, where `Θ_ξ = L.lift ξ`. -/
-lemma volume_eq_det_adjoint_comp (ξ : T) [Module.Finite ℂ (L.Space ξ)] :
-    L.volume ξ = ((L.lift ξ).adjoint ∘ₗ L.lift ξ).det := by
-  simp [volume, ← LinearMap.normDet_sq]
-
 lemma volume_ne_zero {ξ : T} (h_inj : Function.Injective (L.lift ξ)) : L.volume ξ ≠ 0 := by
   simp [volume, LinearMap.normDet_eq_zero_iff_ker_ne_bot, LinearMap.ker_eq_bot.2 h_inj]
 
@@ -401,7 +385,7 @@ lemma exists_matrix_elim_mem_lattice {n n' : ℕ} {y : Fin n → V} {z : Fin n' 
   · have h_lift : L.lift ξ (∑ k : Fin n, u i k • y k) ∈ L.lattice ξ ι :=
       mem_integralVectors.1 (hu i) ξ hξ
     simpa [← ValuationSubring.algebraMap_apply] using h_lift
-  · simpa [one_apply] using hz i
+  · simpa [Matrix.one_apply] using hz i
 
 /-- Let `L` be a twisted lattice with maps `Θ_ξ = L.lift ξ`. Let `l = ι.prime`, so that
 `‖ι x‖ = ‖ι.iso x‖` is the `l`-adic absolute value of `x` under `ι.iso : ℂ ≃ ℚ̄_l`, and let

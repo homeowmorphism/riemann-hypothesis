@@ -1,7 +1,9 @@
-import Lib.GaloisRep.BaseChange.IwahoriEigenforms
-import Lib.GaloisRep.Main.AllRanks
-import Lib.LocalGL.Iwahori.SortedExponents
-import Lib.LocalGL.Iwahori.SphericalExponents
+module
+
+public import Lib.GaloisRep.BaseChange.IwahoriEigenforms
+public import Lib.GaloisRep.Main.AllRanks
+public import Lib.LocalGL.Iwahori.SortedExponents
+public import Lib.LocalGL.Iwahori.SphericalExponents
 
 /-!
 # Local-global compatibility at split places for Iwahori eigencharacters and parahoric types
@@ -46,6 +48,8 @@ Notions from other files:
 
 Known; see `Lib.GaloisRep.LocalGlobal.LabelCompatibility` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Compatibility for a sorted Iwahori eigencharacter
@@ -177,7 +181,7 @@ lemma IsIwahoriEigen.exists_hasHeckePolyAt
     rw [show ∏ i : Fin (card n), (X - C (ξ i ϖ).val) = (roots.map (X - C ·)).prod by
       simp [roots, List.map_ofFn, Fin.prod_ofFn, Function.comp_def],
       Multiset.prod_X_sub_X_eq_sum_esymm]
-    simp [roots, t, heckePoly, mul_div_cancel₀, mul_assoc]
+    simp [roots, t, heckePoly, mul_div_cancel₀, mul_assoc, (zero_lt_one.trans w.one_lt_q).ne']
   -- Let `T` be the `j`-th Hecke operator and `T'` its adjoint, which commutes with `T` on spherical
   -- vectors. Satake's formula says that `B g (T y) = t j * B g y` for spherical `y`.
   let T : Module.End ℂ ρ := heckeGL ρ.ρ j
@@ -710,7 +714,8 @@ lemma hecke_eq_frob_on_parahoricEigenspace (hA : IsPlaceOver A w)
       have l_diag : l (ρ.ρ (diagGL (mulSingle 0 ϖ)) y) = torusChar θ (mulSingle 0 ϖ) * l y := by
         simpa only [compactMean_eq_self (ρ := ρ.ρ) y hy_type.1] using hl dominant y
       rw [U_eq, map_smul, hl.apply_compactMean, l_diag]
-      simp [coe_normAbsChar_locField, norm_locField_eq_q_zpow, hϖ, field]
+      simp [coe_normAbsChar_locField, norm_locField_eq_q_zpow, hϖ, field,
+        (zero_lt_one.trans w.one_lt_q).ne']
     have F_mul_T : F * T = ιℓ (θ 0 ϖ) • T :=
       mul_sub_one_eq_smul_sub_one (α := fun i ↦ ιℓ (θ i ϖ))
         (fun i hi ↦ by simp only [(χ_slot i).2 hi, map_one])

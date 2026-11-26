@@ -1,5 +1,7 @@
-import Lib.Adelic.AutomorphicForms.PAdicGauge
-import Lib.GaloisRep.Pseudocharacter.Pseudorepresentations
+module
+
+public import Lib.Adelic.AutomorphicForms.PAdicGauge
+public import Lib.GaloisRep.Pseudocharacter.Pseudorepresentations
 
 /-!
 # ℓ-adic models of algebraic forms and congruences that change the weight
@@ -59,6 +61,8 @@ Paškūnas, On the density of supercuspidal points of fixed regular weight, J. �
 representations, Camb. J. Math. 9 (2021); Kaplansky, Proc. AMS 1 (1950).
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-!
@@ -98,7 +102,6 @@ def padicModel (M : Matrix (WeylIndex n κ.1) (WeylIndexFamily (fun _ ↦ n) κ'
       Gf E n × WeylIndex n κ.1 → PadicAlgCl l where
   toFun f x := (M *ᵥ weylRep κ'.1 κ'.2 (padicComponents x.1)⁻¹ *ᵥ ιℓ ∘ f x.1) x.2
   map_add' f g := funext fun x ↦ by
-    have h_add : ιℓ ∘ (f + g) x.1 = ιℓ ∘ f x.1 + ιℓ ∘ g x.1 := funext fun i ↦ map_add ιℓ _ _
     simp [mulVec_add]
   map_smul' c f := funext fun x ↦ by
     have h_smul : ιℓ ∘ (c • f) x.1 = ιℓ c • ιℓ ∘ f x.1 := funext fun i ↦ map_mul ιℓ c (f x.1 i)
@@ -351,7 +354,7 @@ lemma New.mem_uniformClosure_weylRep_coeff {l N : ℕ} {Φ : Type} [Fact l.Prime
   let κ (d : Φ → ℕ) (τ : Φ) (h : ℕ) : ℕ := (N + 1) ^ (4 * (N - h)) + if h = 1 then d τ else 0
   let E (F : MatrixPoly (Σ _ : Φ, Fin N) k) : C(X, k) :=
     ⟨fun γ ↦ (rowSubst (fun τ ↦ (z γ τ).1) F).eval y, by
-      simp [rowSubst, eval₂_eq, hom_bind₁]
+      simp [rowSubst, eval₂_eq]
       fun_prop⟩
   let S : Submodule k C(X, k) :=
     span k {E F | (d) (F ∈ nabla k Sigma.fst (diagramWeight (fun _ ↦ N + 1) (κ d)))}

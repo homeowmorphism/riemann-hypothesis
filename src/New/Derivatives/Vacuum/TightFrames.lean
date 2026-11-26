@@ -1,8 +1,10 @@
-import Lib.Adelic.AutomorphicForms.PAdicGauge
-import Lib.CM.ChowlaSelberg
-import Lib.Shimura.Uniformisation.HolomorphicFamilies
-import Lib.Weil.Construction.FourierInversion
-import New.Derivatives.Field.WeilData
+module
+
+public import Lib.Adelic.AutomorphicForms.PAdicGauge
+public import Lib.CM.ChowlaSelberg
+public import Lib.Shimura.Uniformisation.HolomorphicFamilies
+public import Lib.Weil.Construction.FourierInversion
+public import New.Derivatives.Field.WeilData
 
 /-!
 # Scale of theta Taylor series, tight frames, jet series along lines
@@ -65,6 +67,8 @@ integrality via torsion values are known from the literature. Related work: Conw
 Low-dimensional lattices V, 1989; Finis, Divisibility of anticyclotomic L-functions and theta
 functions with CM, 2006; Mumford, On the equations defining abelian varieties I, 1966.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -174,7 +178,7 @@ lemma exists_norm_adeleExtension_alpha_mul_eq_one {P : Parameters} {s p : ℕ} [
         rw [map_mul, map_natCast, norm_mul]
       _ ≤ ‖(p : ℂ_[p])‖ :=
         mul_le_of_le_one_right (norm_nonneg _) (norm_adeleExtension_le_one φ hy)
-      _ < 1 := norm_p_lt_one
+      _ < 1 := PadicComplex.norm_p_lt_one p
   have h_int : (P.α s).val * y ∈ Ô (P.E s) := by
     rw [h_decomp]
     exact add_mem (one_mem _) (mul_mem (natCast_mem _ p) hy)
@@ -557,14 +561,6 @@ lemma _root_.New.mvPowerSeries_eq_of_forall_line {σ : Type*} [Fintype σ] {S T 
 lemma entireTheta_zero {ε : n → ℤˣ} {V : Space E n ε} (f : 𝒮 V) : entireTheta f 0 = V.θ f := by
   simp [entireTheta, realVac]
 
-/-- If `entireTheta f (c • z) = ∏ i, G i (μ i ⬝ᵥ z)` for all `z`, then the theta functional of `f`
-is `∏ i, G i 0`. -/
-lemma theta_eq_prod_of_entireTheta_smul {ε : n → ℤˣ} {V : Space E n ε} {f : 𝒮 V} {I : Type*}
-    [Fintype I] {G : I → ℂ → ℂ} {c : ℂ} {μ : I → InfinitePlace E × n → ℂ}
-    (h_prod : ∀ z : InfinitePlace E × n → ℂ, entireTheta f (c • z) = ∏ i : I, G i (μ i ⬝ᵥ z)) :
-    V.θ f = ∏ i : I, G i 0 := by
-  simpa only [smul_zero, entireTheta_zero, dotProduct_zero] using h_prod 0
-
 /-- Let `V` have all signs `1`, so that `xᴴJx` is the identity at the infinite places. Let `f` lie
 in `V.finitePart`, the span of the translates of the vacuum under the finite Heisenberg operators.
 Suppose that `entireTheta f (c • z) = ∏ i, G i (μ i ⬝ᵥ z)` for all `z`, with every `G i` entire.
@@ -601,20 +597,6 @@ lemma jetSeries_eq_prod_of_entireTheta_smul (hf : f ∈ V.finitePart) {I : Type*
     _ = line (∏ i, (taylorAtZero (G i)).subst (linearSeries (μ i))) := by
       rw [taylorAtZero_prod_comp_mul hG, map_prod]
       simp only [h_factor]
-
-/-- Let `V` have all signs `1`, let `f` lie in its finite part, and suppose that
-`entireTheta f (c • z) = ∏ i, G i (μ c i ⬝ᵥ z)` for all `c` and `z`, with every `G i` entire. Then
-the theta functional of `f` is `∏ i, G i 0`, and for every `c` the series `V.jetSeries c f` is the
-product of the Taylor series of the `G i`, evaluated at the linear forms with coefficients
-`μ c i`. -/
-lemma jetSeries_eq_prod (hf : f ∈ V.finitePart) {I : Type*} [Fintype I] {G : I → ℂ → ℂ}
-    {μ : ℂ → I → InfinitePlace E × n → ℂ} (hG : ∀ i : I, Differentiable ℂ (G i))
-    (h_prod : ∀ (c : ℂ) (z : InfinitePlace E × n → ℂ),
-      entireTheta f (c • z) = ∏ i : I, G i (μ c i ⬝ᵥ z)) :
-    V.θ f = ∏ i : I, G i 0 ∧
-    ∀ c : ℂ, V.jetSeries c f = ∏ i : I, (taylorAtZero (G i)).subst (linearSeries (μ c i)) :=
-  ⟨theta_eq_prod_of_entireTheta_smul (h_prod 0),
-    fun c ↦ jetSeries_eq_prod_of_entireTheta_smul hf hG (h_prod c)⟩
 
 end New.Space
 

@@ -1,7 +1,9 @@
-import New.Derivatives.Divisibility.NormalForm
-import New.Derivatives.FormalGroup.Exponent
-import New.Derivatives.FormalGroup.Resolution
-import New.Derivatives.Vacuum.TightFrames
+module
+
+public import New.Derivatives.Divisibility.NormalForm
+public import New.Derivatives.FormalGroup.Exponent
+public import New.Derivatives.FormalGroup.Resolution
+public import New.Derivatives.Vacuum.TightFrames
 
 /-!
 # The normal form of theta products at non-split primes
@@ -36,6 +38,8 @@ Notions from other files:
 * `New.coupling`, `New.HasNormalForm`: `Γ_e = ∑ z_(τ,c) ^ p ^ e * z_(τ',c)` with `τ'` the partner
   of `τ`, and `F(ϖ z) = W exp (c_ϖ ∑ λ_{e j} Γ_e ^ p ^ j)` with `W` integral.
 -/
+
+@[expose] public section
 
 /-! ## Substitution of a linear form -/
 

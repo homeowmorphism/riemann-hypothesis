@@ -1,4 +1,6 @@
-import Lib.General.NumberTheory.PadicLimitsValuation
+module
+
+public import Lib.General.NumberTheory.PadicLimitsValuation
 
 /-!
 # The Gauss valuation of a polynomial over the ring of integers of ℚ̄_ℓ
@@ -28,6 +30,8 @@ Notions from other files:
 Known result: Gauss norms and Gauss's lemma for polynomials over the integral elements of ℚ̄_ℓ.
 Source: Bosch, Güntzer, Remmert, Non-Archimedean Analysis.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -456,7 +460,8 @@ lemma ellVal_pow_sub_one_of_isPrimitiveRoot {h j : ℕ} {ζ : intQpBar ℓ}
   have hℓ : ℓ.Prime := Fact.out
   obtain ⟨t, j', hj', rfl⟩ := Nat.exists_eq_pow_mul_and_not_dvd hj ℓ hℓ.ne_one
   have ht : padicValNat ℓ (ℓ ^ t * j') = t := by
-    simp [padicValNat.mul, hℓ.ne_zero, right_ne_zero_of_mul hj, hj']
+    simp [Nat.padicValNat_def, Nat.multiplicity_mul, hℓ.ne_zero, right_ne_zero_of_mul hj,
+      multiplicity_eq_zero_of_not_dvd hj']
   rw [ht] at hjh ⊢
   obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le hjh
   have h_order : IsPrimitiveRoot ((ζ ^ ℓ ^ t) ^ j') (ℓ ^ (k + 1)) :=
@@ -491,7 +496,9 @@ lemma ellVal_pow_sub_one_le (hρ : ρ < 1) {m j h : ℕ} (hj : j ∈ Set.Icc 1 m
     have h_lt_one : m / (Nat.totient (ℓ ^ (k + 1)) : ℝ≥0∞) < 1 := h_ratio.trans_lt (mod_cast hρ)
     simpa [ENNReal.div_lt_iff, hℓ.ne_zero] using h_lt_one
   -- `ℓ ^ v(j) ≤ m < φ(ℓ ^ (k + 1)) ≤ ℓ ^ (k + 1)`, so `v(j) ≤ k`
-  have h_pow_le : ℓ ^ padicValNat ℓ j ≤ m := (Nat.le_of_dvd hj_pos pow_padicValNat_dvd).trans hj_le
+  have h_pow_le : ℓ ^ padicValNat ℓ j ≤ m := by
+    rw [Nat.padicValNat_def]
+    exact (Nat.le_of_dvd hj_pos (pow_multiplicity_dvd ℓ j)).trans hj_le
   have h_pow_lt : ℓ ^ padicValNat ℓ j < ℓ ^ (k + 1) :=
     h_pow_le.trans_lt (h_lt.trans_le (Nat.totient_le _))
   have h_val_le : padicValNat ℓ j ≤ k :=

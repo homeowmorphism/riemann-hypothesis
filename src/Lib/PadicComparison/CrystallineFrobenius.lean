@@ -1,5 +1,7 @@
-import Lib.PadicComparison.Crystalline.ComparisonMap
-import Lib.PadicComparison.HodgeTate.PeriodMap
+module
+
+public import Lib.PadicComparison.Crystalline.ComparisonMap
+public import Lib.PadicComparison.HodgeTate.PeriodMap
 
 /-!
 # Crystallinity of p-adic cohomology of charted proper schemes and Frobenius congruences
@@ -78,6 +80,8 @@ through Katz–Messing, Some consequences of the Riemann hypothesis for varietie
 1974, Invent. Math. 23, Thm 2(2); for the ramified base, Berthelot–Ogus, F-isocrystals and de Rham
 cohomology I, 1983, Invent. Math. 72.
 -/
+
+@[expose] public section
 
 /-!
 ## A Frobenius relation on p-adic tests modulo an element of O_C
@@ -584,7 +588,7 @@ private lemma map_J_tensorAction_eq_pull {p : ℕ} [ThePrime p] {R : CommRingCat
       Functor.whiskerRight κ _ ≫ crysComparison.coeffHom := by
     ext
     -- `hβ` at `1 ⊗ x`, with `μ 1 = 1`.
-    exact congrArg up ((hβ ..).trans (congrArg (· ⊗ₜ _) (toRingHom FrobGal Bmax μ).map_one))
+    exact congrArg ULift.up ((hβ ..).trans (congrArg (· ⊗ₜ _) (toRingHom FrobGal Bmax μ).map_one))
   have h_pull : (crysComparison.trans cmp).pull α n = crysComparison.pull (red a ha) n :=
     (congrArg (pull ⟨_, ·⟩ _ n) h_coeff).trans
       ((pull_whiskerRight κ crysComparison.coeffHom _).trans
@@ -597,7 +601,7 @@ private lemma map_J_tensorAction_eq_pull {p : ℕ} [ThePrime p] {R : CommRingCat
       -- The coordinates of `w` are fixed by Frobenius, so `Frob ^ a` fixes `w`.
       have h_frob_w : WittVector.map (iterateFrobenius c.TiltRing p a) w = w :=
         ext fun i ↦ (congrFun (pow_iterate ..) _).symm.trans (iterate_fixed (hw i) _)
-      congrArg up ((hβ ..).trans (congrArg _ (hτ (map_one _) h_frob_w)))) _
+      congrArg ULift.up ((hβ ..).trans (congrArg _ (hτ (map_one _) h_frob_w)))) _
   -- Twisting points by `s` commutes with the inclusion of the points of `V`.
   have h_square : incl ≫ freeAbMap (toTwistPoints he_algebraMap he_smul s Y) =
       δ ≫ cmp.functor.whiskerLeft incl :=
@@ -657,8 +661,9 @@ private lemma sum_linearFrob_apply_eq_zero {p : ℕ} [ThePrime p] {R : CommRingC
   let V' := V.whisker (algFunctor ⋙ restrictAlg R OC)
   -- It suffices to work on the dense set `T` of points of `W` that every `u i` sends into `V`.
   let T := ⨅ i, V'.preimage (testPoints.map (u i))
-  have hT : IsCohomDense Ψ T := InfClosed.iInf_mem (s := IsCohomDense Ψ) (fun _ hU _ ↦ hU.inf)
-    (.of_top_le le_rfl) fun _ ↦ hV_dense.preimage _
+  have hT : IsCohomDense Ψ T := InfClosed.iInf_mem (s := {U | IsCohomDense Ψ U})
+    (fun _ hU _ hU' ↦ IsCohomDense.inf hU hU') (IsCohomDense.of_top_le le_rfl)
+    fun _ ↦ hV_dense.preimage _
   refine (hJ.bijective W).injective ((hT.isCohomEquiv n).1 ?_)
   -- `linearFrob` acts on the fixed period `C z` as the Weil pair, giving the class `y i`, and `J`
   -- commutes with pull-backs.
@@ -666,7 +671,7 @@ private lemma sum_linearFrob_apply_eq_zero {p : ℕ} [ThePrime p] {R : CommRingC
     J Y (tensorAction Bmax ((.ofAdd (a i), toGp (γ i)) : FrobGal)
       (ellAdicCohom.galoisAction R Ω Γ Y n (γ i)) (C z))
   simp [linearFrob_apply h_crys.isPotentiallyCrystalline (hW _), h_fixed, hJ.natural, Ψ, H.map_map]
-  show ∑ i, m i • H.map Ψ (freeAb.map T.ι ≫ freeAb.map (testPoints.map (u i))) n (y i) = 0
+  change ∑ i, m i • H.map Ψ (freeAb.map T.ι ≫ freeAb.map (testPoints.map (u i))) n (y i) = 0
   -- `δ i` takes a point `w` of `T` to `u i w`; `red i` takes it on to the point over the period
   -- ring modulo divided powers, composed with `Frob ^ a i`.
   let δ (i : ι) : T.toFunctor ⟶ V'.toFunctor := T.homOfLe (iInf_le _ i) ≫ Subfunctor.fromPreimage ..

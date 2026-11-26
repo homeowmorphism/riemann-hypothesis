@@ -1,5 +1,7 @@
-import Lib.Adelic.Witt.WittTheorem
-import New.Appendix.DiscreteSeries.SteepParameters
+module
+
+public import Lib.Adelic.Witt.WittTheorem
+public import New.Appendix.DiscreteSeries.SteepParameters
 
 /-!
 # Positions of a smaller unitary group, and the two traces
@@ -18,6 +20,8 @@ Notions from other files:
 * `l.phase k (Y, Y')` is `tr μ Y - tr μ' Y'` for the weights `μ`, `μ'` of the lowest `K`-types of
   `l` and `k`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -137,8 +141,8 @@ lemma formAdjoint_inclMatrix [Fintype X] [DecidableEq X] {τ : X → n} (hτ : �
     formAdjoint ε 1 (inclMatrix ℂ τ) = (inclMatrix ℂ τ)ᴴ := by
   ext x i
   rcases eq_or_ne i (τ x) with rfl | hi
-  · simp [formAdjoint, signMatrix, inclMatrix, one_apply, hτ]
-  · simp [formAdjoint, signMatrix, inclMatrix, one_apply, hi, hi.symm]
+  · simp [formAdjoint, signMatrix, inclMatrix, Matrix.one_apply, hτ]
+  · simp [formAdjoint, signMatrix, inclMatrix, hi, hi.symm]
 
 end Adjoint
 
@@ -191,7 +195,7 @@ lemma exists_mul_eq_zero_and_mul_initCols_eq_one (hP : IsPosition ε η d v i₀
     ∃ Z : Matrix (Fin d) n ℂ, Z * i₀ = 0 ∧ Z * initCols v = 1 := by
   obtain ⟨Z, hZ_zero, hZ_one⟩ := hP.exists_mul_eq_zero_and_mul_eq_one
   refine ⟨Z.submatrix Fin.castSucc id, congrArg (·.submatrix Fin.castSucc id) hZ_zero, ?_⟩
-  show (Z * v).submatrix Fin.castSucc Fin.castSucc = 1
+  change (Z * v).submatrix Fin.castSucc Fin.castSucc = 1
   rw [hZ_one, submatrix_one _ (Fin.castSucc_injective d)]
 
 /-- The columns of `i₀` and the vectors `v₁, …, v_{j₀}` of a position are independent. -/
@@ -273,7 +277,7 @@ lemma trace_mul_eq_of_mul_initCols_eq_zero (hP : IsPosition ε η d v i₀) {M Y
         rw [Matrix.mul_assoc, trace_mul_comm, Matrix.mul_assoc]
     _ = (toRows₁ T * i₀ * Y').trace := by
         rw [h_blocks]
-        simp [trace, Fintype.sum_sum_type, mul_apply]
+        simp [trace, Fintype.sum_sum_type, Matrix.mul_apply]
     _ = (formAdjoint ε η i₀ * (fromCols i₀ v * T) * i₀ * Y').trace := by rw [hT_top]
 
 /-- Let `(v, i₀)` be a position (`IsPosition`): the columns `v₁, …, v_{j₀}` of `v`, where
@@ -464,20 +468,6 @@ lemma IsStationary.phase_eq (hP : IsStationary l k e e' d v i₀) {Y : Matrix n 
       hN hN'
   rw [HCParam.phase, h_split, hP.adjoint_weight_mul_eq, hσ, hσ']
   ring
-
-/-- **Two traces.** Let `μ`, `μ'` be the weights of the lowest `K`-types of the parameters `l` of
-`U(ε)` and `k` of `U(η)`, as diagonal matrices. Let `(v, i₀)` be a stationary position
-(`IsStationary`): the columns `v₁, …, v_{j₀}` of `v`, where `j₀ = d + 1`, and an isometry `i₀`
-into their orthogonal complement, with `μ v_j = v_{j + 1}` for `j < j₀` and `i₀† μ i₀ = μ'`. Let
-`Y` and its adjoint `Y†` lower the flag of the `v_j` (`LowersFlag`), with sums `σ` and `σ'` of the
-coefficients next to the diagonal, and let `Y` induce `Y'` on the image of `i₀` modulo the span of
-`v₁, …, v_{j₀ - 1}` (`InducesOn`). Then `Y` and `Y'` have the same trace, and the phase
-`tr μ Y - tr μ' Y'` is `σ + conj σ'`. -/
-theorem IsStationary.trace_eq_and_phase_eq (hP : IsStationary l k e e' d v i₀) {Y : Matrix n n ℂ}
-    {Y' : Matrix m m ℂ} {σ σ' : ℂ} (hY : LowersFlag d v Y σ) (hY' : InducesOn d v i₀ Y Y')
-    (hYadj : LowersFlag d v (formAdjoint ε ε Y) σ') :
-    Y.trace = Y'.trace ∧ l.phase k (Y, Y') = σ + conj σ' :=
-  ⟨hP.trace_eq hY hY' hYadj, hP.phase_eq hY hY' hYadj⟩
 
 end New.DiscreteSeries
 

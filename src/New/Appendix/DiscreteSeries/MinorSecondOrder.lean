@@ -1,4 +1,6 @@
-import Lib.General.LinearAlgebra.MatricesNearIdentity
+module
+
+public import Lib.General.LinearAlgebra.MatricesNearIdentity
 
 /-!
 # One minor of a product of three exponentials, to second order
@@ -23,6 +25,8 @@ Notions from other files:
 
 See `New.Appendix.DiscreteSeries.Periods` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -462,8 +466,6 @@ lemma norm_scaleCross_le (hQ : IsStarProjection Q) (hA : ‖A‖ ≤ δ) (hζ : 
 
 lemma differentiable_matrix_det : Differentiable ℂ (det : Matrix n n ℂ → ℂ) := by
   -- The Leibniz formula makes it a polynomial in the entries.
-  have h_entry (i j : n) : Differentiable ℂ fun X : Matrix n n ℂ ↦ X i j :=
-    (entryLinearMap ℂ ℂ i j).toContinuousLinearMap.differentiable
   rw [funext (det_apply' (n := n) (R := ℂ))]
   fun_prop
 

@@ -1,4 +1,6 @@
-import Lib.General.NumberTheory.PadicLimitsValuation
+module
+
+public import Lib.General.NumberTheory.PadicLimitsValuation
 
 /-!
 # Coefficient rings with a large residue field
@@ -16,6 +18,8 @@ Notions from other files:
   by inclusion;
 * `New.ThePrime ℓ`: the class saying that `ℓ` is prime.
 -/
+
+@[expose] public section
 
 namespace New.Selmer
 
@@ -137,7 +141,6 @@ lemma frequently_lt_card_residueField (c : ℕ) :
   have hζ_int : IsIntegral ℚ_[ℓ] ζ := Algebra.IsIntegral.isIntegral ζ
   have : IsCyclotomicExtension {ℓ ^ k - 1} ℚ_[ℓ] ℚ_[ℓ]⟮ζ⟯ :=
     hζ.intermediateField_adjoin_isCyclotomicExtension ℚ_[ℓ]
-
   have : FiniteDimensional ℚ_[ℓ] ℚ_[ℓ]⟮ζ⟯ := adjoin.finiteDimensional hζ_int
   have : IsGalois ℚ_[ℓ] ℚ_[ℓ]⟮ζ⟯ := IsCyclotomicExtension.isGalois {ℓ ^ k - 1} _ _
   let K : FiniteGaloisIntermediateField ℚ_[ℓ] (PadicAlgCl ℓ) := ⟨K₀.1 ⊔ ℚ_[ℓ]⟮ζ⟯⟩

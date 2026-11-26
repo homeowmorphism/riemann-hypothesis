@@ -1,4 +1,6 @@
-import Lib.ClassField.Global.ExistenceTheorem
+module
+
+public import Lib.ClassField.Global.ExistenceTheorem
 
 /-!
 # Selmer cocycles, N-units, split places and the equivariant S-unit theorem
@@ -38,6 +40,8 @@ Notions from other files:
 Known; see `Lib.ClassField.GreenbergWiles.CocycleCounts` and `Lib.ClassField.Places.LocalFields` for
 sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -96,7 +100,8 @@ def PlaceAboveLevel : Type := {B : ClosurePlace // B N < 1} ⊕ InfinitePlace Ω
 instance : MulAction G (PlaceAboveLevel N) :=
   @Sum.instMulAction G {B : ClosurePlace // B N < 1} (InfinitePlace Ω) _
     -- the places above `N` form a set that is stable under `G`, as `G` fixes `N`
-    (SubMulAction.mk _ fun g _ hB ↦ by simpa using! (smul_apply_smul_lt_one_iff g).mpr hB).mulAction
+    (SubMulAction.mk {B : ClosurePlace | B N < 1} fun g _ hB ↦ by
+      simpa using! (smul_apply_smul_lt_one_iff g).mpr (Set.mem_ofPred_eq.mp hB)).mulAction
     -- on the infinite places `G` acts through the automorphisms of `Ω` over `ℚ`
     (.compHom _ (toAlgAut G ℚ Ω))
 
@@ -193,7 +198,7 @@ theorem finite_cocycles_unramified_outside (V : DiscreteModule R G) [Finite V]
   have h_dec (w : T) (u : decompGroup U (placeOver w.1)) : z u = 0 :=
     congrFun (congrFun (congrArg Prod.snd h_res) w) u
   have h_hom : (fun u : U ↦ z u) ∈ Z1 (.trivial ℤ U V) :=
-    ⟨hz_cont.comp continuous_subtype_val, fun u u' ↦ by simp [hz_mul, h_act]⟩
+    ⟨hz_cont.comp continuous_subtypeVal, fun u u' ↦ by simp [hz_mul, h_act]⟩
   -- A continuous homomorphism on `U` that kills complex conjugations, the decomposition groups at
   -- `T` and the inertia groups outside `T` is zero.
   have h_zero : ∀ u : U, z u = 0 := by
@@ -474,7 +479,7 @@ lemma linearIndependent_sUnit_log {S : Set (FinPlace K)} [Fintype S]
   -- Units of `𝓞 K` have valuation one at every finite place, so `M` vanishes on them at `v ∈ S`.
   have h_lower : A.toBlocks₂₁ = 0 := by
     ext w v
-    show M (Sum.inl v) (atInfinite w) = 0
+    change M (Sum.inl v) (atInfinite w) = 0
     by_cases hw : w = dirichletUnitTheorem.w₀ <;> simp [h_fin, atInfinite, hw, notMem_of_isUnit]
   -- The block of the places in `S` is diagonal, with nonzero diagonal as `h ≠ 0`.
   have h_finite : A.toBlocks₁₁.det ≠ 0 := det_ne_zero_of_sum_col_lt_diag fun v ↦ by

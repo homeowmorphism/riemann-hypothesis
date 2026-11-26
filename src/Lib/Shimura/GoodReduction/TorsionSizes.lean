@@ -1,4 +1,6 @@
-import Lib.Shimura.ComplexTheta.DimensionFormula
+module
+
+public import Lib.Shimura.ComplexTheta.DimensionFormula
 
 /-!
 # Sizes of theta functions at torsion points: products, bounds and shift bounds
@@ -32,6 +34,8 @@ Notions from other files:
 
 Known; see `Lib.Shimura.GoodReduction.MultiplicativeNorm` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -71,10 +75,14 @@ abbrev LatticeForm.thetaNorm (v : Valuation ℂ ℝ≥0) (f : V → ℂ) : ℝ�
 points of V/L, for f a theta function of type (B, χ) (f is holomorphic, and for l in L, f(z + l) is
 χ(l) times an exponential factor fixed by B, times f(z)), with any χ such that
 `New.ThetaTori.IsAmpleType` holds for B and χ (a twisted theta function of degree B). -/
-inductive LatticeForm.sizes : Set (torsionPoints L → ℝ≥0)
+inductive LatticeForm.IsSize : (torsionPoints L → ℝ≥0) → Prop
   /-- For `f` in `B.thetaSpace χ` with `IsAmpleType B χ`, the function `B.sizeAt v f` belongs to
   `LatticeForm.sizes`. -/
-  | of_mem_thetaSpace {χ f : V → ℂ} : IsAmpleType B χ → f ∈ B.thetaSpace χ → sizes (B.sizeAt v f)
+  | of_mem_thetaSpace {χ f : V → ℂ} : IsAmpleType B χ → f ∈ B.thetaSpace χ → IsSize (B.sizeAt v f)
+
+/-- The set of the functions satisfying `New.ThetaTori.LatticeForm.IsSize` (`Set` is a structure, so
+an inductive predicate cannot be a `Set` directly). -/
+abbrev LatticeForm.sizes : Set (torsionPoints L → ℝ≥0) := {φ | B.IsSize v φ}
 
 /-- The analytic form of good reduction of V/L at v: for all degrees B, C and all sizes φ, ψ of
 these degrees (sizes of twisted theta functions f, g), the sup norm of the product φψ, the size of
@@ -175,7 +183,7 @@ lemma mul_shift_mem_sizes (hφ : φ ∈ B.sizes v) (hψ : ψ ∈ B'.sizes v) (w 
       fun x : ↥(torsionPoints L) ↦ B.sizeAt v f x * B'.sizeAt v g (x + ⟨w, r, hr, hrw⟩) := by
     funext x
     rw [sizeAt_mul, Pi.mul_apply, hB'.sizeAt_thetaShift ⟨w, r, hr, hrw⟩ x]
-  exact h_eq.subst (sizes.of_mem_thetaSpace h_ample (mul hf (hB'.thetaShift_mem hg w)))
+  exact h_eq.subst (IsSize.of_mem_thetaSpace h_ample (mul hf (hB'.thetaShift_mem hg w)))
 
 variable [IsFullRankLattice L]
 
@@ -411,7 +419,7 @@ lemma LatticeForm.HasShiftBound.of_isPosRiemann_sub (h_ample : IsAmpleType B χ)
   -- the sup over `s` on the left, and cancel `iSup σ ^ 2 > 0`.
   intro φ₀ hφ₀ x
   obtain @⟨ζ, f, ⟨hζ, hB', m, hm, hζm⟩, hf⟩ := hφ₀
-  have hφ : B'.sizeAt v f ∈ B'.sizes v := sizes.of_mem_thetaSpace ⟨hζ, hB', m, hm, hζm⟩ hf
+  have hφ : B'.sizeAt v f ∈ B'.sizes v := IsSize.of_mem_thetaSpace ⟨hζ, hB', m, hm, hζm⟩ hf
   have h_ample' : IsAmpleType (B + -B') (χ * ζ⁻¹) := by
     refine ⟨h_ample.add hζ.neg, h_pos, h_ample.finite_order.imp' (fun n ↦ n * m) ?_⟩
     simp_all [mul_pow, pow_mul, pow_right_comm]

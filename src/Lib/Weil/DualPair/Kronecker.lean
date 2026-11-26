@@ -1,4 +1,6 @@
-import Lib.General.Groups.CongruenceSubgroups
+module
+
+public import Lib.General.Groups.CongruenceSubgroups
 
 /-!
 # The action x ↦ hxg⁻¹ on matrices as a map of unitary groups
@@ -15,6 +17,8 @@ invertible `g` with `gᴴ J g = J`.
 
 Known; see `Lib.Weil.DualPair.ThetaLiftConvergence` for sources.
 -/
+
+@[expose] public section
 
 open Matrix Kronecker
 
@@ -39,10 +43,11 @@ noncomputable def New.U.kroneckerHom [CommRing R] [StarRing R] {S K : Matrix n n
       ⟨kroneckerGL p.2 (transposeGL p.1⁻¹), by
         -- For `p = (x, y)`: the Kronecker product of `yᴴ T y = T` and the inverse transpose of
         -- `xᴴ S x = S`.
-        simpa [U, inv_eq_right_inv hS, h, conjTranspose_nonsing_inv, conjTranspose_kronecker,
+        simpa [mem_unitaryGroupOf_iff, star_eq_conjTranspose, inv_eq_right_inv hS, h,
+            conjTranspose_nonsing_inv, conjTranspose_kronecker,
           conjTranspose_transpose_eq_transpose_conjTranspose, ← mul_kronecker_mul,
           Matrix.mul_inv_rev] using!
-          congr($(p.2.2) ⊗ₖ $(p.1.2)⁻¹ᵀ)⟩)
+          congr($(mem_unitaryGroupOf_iff.1 p.2.2) ⊗ₖ $(mem_unitaryGroupOf_iff.1 p.1.2)⁻¹ᵀ)⟩)
     (fun _ _ ↦ Subtype.ext <| Units.ext <| by simp [← mul_kronecker_mul])
 
 /-- Applying a ring homomorphism `f` entrywise commutes with the Kronecker product:

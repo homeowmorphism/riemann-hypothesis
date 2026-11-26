@@ -1,4 +1,6 @@
-import Lib.PadicHodge.Kisin.PeriodMatrixBasis
+module
+
+public import Lib.PadicHodge.Kisin.PeriodMatrixBasis
 
 /-!
 # The radius lemma: after Frobenius a frame is a constant basis times a unit over A
@@ -36,6 +38,8 @@ P. Scholze, Prismatic F-crystals and crystalline Galois representations (2023), 
 See also `Lib.PadicHodge.Kisin.PeriodMatrixFrame`.
 -/
 
+@[expose] public section
+
 namespace New.Lift.Chart
 
 open Period BPlus Matrix Algebra PowerSeries WittVector Ideal Function NeZero RingHom Finset Nat
@@ -51,7 +55,7 @@ private lemma exists_E_dvd_xi_sub_p_mul : ∃ b : Ainf, c.E.val ∣ xi - p * b :
 valuations, from `v_p((n + 1)!) = v_p(n + 1) + v_p(n!)` and `v_p((n + 1)!) ≤ n + 1`. -/
 private lemma sub_padicValNat_factorial_add_two_eq (n : ℕ) :
     n - padicValNat p n ! + 2 = n + 1 - padicValNat p (n + 1)! + padicValNat p (n + 1) + 1 := by
-  grind [padicValNat_factorial_le, factorial, padicValNat.mul]
+  grind [Nat.padicValNat_def, multiplicity_factorial_le, factorial, Nat.multiplicity_mul]
 
 private lemma coe_z_eq_seriesMap_X : (c.z : Ainf) = c.seriesMap X := rfl
 
@@ -98,38 +102,6 @@ lemma tau_pow_dvd_of_dvd_E_pow_mul {m h : ℕ} {a : Ainf}
     (h_dvd : ainfToBPlus (tau ^ m) ∣ ainfToBPlus (c.E ^ h * a)) : tau ^ m ∣ a := by
   rw [← mul_one (tau ^ m), ← pow_zero (c.z : Ainf)] at h_dvd ⊢
   exact tau_pow_mul_z_pow_dvd_of_dvd_E_pow_mul h_dvd
-
-/-- Let `c` be a chart with ring S = `c.S` (the image of Λ⟦X⟧ in A_inf), E = `c.E` and
-S_B = `c.bicommutant` (the p-adic closure of S[E/p] in `BPlus`, with p inverted). If E^h·a lies in
-S_B, for a in `Ainf`, then a lies in S. -/
-lemma mem_S_of_E_pow_mul_mem_bicommutant {h : ℕ} {a : Ainf}
-    (h_mem : ainfToBPlus (c.E ^ h * a) ∈ c.bicommutant) : a ∈ c.S := by
-  -- Cancel `E ^ h` in `S_B`; the projection onto `S_B` then fixes `a` and sends it into `S`.
-  have hE_ne : ainfToBPlus c.E ^ h ≠ 0 := by simp [c.E_ne_zero']
-  have ha_mem : ainfToBPlus a ∈ c.bicommutant :=
-    c.mem_bicommutant_of_mul (pow_mem (ainfToBPlus_mem_bicommutant c.E) h) hE_ne
-      (by simpa using h_mem)
-  have h_coord : ainfToBPlus (c.adicBasis.coord c.oneIndex a) = ainfToBPlus a :=
-    (c.extendToBPlus_ainfToBPlus _ a).symm.trans (c.extendedCoord_oneIndex_eq_self ha_mem)
-  rw [← FaithfulSMul.algebraMap_injective Ainf BPlus h_coord]
-  exact (c.adicBasis.coord c.oneIndex a).property
-
-/-- The equality A_inf[1/τ] ∩ S_B[1/E] = S, with denominators cleared. Let `c` be a chart with ring
-S = `c.S` (the image of Λ⟦X⟧ in A_inf), E = `c.E` and S_B = `c.bicommutant` (the p-adic closure of
-S[E/p] in `BPlus`, with p inverted), and let τ = [ε^{1/p}] − 1. For a in `Ainf`, the fraction a/τ^m
-equals y/E^h for some h and some y in S_B if and only if a = τ^m·s for some s in S. -/
-theorem exists_E_pow_mul_eq_tau_pow_mul_iff {m : ℕ} {a : Ainf} :
-    (∃ h : ℕ, ∃ y ∈ c.bicommutant, ainfToBPlus (c.E ^ h * a) = ainfToBPlus (tau ^ m) * y) ↔
-      ∃ s : c.S, a = tau ^ m * s := by
-  refine ⟨fun ⟨h, y, hy_mem, h_eq⟩ ↦ ?_, fun ⟨s, hs⟩ ↦
-    ⟨0, ainfToBPlus s, ainfToBPlus_mem_bicommutant s, by simp [hs]⟩⟩
-  -- The fraction `a / tau ^ m` is an element `b` of `Ainf`, and `E ^ h * b = y` lies in `S_B`.
-  obtain ⟨b, rfl⟩ : tau ^ m ∣ a := tau_pow_dvd_of_dvd_E_pow_mul ⟨y, h_eq⟩
-  have h_quotient : ainfToBPlus (c.E ^ h * b) = y := by
-    rw [mul_left_comm, map_mul] at h_eq
-    exact mul_left_cancel₀ (by simp) h_eq
-  have hb_mem : b ∈ c.S := mem_S_of_E_pow_mul_mem_bicommutant (h := h) (by rwa [h_quotient])
-  exact ⟨⟨b, hb_mem⟩, rfl⟩
 
 /-- `φ ^ l` on `BPlus` restricts on `S` to the Frobenius `c.φ ^ l` of the chart. -/
 lemma frobEnd_pow_ainfToBPlus (l : ℕ) (s : c.S) :
@@ -263,7 +235,7 @@ lemma pow_smul_mem_span_of_unit {N : ℕ} (hN : 0 < N) {ev₀ : c.S⟦X⟧ →�
       M *ᵥ y ∈ L := by
     have h_cols : Set.range M.col ⊆ (L : Set (d → c.S)) := by
       refine Set.range_subset_iff.mpr fun k ↦ hL ⟨col (r : Matrix d d ℕ) k, fun i ↦ ?_⟩
-      simpa [f, g, mul_apply, mulVec, dotProduct, Matrix.natCast_apply, apply_ite,
+      simpa [f, g, Matrix.mul_apply, mulVec, dotProduct, Matrix.natCast_apply, apply_ite,
         C_eq_algebraMap, Subalgebra.algebraMap_def] using congrFun₂ h_scalar i k
     exact (range_mulVecLin M).trans_le (L.span_le.mpr h_cols) ⟨y, rfl⟩
   -- `M` and `M'` approximate `p ^ (2 * δ) • V⁻¹` and `p ^ (2 * δ) • V`, so `V * M ≡ p ^ (2 * δ)`
@@ -317,8 +289,8 @@ lemma exists_ainfToBPlus_eq_p_pow_mul_sub_z_mul (ht_fixes : c.FixesThetaZ t)
   have h_expand : ainfToBPlus (α * (∑ l : d, A l * G l j - t • A j)) =
       ainfToBPlus (tau * c.z ^ (n + 1)) * (p ^ (v + 1) * W j - ainfToBPlus c.z * W'') := by
     linear_combination (norm :=
-      (simp [W'', ← smul_algebraMap_eq_algebraMap_smul t (A _), smul_sub, hA, ht_z, mu, mul_sub,
-         mul_assoc, mul_apply, ← mul_sum, sub_mul, Matrix.one_apply, sub_eq_zero]
+      (simp [W'', ← smul_algebraMap_eq_algebraMap_smul t (A _), smul_sub, hA, ht_z, mu_eq, mul_sub,
+         mul_assoc, Matrix.mul_apply, ← mul_sum, sub_mul, Matrix.one_apply, sub_eq_zero]
        ring) )
       -ainfToBPlus c.z ^ (n + 1) *
           (ainfToBPlus α * hD + W j * h_lte) -
@@ -366,7 +338,7 @@ lemma exists_ev_eq_frobEnd_pow (ht_fixes : c.FixesThetaZ t)
     p ^ (x.val.fst - padicValNat p x.val.fst ! + 2) * (frobEnd ^ l) (x.val.snd j)
   have h_start :
       ∀ k : d, ainfToBPlus (row 1 i k) = 1 • Y i k - ainfToBPlus c.z ^ (0 + 1) * W i k := by
-    simp [hYW, one_apply, apply_ite, -algebraMap_smul]
+    simp [hYW, Matrix.one_apply, apply_ite, -algebraMap_smul]
   have h_ev_smul :
       ∀ F : c.S⟦X⟧, ev.toAddMonoidHom ((X : c.S⟦X⟧) • F) = ev X • ev.toAddMonoidHom F := by
     simp
@@ -431,8 +403,8 @@ private lemma exists_mul_eq_one_add_z_smul {Z Z' : Matrix d d BPlus} {h : ℕ}
   let B : Matrix d d BPlus := of fun i j ↦ u ^ m i j * ainfToBPlus (algebraMap _ _ (w i j))
   let W : Matrix d d BPlus := (u ^ h * ainfToBPlus q) • 1 - (of fun i j ↦ u ^ m i j * y i j) * Z
   have hW_mem (i j : d) : W i j ∈ c.bicommutant := by
-    simp (maxDischargeDepth := 5) [W, mul_apply, sub_mem, _root_.sum_mem, mul_mem, hu, hy, hZ,
-      Matrix.one_apply, ite_mem, pow_mem]
+    simp (maxDischargeDepth := 5) [W, Matrix.mul_apply, sub_mem, _root_.sum_mem, mul_mem, hu, hy,
+      hZ, Matrix.one_apply, ite_mem, pow_mem]
   refine ⟨B, W, fun g hg i j ↦ ?_, hW_mem, ?_⟩
   · simp [B, hg, hu_fix]
   · -- Project `Z' Z = E ^ h` to `S_B`, multiply by `u ^ h`, and insert `hq` and `h_dec`.
@@ -444,7 +416,7 @@ private lemma exists_mul_eq_one_add_z_smul {Z Z' : Matrix d d BPlus} {h : ℕ}
             ainfToBPlus (c.z * q : c.S) * row 1 i j) :=
       by rw [hZ', hq]
     linear_combination (norm :=
-      (simp [B, W, mul_apply, ← sub_eq_of_eq_add (h_dec _ _), mul_sub, mul_add, ← mul_assoc,
+      (simp [B, W, Matrix.mul_apply, ← sub_eq_of_eq_add (h_dec _ _), mul_sub, mul_add, ← mul_assoc,
          ← mul_pow, hup, mul_sum, hu, hZ, mul_comm (Z' _ _), smul_def (A := BPlus),
          mul_right_comm _ (Z _ _), pow_mem, extendToBPlus_mul, sub_mul, Matrix.one_apply,
        Subalgebra.algebraMap_def, ite_mem, extendedCoord_oneIndex_eq_self, sub_eq_zero]
@@ -495,7 +467,7 @@ lemma radius_lemma (ht_fixes : c.FixesThetaZ t)
   have hBZ : t • (B * Z) = B * Z * G.map ainfToBPlus := by
     rw [Matrix.mul_assoc, ← hG]
     ext i j
-    simp [mul_apply, smul_sum, smul_mul', hB_fix t ht_fixes.left]
+    simp [Matrix.mul_apply, smul_sum, smul_mul', hB_fix t ht_fixes.left]
   -- `E ^ h (G - 1) = Z' (t Z - Z)` is divisible by `tau * z`, hence so is `G - 1`.
   have hG_one (i j : d) : tau * c.z ∣ (G - 1) i j := by
     have h_dvd : ainfToBPlus (tau * c.z) ∣ (Z' * (t • Z - Z)) i j :=
@@ -517,7 +489,8 @@ lemma radius_lemma (ht_fixes : c.FixesThetaZ t)
       -RingHom.coe_pow]
   -- Apply `φ ^ l` to `E = p + z * r`.
   have h_pa : ainfToBPlus (c.frobE l) = p * ev ε := by
-    simp [frobE, hε, hX, eq_add_of_sub_eq' hr, ← frobEnd_pow_ainfToBPlus, C_eq_algebraMap,
+    rw [frobE, eq_add_of_sub_eq' hr, RingHom.map_add, RingHom.map_mul, map_natCast (c.φ ^ l)]
+    simp [hε, hX, ← frobEnd_pow_ainfToBPlus, C_eq_algebraMap,
       Subalgebra.algebraMap_def, mul_add, pow_two, mul_assoc, mul_left_comm, -RingHom.coe_pow]
   have h_unit : IsUnit (B.map (frobEnd ^ l) * Z.map (frobEnd ^ l)) := by
     rw [hBZ_frob]

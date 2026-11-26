@@ -1,5 +1,7 @@
-import New.Spanning.Frames.FiniteDepth
-import New.Spanning.Frames.Shells
+module
+
+public import New.Spanning.Frames.FiniteDepth
+public import New.Spanning.Frames.Shells
 
 /-!
 # Shells, decay and mass at the finite places
@@ -38,6 +40,8 @@ Notions from other files:
 
 See `New.Spanning.MainTerm.EnergyEstimate` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -191,7 +195,7 @@ def _root_.New.Floors.PlaceData.dyadicShell (F : PlaceData ι T (m + 1)) (t : �
 theorem two_pow_clog_le_two_mul {N : ℕ} (hN : N ≠ 0) : 2 ^ Nat.clog 2 N ≤ 2 * N := by
   obtain rfl | h_one := (Nat.one_le_iff_ne_zero.2 hN).eq_or_lt
   · simp
-  · have h_pred : 2 ^ (Nat.clog 2 N).pred < N := Nat.pow_pred_clog_lt_self one_lt_two h_one
+  · have h_pred : 2 ^ (Nat.clog 2 N).pred < N := Nat.pow_pred_clog_lt_self 2 h_one
     rw [← Nat.succ_pred_eq_of_pos (Nat.clog_pos one_lt_two h_one), pow_succ']
     omega
 

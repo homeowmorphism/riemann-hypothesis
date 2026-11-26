@@ -1,5 +1,7 @@
-import Lib.Cohomology.ProjectiveLine.TiltedLineFormula
-import Lib.PadicComparison.Duality.LineIntegration
+module
+
+public import Lib.Cohomology.ProjectiveLine.TiltedLineFormula
+public import Lib.PadicComparison.Duality.LineIntegration
 
 /-!
 # Good pairs: excision, Thom retraction and Alexander duality for principal opens
@@ -39,6 +41,8 @@ which the projective line is computed. In these theories, a class supported on t
 Sources for the theorems: SGA 4 XVI, SGA 4½ Finitude/Dualité; Faltings, Scholze primitive
 comparison. The proof is in the spirit of Dold–Puppe dualisability.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -252,7 +256,7 @@ lemma isFiniteLerayHirsch_iff_of_locally_bijective (u : E ⟶ Y)
     · exact (h_zar (h_inj.whisker g')).of_preimage_le (pointMap ⟨(x, y), hxy⟩)
         fun c' z ↦ sub_eq_zero.mpr
     · -- A point over `U` has class zero.
-      rw [show (relFreeAb.π (U.preimage u)).app (g'.obj c) (FreeAbelianGroup.of x) = 0 from
+      rw [show (relFreeAb.π (U.preimage u)).app (g'.obj c) (FreeAddCommGroup.of x) = 0 from
         relFreeAb.mk_eq_zero hx]
       exact zero_mem _
   · -- Locally a generator `y` lies in the image of `u`, or it lies in `U` and its class is zero.
@@ -330,8 +334,9 @@ lemma isFiniteLerayHirsch_of_prod_projLine
   conv_rhs =>
     erw [map_zero, add_zero, ← TorsionCoeff.sliceEquiv_mulClass,
       ← map_restrictAlong_etaClass (g := 𝟭 _), ← hξ, map_pullbackAlong, map_comp_assoc,
-      map_homClass]
-  refine (TotalH.comp_assoc_of_sq ?_ _).trans (congrArg _ map_pullbackAlong).symm
+      map_homClass, sliceEquiv, AddEquiv.ofBijective_apply, AddMonoidHom.comp_apply,
+      map_pullbackAlong]
+  refine TotalH.comp_assoc_of_sq ?_ _
   -- What remains is a square of morphisms of functors, which commutes on generators.
   rw [← homClass_comp, ← homClass_comp]
   exact congrArg homClass (relFreeAb.hom_ext (U := .whisker ..))
@@ -351,13 +356,13 @@ def rootPairs :
       ((testUnitLocus (A := A) (AdjoinRoot.mk P.f P.g)).toFunctor ⊗
         (testUnitLocus P.g).toFunctor) where
   obj _ :=
-    fun (w, ψ) ↦
+    setOf fun (w, ψ) ↦
       Associated (asAlgHom ψ.val P.f) (asAlgHom ψ.val X - asAlgHom w.val (root P.f)) ∧
       ∀ r : R, asAlgHom w.val (AdjoinRoot.of P.f r) = asAlgHom ψ.val (C r)
   map f := by
     rintro ⟨w, ψ⟩ ⟨h_assoc, h_const⟩
     refine ⟨?_, fun r ↦ congrArg f.hom.hom (h_const r)⟩
-    show Associated (f.hom.hom (asAlgHom ψ.val P.f))
+    change Associated (f.hom.hom (asAlgHom ψ.val P.f))
       (f.hom.hom (asAlgHom ψ.val X) - f.hom.hom (asAlgHom w.val (root P.f)))
     simpa only [map_sub] using h_assoc.map f.hom.hom
 
@@ -533,7 +538,7 @@ lemma isFiniteLerayHirsch_principal_open
       (hu : ∀ c, Q.ideal c = ⊥ → Function.Bijective (u.app c)) :
       IsLerayHirschBasis θ (freeAb E) → IsLerayHirschBasis θ (freeAb Y) := by
     have hZ (c : TestOver A) (hc : Q.ideal c = ⊥) : Function.Bijective ((freeAb.map u).app c) :=
-      (FreeAbelianGroup.equivOfEquiv (.ofBijective _ (hu c hc))).bijective
+      (FreeAddCommGroup.equivOfEquiv (.ofBijective _ (hu c hc))).bijective
     have h_source : IsCohomEquiv G (freeAb.map u) :=
       (Theory.locallyConstant.isCohomDense_botLocus Q).isCohomEquiv_of_bijective_on hZ
     have h_target : IsCohomEquiv F ((restrictAlong p).map (freeAb.map u)) :=

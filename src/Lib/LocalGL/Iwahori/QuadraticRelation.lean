@@ -1,7 +1,9 @@
-import Lib.Adelic.Unitary.ComponentsAndBlockSums
-import Lib.General.LinearAlgebra.Eigenvalues
-import Lib.LocalGL.Iwahori.ParahoricStructure
-import Lib.Shimura.Uniformisation.HolomorphicFamilies
+module
+
+public import Lib.Adelic.Unitary.ComponentsAndBlockSums
+public import Lib.General.LinearAlgebra.Eigenvalues
+public import Lib.LocalGL.Iwahori.ParahoricStructure
+public import Lib.Shimura.Uniformisation.HolomorphicFamilies
 
 /-!
 # Quadratic relation and injectivity of U_t at pro-p Iwahori level
@@ -32,6 +34,8 @@ Notions from other files:
 
 Known; see `Lib.LocalGL.Iwahori.SphericalExponents` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Monomial matrices and the quadratic relation
@@ -78,7 +82,7 @@ lemma conj_monomial_mem_blockParahoric_of_mem (t : Fin N → Fˣ) (σ : Perm (Fi
     (permGL σ * diagGL t)⁻¹ * g * (permGL σ * diagGL t) ∈ blockParahoric c := by
   set k : GL (Fin N) F := (permGL σ * diagGL t)⁻¹ * g * (permGL σ * diagGL t)
   have h_entry (a b : Fin N) : k a b = (t a).val⁻¹ * g (σ a) (σ b) * (t b).val := by
-    simp [k, ← map_inv, mul_apply, symm_apply_eq, diagonal, mul_assoc]
+    simp [k, ← map_inv, Matrix.mul_apply, symm_apply_eq, diagonal, mul_assoc]
   have h_det : k.val.det = g.val.det := det_units_conj' _ _
   simp only [mem_blockParahoric, mem_intGL_iff_det, h_entry, h_det, map_mul, map_inv₀] at hg ⊢
   obtain ⟨⟨hg_int, hg_det⟩, hg_below⟩ :
@@ -103,7 +107,7 @@ lemma conj_monomial_apply_self_mem (t : Fin N → Fˣ) (σ : Perm (Fin N)) {S : 
   have h_entry (a b : Fin N) :
       ((permGL σ * diagGL t)⁻¹ * g * (permGL σ * diagGL t) : GL (Fin N) F) a b =
         (t a).val⁻¹ * g (σ a) (σ b) * (t b).val := by
-    simp [← map_inv, mul_apply, symm_apply_eq, diagonal, mul_assoc]
+    simp [← map_inv, Matrix.mul_apply, symm_apply_eq, diagonal, mul_assoc]
   rw [h_entry, mul_right_comm, inv_mul_cancel₀ (t i).ne_zero, one_mul]
   exact hgS (σ i)
 
@@ -156,7 +160,7 @@ lemma swap_mul_transvectionGL (h : a ≠ b) (u : Fˣ) :
         transvectionGL h.symm u.val⁻¹ := by
   -- Compare entries: after unfolding, the entry `(i, j)` is a case split on `i, j ∈ {a, b}`.
   ext i j
-  simp [PEquiv.toMatrix_mul_apply, transvection, mul_add, add_mul, single_apply, one_apply,
+  simp [PEquiv.toMatrix_mul_apply, transvection, mul_add, add_mul, single_apply, Matrix.one_apply,
     diagonal_apply, apply_ite Units.val, Pi.mulSingle_apply]
   grind
 
@@ -323,7 +327,6 @@ lemma exists_iwahoriHeckeHom_injective [CompactSpace 𝒪[F]] (hϖ : v ϖ.val = 
   intro a x hx
   -- A cyclic permutation makes `s a` an element `n` that normalises `proIwahori`, so `proIwahori`
   -- fixes `y`.
-  have hN : NeZero N := a.neZero
   let n : GL (Fin N) F := permGL (finCycle a)⁻¹ * diagGL (s a)
   let y : ρ := ρ n x
   have h_conj (k : GL (Fin N) F) (hk : k ∈ proIwahori) : n⁻¹ * k * n ∈ proIwahori := by

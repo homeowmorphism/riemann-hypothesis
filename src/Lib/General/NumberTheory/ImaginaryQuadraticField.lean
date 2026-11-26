@@ -1,4 +1,6 @@
-import Lib.General.NumberTheory.EmbeddingsAndDifferent
+module
+
+public import Lib.General.NumberTheory.EmbeddingsAndDifferent
 
 /-!
 # The imaginary quadratic field ℚ(√−d): characters, Frobenius and splitting of primes
@@ -30,6 +32,8 @@ consequences of lifting the exponent at `2` for integers, which do not involve `
 * `New.QuadField.span_eq_or_exists_span_eq_mul`: `p` is inert in `K`, or it is the product of two
   places of degree one; `New.QuadField.prime_inert_or_eq_mul` also lists the places above `p`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -123,7 +127,7 @@ instance : NeZero d := ⟨by grind [Fact]⟩
 lemma minpoly_I_mul_sqrt : X ^ 2 - C (-d : ℚ) = minpoly ℚ (I * (√d : ℂ)) := by
   have h_irred : Irreducible (X ^ 2 - C (-d : ℚ)) := by
     -- `-d` is negative, hence not a square in `ℚ`
-    refine X_pow_sub_C_irreducible_of_prime Nat.prime_two fun b hb ↦ ?_
+    refine irreducible_X_pow_sub_C_of_prime Nat.prime_two fun b hb ↦ ?_
     simpa [hb, NeZero.ne] using sq_nonneg b
   exact minpoly.eq_of_irreducible_of_monic h_irred (by simp [mul_pow, ← ofReal_pow]) (by monicity!)
 
@@ -156,15 +160,14 @@ open Subalgebra Int Algebra Ideal ZMod
 contains a primitive d-th root of unity, given by the quadratic Gauss sum. -/
 def embOfPrimitiveRoot (d : ℕ) {M : Type} [Field M] [CharZero M] {x : M} [h : Fact (d % 4 = 3)]
     [Fact d.Prime] (hx : IsPrimitiveRoot x d) : QuadField d →ₐ[ℚ] M :=
-  embOfSqrt d <| by
+  embOfSqrt d <|
     -- the square of the quadratic Gauss sum is `χ(-1) d`, and `χ(-1) = -1` as `d ≡ 3` mod `4`
     have h_neg_one : quadraticChar (ZMod d) (-1) = -1 := by
       simp [quadraticCharFun, exists_sq_eq_neg_one_iff, (Fact.out : d % 4 = 3)]
     have h_ne_one : (quadraticChar (ZMod d)).ringHomComp (castRingHom M) ≠ 1 :=
       MulChar.ne_one_iff.2 ⟨-1, by simp [h_neg_one, neg_eq_self]⟩
-    rw [gaussSum_sq h_ne_one ((quadraticChar_isQuadratic _).comp (castRingHom M))
-      (zmodChar_primitive_of_primitive_root d hx)]
-    simp [h_neg_one]
+    (gaussSum_sq h_ne_one ((quadraticChar_isQuadratic _).comp (castRingHom M))
+      (zmodChar_primitive_of_primitive_root d hx)).trans (by simp [h_neg_one])
 
 /-- For `d ≡ 3 mod 4`, `4` divides `d + 1`. -/
 @[simp]
@@ -443,7 +446,7 @@ lemma two_pow_dvd_or_of_pow_eq_one {q : ℤ} {o s : ℕ} (ho : 0 < o)
   have h_dvd : (2 : ℤ) ^ (s + 1) ∣ q ^ (o * 2) - 1 :=
     (intCast_eq_intCast_iff_dvd_sub 1 (q ^ (o * 2)) (2 ^ (s + 1))).1 (by simp [h_pow, pow_mul])
   have h_odd : Odd q := by
-    simpa [coe_int_isUnit_iff_isCoprime, IsCoprime.pow_left_iff] using
+    simpa [isUnit_intCast_iff_isCoprime, IsCoprime.pow_left_iff] using
       IsUnit.of_pow_eq_one h_pow ho.ne'
   have lte {e : ℤ} (he : e ^ (o * 2) = 1) (h_four : 4 ∣ q - e) : 2 ^ s ∣ (q - e) * o := by
     have h_lte : emultiplicity 2 (q ^ (o * 2) - e ^ (o * 2)) =

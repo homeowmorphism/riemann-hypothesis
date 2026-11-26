@@ -1,6 +1,8 @@
-import Lib.Adelic.TraceFormula.ChangingSigns
-import Lib.Adelic.TraceFormula.ReduciblePolynomials
-import Lib.Weil.Periods.Grading
+module
+
+public import Lib.Adelic.TraceFormula.ChangingSigns
+public import Lib.Adelic.TraceFormula.ReduciblePolynomials
+public import Lib.Weil.Periods.Grading
 
 /-!
 # Kernels of levels as forms, and unfolding of orbital integrals
@@ -38,6 +40,8 @@ Notions from other files:
 
 Known; see `Lib.Adelic.TraceFormula.TraceComparison` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -169,9 +173,10 @@ lemma mem_U_one_iff_gram_eq {y : GL n (𝔸f E)} {z : GL n E} {β : Matrix n n E
   · -- The three factors of `toFinGL z = V.xFin * (V.xFin⁻¹ * toFinGL z * y) * y⁻¹` carry `V.J` to
     -- `1`, `1` to `1`, and `1` to `β`.
     simpa [mul_assoc] using
-      gram_mul_of_gram_eq (gram_mul_of_gram_eq V.gram_xFin hz) (gram_inv_of_gram_eq hy)
+      gram_mul_of_gram_eq (gram_mul_of_gram_eq V.gram_xFin (mem_unitaryGroupOf_iff.1 hz))
+          (gram_inv_of_gram_eq hy)
   · -- The factors of `V.xFin⁻¹ * toFinGL z * y` carry `1` to `V.J`, to `β`, then to `1`.
-    exact gram_mul_of_gram_eq
+    exact mem_unitaryGroupOf_iff.2 <| gram_mul_of_gram_eq
       (gram_mul_of_gram_eq (gram_inv_of_gram_eq V.gram_xFin) (by rw [← h_map, hz])) hy
 
 /-- For a space `V = (J, x)`, let `V.xFin` be the finite part of `x`. Pairs of a finite adelic frame
@@ -183,7 +188,8 @@ lemma frameClass_eq_iff_mem_orbit (γ δ : U V.J) :
       γ ∈ orbit (ConjAct (U V.J)) δ := by
   refine frameClass_eq_iff.trans ?_
   simp only [V.mem_U_one_iff_gram_eq gram_xFin, mem_orbit_conjAct, isConj_iff, Subtype.ext_iff,
-    Subgroup.coe_mul, Subgroup.coe_inv, Subtype.exists, mem_U, exists_prop]
+    Subgroup.coe_mul, Subgroup.coe_inv, Subtype.exists,
+        mem_unitaryGroupOf_iff, star_eq_conjTranspose, exists_prop]
 
 /-- The component of a rational point `γ` at an infinite place `w` is the image of the matrix `γ`
 under the embedding at `w`, read in the frame `V.x` of the space. -/

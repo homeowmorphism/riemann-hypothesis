@@ -1,7 +1,9 @@
-import Lib.CM.FormalGroup.PrimeNotation
-import Lib.GLn.Dual
-import New.UpperBound.Kernels.JetConjugatesAndBounds
-import New.UpperBound.Objects.Columns
+module
+
+public import Lib.CM.FormalGroup.PrimeNotation
+public import Lib.GLn.Dual
+public import New.UpperBound.Kernels.JetConjugatesAndBounds
+public import New.UpperBound.Objects.Columns
 
 /-!
 # Prime-by-prime divisibility measures; short forms span the ramified source forms
@@ -43,6 +45,8 @@ Notions from other files:
 The exponents are used in `New.UpperBound.Divisibility.LocalDivisibility`, the short forms in
 `New.Reduction.ShortAndEnough` and `New.Determinant.AuxiliaryForms.SpanningForms`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -252,7 +256,7 @@ lemma norm_weylRep_mulVec_det_smul_weylEval_le_one {p : ℕ} [Fact p.Prime] [Pad
     exact norm_adeleExtension_le_one _ (hY τ).det_mem
   have h_entry (τ : InfinitePlace E) (i j : n) : ‖((gInv τ).val * (Y₀p τ).val) i j‖ ≤ 1 := by
     -- Without `map_inv` the inverse of `g` stays inside the image under the embedding.
-    simpa [gInv, Y₀p, mul_apply, -map_inv] using
+    simpa [gInv, Y₀p, Matrix.mul_apply, -map_inv] using
       norm_adeleExtension_le_one (weightEmbedding ιₚ τ) (hY₀ i j)
   have h_prod : ∏ τ, ‖(d τ).val‖ ≤ 1 :=
     Finset.prod_le_one₀ (fun τ _ ↦ norm_nonneg _) fun τ _ ↦ h_det τ
@@ -498,8 +502,8 @@ lemma iInf_ker_sum_pow_eq_range {G V ι : Type*} [CommGroup G] [AddCommGroup V] 
       have h_sum : ↑r - σ w = ∑ i ∈ range r, (1 - y w ^ i) := by simp [σ]
       rw [h_sum]
       exact dvd_sum fun i _ ↦ one_sub_dvd_one_sub_pow (y w) i
-    obtain ⟨q, hq⟩ : ∏ w, (1 - y w) ∣ ∏ w, (↑r - σ w) :=
-      prod_dvd_prod_of_dvd _ _ fun w _ ↦ h_dvd w
+    have h_dvd' : ∀ w ∈ (univ : Finset ι), 1 - y w ∣ ↑r - σ w := fun w _ ↦ h_dvd w
+    obtain ⟨q, hq⟩ := prod_dvd_prod_of_dvd _ _ h_dvd'
     rw [← smul_mem_iff _ (pow_ne_zero _ hr), ← h_scalar univ, hq, map_mul]
     exact ⟨ρ q φ, (Module.End.mul_apply _ _ φ).symm⟩
   · -- `σ w * (1 - z w) = 1 - z w ^ r` acts as `0`.
@@ -913,7 +917,13 @@ lemma ramifyingOp_empty {P : Parameters} (D : Data P) : D.ramifyingOp ∅ = 1 :=
 lemma ramifyingOp_cons {P : Parameters} (D : Data P) (w : D.piNPlaces) {s : Finset D.piNPlaces}
     (hw : w ∉ s) :
     D.ramifyingOp (cons w s hw) = (1 - D.centralRep (D.scalingGenerator w)) * D.ramifyingOp s := by
-  simp [ramifyingOp]
+  -- The ring map lemmas are applied through `toRingHom`: the instance search behind `map_mul`
+  -- for `D.centralRep.asAlgebraHom` times out.
+  let φ := D.centralRep.asAlgebraHom
+  rw [ramifyingOp, ramifyingOp, Finset.prod_cons,
+    show ∀ x y, φ (x * y) = φ x * φ y from φ.toRingHom.map_mul,
+    show ∀ x y, φ (x - y) = φ x - φ y from φ.toRingHom.map_sub,
+    show φ 1 = 1 from φ.toRingHom.map_one, Representation.asAlgebraHom_of]
 
 /-- For admissible data `D`, let `s` be a finite set of primes of `E` dividing `π = D.piN`, where
 `π π̄ = N` is the prime `D.N`. For `w ∈ s` the chosen scaling `z_w = D.scalingGenerator w` acts on
@@ -928,8 +938,8 @@ lemma finrank_ker_ramifyingOp_le {P : Parameters} (D : Data P) (s : Finset D.piN
     have h_ker : finrank ℂ (D.ramifyingOp (cons w s hw)).ker ≤
         finrank ℂ (1 - D.centralRep (D.scalingGenerator w)).ker +
           finrank ℂ (D.ramifyingOp s).ker := by
-      rw [D.ramifyingOp_cons w hw]
-      exact finrank_ker_mul_le _ _
+      exact (congrArg (fun f : Module.End ℂ D.SourceForm ↦ finrank ℂ f.ker)
+        (D.ramifyingOp_cons w hw)).trans_le (finrank_ker_mul_le _ _)
     calc (finrank ℂ (D.ramifyingOp (cons w s hw)).ker : ℝ)
         ≤ finrank ℂ (1 - D.centralRep (D.scalingGenerator w)).ker +
             finrank ℂ (D.ramifyingOp s).ker := by exact_mod_cast h_ker
@@ -953,7 +963,6 @@ lemma le_finrank_ramifiedSourceForms {P : Parameters} (D : Data P) :
 
 /-- The proportion `f / (N - 1)` is at most `b⁻⁸`, because `f ≤ b` and `b⁹ + 1 ≤ N`. -/
 lemma f_div_N_sub_one_le {P : Parameters} (D : Data P) : D.f / (D.N - 1 : ℝ) ≤ (D.b ^ 8)⁻¹ := by
-  have hb : 0 < D.b := HasLogBound.pos D
   have hf : D.f ≤ D.b := D.le_of_hasLogBound
   have hN : D.b ^ 9 ≤ D.N - 1 := le_sub_iff_add_le.2 D.le_of_hasLogBound
   calc D.f / (D.N - 1 : ℝ) ≤ D.b / D.b ^ 9 := by gcongr
@@ -1007,8 +1016,8 @@ lemma span_isShort_ramifiedSourceForms_eq_top {P : Parameters} (D : Data P) :
       {φ : D.SourceForm | IsShort D.errorUnit.exp φ.val} := by
     intro φ hφ
     simpa [Z, card_piNPlaces, mul_div_cancel₀] using D.isShort_ramifyingOp univ hφ
-  exact span_setOf_mem_eq_top_of_eq_range D.ramifiedSourceForms_eq_range D.span_isShort_eq_top
-    h_maps
+  exact span_setOf_mem_eq_top_of_eq_range (T := {φ : D.SourceForm | IsShort D.errorUnit.exp φ.val})
+    D.ramifiedSourceForms_eq_range D.span_isShort_eq_top h_maps
 
 end Data
 

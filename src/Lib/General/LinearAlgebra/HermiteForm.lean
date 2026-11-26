@@ -1,4 +1,6 @@
-import Lib.Adelic.Witt.WittTheorem
+module
+
+public import Lib.General.LinearAlgebra.IntegralLattices
 
 /-!
 # Hermite forms over valuation pairs and integral matrices over valued fields
@@ -33,6 +35,8 @@ The property `New.IsValuationPair` and the Smith normal form are in
 `Lib.General.LinearAlgebra.IntegralLattices`.
 -/
 
+@[expose] public section
+
 /-!
 ## Hermite forms over valuation pairs
 
@@ -53,7 +57,7 @@ lemma transvectionGL_mem_intGL {i j : n} {a : A} (hij : i ≠ j) (ha : a ∈ R) 
     transvectionGL hij a ∈ intGL n R := by
   -- the entries of `1 ± a E_{ij}` are `0`, `1` or `±a`
   refine mem_intGL.2 ⟨fun r c ↦ ?_, fun r c ↦ ?_⟩ <;>
-    aesop (add simp [one_apply, single, transvection, transvectionGL])
+    aesop (add simp [Matrix.one_apply, single, transvection, transvectionGL])
 
 /-- A valuation domain `A` with the subring `R = ⊤` is a valuation pair: any two elements `a`, `b`
 are multiples of `a - e * (a - b)` for some idempotent `e`. -/
@@ -182,14 +186,14 @@ lemma IsValuationPair.exists_isPrimitiveMatrix_mul (hR : IsValuationPair R) [Dec
     (h_inv : U⁻¹.val.submatrix Sum.inr id * X.fromRows 0 = D)⟩ :=
     hR.hermite .inr (X.fromRows 0) wt
   obtain rfl : X = U.1.toBlocks₁₂ * D :=
-    ext fun i j ↦ by simpa [toBlocks₁₂, mul_apply] using congrFun₂ h_form (.inl i) j
+    ext fun i j ↦ by simpa [toBlocks₁₂, Matrix.mul_apply] using congrFun₂ h_form (.inl i) j
   obtain ⟨b, rfl⟩ : IsUnit D := .of_mul_eq_one_right (L * U.1.toBlocks₁₂) (by rwa [L.mul_assoc])
   obtain ⟨hU_int, hU_inv_int⟩ := mem_intGL.1 hU
   refine ⟨b⁻¹, by simpa using blockTriangular_inv_of_blockTriangular hD,
     by simp [IsIntMatrix, toBlocks₁₂, hU_int], U⁻¹.1.toBlocks₂₁, fun i j ↦ hU_inv_int _ _, ?_⟩
   -- of the product in `h_inv` only the lower left block of `U⁻¹` meets a non-zero row
   have h_left : U⁻¹.1.toBlocks₂₁ * (U.1.toBlocks₁₂ * b.1) = b.1 :=
-    ext fun i j ↦ by simpa [toBlocks₂₁, mul_apply] using congrFun₂ h_inv i j
+    ext fun i j ↦ by simpa [toBlocks₂₁, Matrix.mul_apply] using congrFun₂ h_inv i j
   rw [← Matrix.mul_assoc, h_left, Units.mul_inv]
 
 /-- Transposed Hermite form: if the subring R of A satisfies `New.IsValuationPair` (any u, v in A
@@ -207,8 +211,9 @@ lemma IsValuationPair.exists_mul_clear_cols (hR : IsValuationPair R) (M : Matrix
     rw [h_form, ← Matrix.mul_assoc, ← U.inv_mul, submatrix_mul _ _ id id ι Function.bijective_id,
       submatrix_id_id]
   refine ⟨transposeGL U⁻¹, by simp_all [mem_intGL, transposeGL], fun a j hj ↦ ?_⟩
-  have h_entry : ((1 : Matrix n n A).submatrix id ι * D) j a = 0 := by simp_all [mul_apply, ne_comm]
-  simpa [mul_apply, mul_comm] using (congrFun₂ h_rows j a).trans h_entry
+  have h_entry : ((1 : Matrix n n A).submatrix id ι * D) j a = 0 := by
+    simp_all [Matrix.mul_apply, ne_comm]
+  simpa [Matrix.mul_apply, mul_comm] using (congrFun₂ h_rows j a).trans h_entry
 
 end New
 

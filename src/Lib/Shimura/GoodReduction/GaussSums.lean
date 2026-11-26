@@ -1,5 +1,7 @@
-import Lib.Shimura.GoodReduction.TorsionSizes
-import Lib.Shimura.Uniformisation.HolomorphicFamilies
+module
+
+public import Lib.Shimura.GoodReduction.TorsionSizes
+public import Lib.Shimura.Uniformisation.HolomorphicFamilies
 
 /-!
 # Hermitian tori with multiplications, Gauss sums and unfolding of the Poincaré kernel
@@ -39,6 +41,8 @@ Notions from other files:
 
 Known; see `Lib.Shimura.GoodReduction.MultiplicativeNorm` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -91,7 +95,6 @@ lemma action_injective : (⇑(F a)).Injective := by
   -- the left side is `r • (x - y)` and the right side is `F b (F a x - F a y) = 0`
   have h_smul : (r : ℂ) • (x - y) = 0 := by
     simpa [hxy, action_comm a, ← Int.cast_smul_eq_zsmul ℂ] using h_key
-
   exact sub_eq_zero.mp ((smul_eq_zero.mp h_smul).resolve_left (Int.cast_ne_zero.mpr hr))
 
 omit [StarRing R] in
@@ -236,7 +239,7 @@ lemma normShift_sum_eq_char_smul (hf : ∀ l ∈ L, h.normShift (F a l) f = f)
       h.normShift (F a y) (h.normShift (F a k.out) f) := by
     rw [← h_class, normShift_map_out h hf, AddSubgroup.coe_add, map_add,
       normShift_normShift_of_mem h (h.map_divLattice_mem a y) (h.map_divLattice_mem a k.out)]
-  show h.normShift (F a y) (ξ (-k) • h.normShift (F a k.out) f) =
+  change h.normShift (F a y) (ξ (-k) • h.normShift (F a k.out) f) =
     ξ y • ξ (-(y + k)) • h.normShift (F a ((y : h.MulKernel a) + k).out) f
   rw [h_term, _root_.map_smul, smul_smul, ← ξ.map_add_eq_mul, neg_add, add_neg_cancel_left]
 

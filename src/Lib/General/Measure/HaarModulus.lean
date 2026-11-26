@@ -1,4 +1,6 @@
-import Lib.General.LinearAlgebra.IntegralLattices
+module
+
+public import Lib.General.LinearAlgebra.IntegralLattices
 
 /-!
 # Pushforward of Haar measures, the modulus of GL_n and the generalised index
@@ -33,6 +35,8 @@ Notions from other files:
   `New.IsValuationPair`, with further properties that are not used here.
 -/
 
+@[expose] public section
+
 /-!
 ## Units along non-unital ring maps and invertible matrices from spanning sets
 
@@ -63,7 +67,8 @@ lemma New.exists_GL_col_mem_of_span {K n : Type*} [Field K] [Fintype n] [Decidab
   let b : Basis n K (n → K) :=
     (ofSpan h_span).reindex (indexEquiv (ofSpan h_span) (Pi.basisFun K n))
   have h_unit : IsUnit (Matrix.of b)ᵀ := linearIndependent_col_iff_isUnit.1 b.linearIndependent
-  exact ⟨h_unit.unit, fun i ↦ ofSpan_subset h_span (by simp [b])⟩
+  exact ⟨h_unit.unit, fun i ↦ ofSpan_subset h_span
+    (by simp [b]; exact ((indexEquiv (ofSpan h_span) (Pi.basisFun K n)).symm i).2)⟩
 
 end NonUnitalUnits
 
@@ -163,21 +168,6 @@ lemma isMulLeftInvariant_measure_smul_inv (μ : Measure Z) [SFinite μ] [μ.IsMu
   rw [← measure_smul_map_restrict_eq_smul_inv μ η hπ hO h_lift hK]
   have := isMulLeftInvariant_map_restrict μ hπ hO h_lift
   infer_instance
-
-/-- Let `μ` be an s-finite bi-invariant measure on `Z`, `η` an s-finite left invariant measure on
-`G`, `π : Z →* G` measurable, `K` measurable in `G`, and `O` a measurable set such that every
-element of `G` has a preimage under `π` whose translations preserve `O` (`New.HasStableLifts`).
-Then `η K` times the pushforward of `μ.restrict O` equals `μ (π ⁻¹' K ∩ O)` times `η.inv`, the
-image of `η` under inversion, and this measure is left invariant. -/
-@[to_additive]
-lemma map_restrict_haar_eq (μ : Measure Z) [SFinite μ] [μ.IsMulLeftInvariant]
-    [μ.IsMulRightInvariant] (η : Measure G) [SFinite η] [η.IsMulLeftInvariant] {π : Z →* G}
-    (hπ : Measurable π) {O : Set Z} (hO : MeasurableSet O) (h_lift : HasStableLifts π O)
-    {K : Set G} (hK : MeasurableSet K) :
-    η K • (μ.restrict O).map π = μ (π ⁻¹' K ∩ O) • η.inv ∧
-      (μ (π ⁻¹' K ∩ O) • η.inv).IsMulLeftInvariant :=
-  ⟨measure_smul_map_restrict_eq_smul_inv μ η hπ hO h_lift hK,
-    isMulLeftInvariant_measure_smul_inv μ η hπ hO h_lift hK⟩
 
 end Invariant
 
@@ -342,7 +332,7 @@ lemma distribHaarChar_diagGL (d : n → Rˣ) :
   -- A diagonal matrix maps the box `B = C ^ n` to the product of the `d i • C`.
   let B : Set (n → R) := univ.pi fun _ : n ↦ (C : Set R)
   have h_box : diagGL d • B = univ.pi fun i : n ↦ d i • (C : Set R) :=
-    (image_congr' fun x ↦ funext (Matrix.mulVec_diagonal _ x)).trans (piMap_image_univ_pi _ _)
+    (image_congr' rfl fun x ↦ funext (Matrix.mulVec_diagonal _ x)).trans (piMap_image_univ_pi _ _)
   -- Compare measures, for the product of the Haar measures that give `C` measure `1`.
   let μ : Measure (n → R) := Measure.pi fun _ : n ↦ addHaarMeasure C
   have h_left : μ (diagGL d • B) = distribHaarChar (n → R) (diagGL d) := by

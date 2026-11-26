@@ -1,5 +1,7 @@
-import Lib.Cohomology.Etale.DenseSubfunctors
-import Lib.Cohomology.Hodge.CupProduct
+module
+
+public import Lib.Cohomology.Etale.DenseSubfunctors
+public import Lib.Cohomology.Hodge.CupProduct
 
 /-!
 # Relative chains ℤ[V]/ℤ[U]: local isomorphisms, transfer, excision and gluing
@@ -39,10 +41,12 @@ Notions from other files:
 Known; see `Lib.Cohomology.Etale.FilteredLimits` for sources.
 -/
 
+@[expose] public section
+
 section RelativeChains
 
 open CategoryTheory ShortComplex Function MonoidalCategory AddCommGrpCat QuotientAddGroup
-  AddMonoidHom FreeAbelianGroup Fintype
+  AddMonoidHom FreeAddCommGroup Fintype
 
 namespace New.Variety
 
@@ -84,8 +88,8 @@ lemma relFreeAb.mem_of_mk_mem {A : C} (S : AddSubgroup (relFreeAb U A))
 instance : HasFlatValues (relFreeAb U) := by
   refine ⟨fun A ↦ ?_⟩
   -- The inclusion `ℤ[U A] → ℤ[V A]` has a retraction, so the quotient is a retract of `ℤ[V A]`.
-  let incl : FreeAbelianGroup (U A) →ₗ[ℤ] FreeAbelianGroup (V A) := (map Subtype.val).toIntLinearMap
-  let retr : FreeAbelianGroup (V A) →ₗ[ℤ] FreeAbelianGroup (U A) :=
+  let incl : FreeAddCommGroup (U A) →ₗ[ℤ] FreeAddCommGroup (V A) := (map Subtype.val).toIntLinearMap
+  let retr : FreeAddCommGroup (V A) →ₗ[ℤ] FreeAddCommGroup (U A) :=
     (lift (extend Subtype.val of 0)).toIntLinearMap
   have h_retr : retr ∘ₗ incl = LinearMap.id := (basis _).ext (by simp [basis, retr, incl])
   -- `s` is a section of the quotient map by the range of `incl`.
@@ -95,7 +99,7 @@ instance : HasFlatValues (relFreeAb U) := by
 
 /-- For set-valued functors X, Y, the map ℤ[X × Y] → ℤ[X] ⊗ ℤ[Y] sending [(x, y)] to [x] ⊗ [y]. -/
 def freeAb.prod (X Y : C ⥤ Type 1) : freeAb (X ⊗ Y : C ⥤ Type 1) ⟶ abTensor (freeAb X) (freeAb Y) :=
-  desc (fun _ x ↦ FreeAbelianGroup.of x.1 ⊗ₜ FreeAbelianGroup.of x.2) fun _ _ _ _ ↦ rfl
+  desc (fun _ x ↦ FreeAddCommGroup.of x.1 ⊗ₜ FreeAddCommGroup.of x.2) fun _ _ _ _ ↦ rfl
 
 /-- The map `ℤ[V × V'] → ℤ[V] ⊗ ℤ[V']`, `[(x, y)] ↦ [x] ⊗ [y]`, is an isomorphism. -/
 instance : IsIso (freeAb.prod V V') := by
@@ -112,8 +116,8 @@ instance : IsIso (freeAb.prod V V') := by
 and φ[x] when u(x) ∈ U(A). Then φ maps the kernel of ℤ[V'(A)] → ℤ[V(A)]/ℤ[U(A)] into S. -/
 lemma relFreeAb.mem_of_map_eq_zero (φ : freeAb V' ⟶ N) {A : C} (S : AddSubgroup (N.obj A))
     (h_fib : ∀ x y : V'.obj A,
-      u A x = u A y → φ A (FreeAbelianGroup.of x) - φ A (FreeAbelianGroup.of y) ∈ S)
-    (h_over : ∀ x : V'.obj A, u A x ∈ U A → φ A (FreeAbelianGroup.of x) ∈ S)
+      u A x = u A y → φ A (FreeAddCommGroup.of x) - φ A (FreeAddCommGroup.of y) ∈ S)
+    (h_over : ∀ x : V'.obj A, u A x ∈ U A → φ A (FreeAddCommGroup.of x) ∈ S)
     (t : (freeAb.obj V').obj A) (ht : (freeAb.map u ≫ π U) A t = 0) :
     φ A t ∈ S := by
   classical
@@ -121,7 +125,7 @@ lemma relFreeAb.mem_of_map_eq_zero (φ : freeAb V' ⟶ N) {A : C} (S : AddSubgro
   -- The additive map `l` on `ℤ[V(A)]` so defined kills `ℤ[U(A)]`, where the image of `t` lies.
   let g : V' A → N A ⧸ S := fun x ↦ mk' S (φ A (of x))
   have hg : FactorsThrough g (u A) := fun x y hxy ↦ eq_iff_sub_mem.2 (h_fib x y hxy)
-  let l : freeAb V A →+ N A ⧸ S := FreeAbelianGroup.lift (extend (u A) g 0)
+  let l : freeAb V A →+ N A ⧸ S := FreeAddCommGroup.lift (extend (u A) g 0)
   have h_fac : l.comp (freeAb.map u A).hom = (mk' S).comp (φ A).hom :=
     lift_ext _ _ fun x ↦ (lift_apply_of ..).trans (hg.extend_apply _ x)
   have h_kill : l.comp (freeAb.map U.ι A).hom = 0 := by
@@ -305,7 +309,7 @@ lemma shortExact_triple (U : Subfunctor V) [Mono u] :
   · -- injective: apply `mem_of_map_eq_zero` to the projection onto `ℤ[V'] / ℤ[u⁻¹U]` with `S = ⊥`
     -- As `u` is injective, points with the same image under `u` are equal.
     have h_fib : ∀ x y : V'.obj A, u A x = u A y →
-        π (U.preimage u) A (FreeAbelianGroup.of x) - π (U.preimage u) A (FreeAbelianGroup.of y) ∈
+        π (U.preimage u) A (FreeAddCommGroup.of x) - π (U.preimage u) A (FreeAddCommGroup.of y) ∈
           (⊥ : AddSubgroup ((relFreeAb (U.preimage u)).obj A)) := by
       intro x y hxy
       simp [injective_of_mono _ hxy]

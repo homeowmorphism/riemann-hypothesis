@@ -1,6 +1,8 @@
-import Lib.Adelic.AutomorphicForms.PAdicGauge
-import Lib.General.LinearAlgebra.BlockEmbeddings
-import New.Determinant.Exchange.MatchingPartners
+module
+
+public import Lib.Adelic.AutomorphicForms.PAdicGauge
+public import Lib.General.LinearAlgebra.BlockEmbeddings
+public import New.Determinant.Exchange.MatchingPartners
 
 /-!
 # One exchange, and class sums at the level of a row stabilizer
@@ -53,6 +55,8 @@ Notions from other files:
 See `New.OneLift.ComparisonOperator.FirstFactors`, `New.OneLift.ComparisonOperator.GluingMaps`
 and `New.Determinant.Exchange.ExplicitMatching` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -412,7 +416,8 @@ lemma realPairWeil_ratEmbed_inv_polyVector {s : n → ℤˣ} (γ : InfinitePlace
     -- on all rows is `det δ⁻¹`.
     simp [negCount, ← RingHom.map_det, -RingHom.mapMatrix_apply, principalMinor_of_forall,
       DiscreteSeries.principalMinor_of_forall_not]
-  · simp [Matrix.one_apply, eq_comm (a := (1 : ℤˣ))]
+  · simp [Matrix.one_apply, eq_comm (a := (1 : ℤˣ)), signedRowSubst, ite_smul,
+      Finset.sum_ite_irrel]
 
 /-- Let `W` be a hermitian space with signs `s`, definite or not. The kernel of `(W, E^b)` is that
 of a function `Ψ` on matrices modulo the ideal `𝔪` and a polynomial `P`; the automorphic characters

@@ -1,4 +1,6 @@
-import Lib.GaloisRep.Main.OddRank
+module
+
+public import Lib.GaloisRep.Main.OddRank
 
 /-!
 # Local-global compatibility for the ℓ-adic avatar of an algebraic Hecke character
@@ -35,6 +37,8 @@ Hodge–Tate, Tate's theorem); B. Conrad, Lifting global representations with lo
 App. B (crystalline case).
 -/
 
+@[expose] public section
+
 open NumberField Polynomial New.AlgHeckeChar Filter New.Variety Submodule AlgEquiv
 
 /-- Let `E` be a totally complex number field and `L ⊇ E` a CM field, both inside the fixed
@@ -57,7 +61,6 @@ lemma New.GaloisRep.avatar_baseChange {ℓ : ℕ} [ThePrime ℓ] [PadicIso ℓ] 
       dense_of_mostFrobenii (eventually_mostFrobenii (eventually_notMem_star_notMem (E := L) ℓ ∅)
         fun y ⟨_, _, hℓ⟩ ↦ h_at_frob y hℓ)
     exact congrFun (Continuous.ext_on h_dense (by fun_prop) (by fun_prop) fun _ hg ↦ hg) g
-
   intro y hℓ
   obtain ⟨x, -, hx⟩ := y.isPlaceOver.exists_localArtin_eq y.isFrob_inv 1
   -- `y.frob` is the Artin symbol of `x` and its restriction is that of the norm of `x`.

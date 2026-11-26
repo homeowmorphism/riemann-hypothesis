@@ -1,5 +1,7 @@
-import Lib.Adelic.Reduction.MinkowskiTheorems
-import Lib.Shimura.Uniformisation.AdelicFrames
+module
+
+public import Lib.Adelic.Reduction.MinkowskiTheorems
+public import Lib.Shimura.Uniformisation.AdelicFrames
 
 /-!
 # Lattice indices, primitive matrices, Jacobi's identity and covolumes of fundamental domains
@@ -45,6 +47,8 @@ Notions from other files:
 
 Known; see `Lib.Adelic.Adeles.Basic` and `New.Spanning.RemainingTerms.SiegelLemma` for sources.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -650,13 +654,6 @@ noncomputable def Filling.imSkewLattice (t : InfinitePlace E → ℝ) :
     (AddMonoidHom.mk' (fun (s : 𝓞 E) (v : InfinitePlace E) ↦ t v * (Φ v s.val).im)
       (by simp [funext_iff, mul_add]))
 
-/-- A vector lies in `imSkewLattice t` iff it is `(t v * Im Φ_v(s))_v` for an integer `s` of `E`
-with `star s = -s`. -/
-lemma Filling.mem_imSkewLattice {t l : InfinitePlace E → ℝ} :
-    l ∈ imSkewLattice t ↔
-      ∃ s : 𝓞 E, star s = -s ∧ (fun v : InfinitePlace E ↦ t v * (Φ v s.val).im) = l :=
-  Iff.rfl
-
 /-- If `ι² = -1`, `star ι = -ι` and all `Φ_v(ι)` are imaginary, the group `imSkewLattice t`
 consists of the vectors `(t v * Im Φ_v(ι) * Re Φ_v(a))_v`, `a` an integer of the maximal real
 subfield. -/
@@ -782,7 +779,7 @@ lemma exists_isAddFundamentalDomain_of_integral {V σ : Type*} [NormedAddCommGro
   let M : Matrix σ σ ℝ := e.toMatrix (b.ofZLatticeBasis ℝ L)
   have h_det : M.det ≠ 0 := (e.isUnit_det (b.ofZLatticeBasis ℝ L)).ne_zero
   have h_entry (s t : σ) : ∃ n : ℤ, (Mᵀ * M) s t = n := by
-    simpa [M, mul_apply, Basis.toMatrix_apply] using h_int _ (b s).2 _ (b t).2
+    simpa [M, Matrix.mul_apply, Basis.toMatrix_apply] using h_int _ (b s).2 _ (b t).2
   choose N hN using h_entry
   have h_map : (Int.castRingHom ℝ).mapMatrix (of N) = Mᵀ * M := ext fun s t ↦ (hN s t).symm
   have h_cast : ((of N).det : ℝ) = M.det ^ 2 := by

@@ -1,5 +1,7 @@
-import Lib.Shimura.HeckeTower.Model
-import Lib.Shimura.Uniformisation.TorusModel
+module
+
+public import Lib.Shimura.HeckeTower.Model
+public import Lib.Shimura.Uniformisation.TorusModel
 
 /-!
 # Every full complex object is modelled on a point (g, ℓ)
@@ -31,6 +33,8 @@ Notions from other files:
 
 Known; see `Lib.Shimura.Uniformisation.AppellHumbert` for sources.
 -/
+
+@[expose] public section
 
 open CategoryTheory NumberField Matrix FourierTransform LinearMap BilinForm Complex OrzechProperty
   Submodule ContinuousLinearMap Circle RingOfIntegers Finset
@@ -139,7 +143,7 @@ lemma exists_map_eq_and_eq_polarisationForm_of_fourierChar_eq
   -- is `0`.
   have hR : R = polarisationForm D (of β) := by
     refine ext (isClosed_property denseRange_toRealVectors
-      (R.eqLocus _).closed_of_finiteDimensional fun y ↦ ?_)
+      (R.eqLocus _).isClosed_of_finiteDimensional fun y ↦ ?_)
     refine sub_eq_zero.mp (eq_zero_of_forall_fourierChar_eq_one _ (denseRange_toRealVectors.eq ?_))
     simp [h_weil, ← hβ, 𝐞.map_sub_eq_div, ← ψf_coe, xiForm, frameCoords, dotProduct, mulVec]
   exact ⟨β, hβ, hR⟩

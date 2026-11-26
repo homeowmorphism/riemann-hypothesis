@@ -1,4 +1,6 @@
-import Lib.ClassField.Local.ArtinMap
+module
+
+public import Lib.ClassField.Local.ArtinMap
 
 /-!
 # The global Artin map: product of local symbols, continuity, splitting and norms
@@ -29,6 +31,8 @@ Notions from other files:
 
 Known; see `Lib.ClassField.Global.AlbertBrauerHasseNoether` for sources.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -221,7 +225,9 @@ lemma abelianLift_artinMap_eq_finprod (χ : QZChar Γ) (a : (𝔸f K)ˣ) :
   -- Almost all factors are `1`: those where `χ` is unramified and `a` is a unit.
   have h_fin (χ : QZChar Γ) (a : (𝔸f K)ˣ) :
       ∀ᶠ v : FinPlace K in .cofinite, abelianLift χ (artinAt Γ v (ideleAt v a)) = 1 := by
-    filter_upwards [finite_ramified (Ω := Ω) (isOpen_ker χ), finite_setOf_valued_val_ne_one a]
+    filter_upwards [finite_ramified (Ω := Ω) (isOpen_ker χ),
+      (Filter.eventually_cofinite.2 (finite_setOf_valued_val_ne_one a) :
+        ∀ᶠ v : FinPlace K in .cofinite, Valued.v (a.val v) = 1)]
       with v h_unr (hv : Valued.v (a.val v) = 1)
     exact (v.isPlaceOver_placeOver.artinAt_units_trivial_iff_inertiaGroup_le χ).2
       (h_unr _ v.isPlaceOver_placeOver) _ hv

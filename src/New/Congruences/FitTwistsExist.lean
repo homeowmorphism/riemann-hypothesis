@@ -1,8 +1,10 @@
-import New.Congruences.FirstOrder.DenominatorBound
-import New.Congruences.GaloisRepresentations.RowsFromEigensystems
-import New.Congruences.Selmer.TwistingTheorem
-import New.Determinant.Chain.NormOfChain
-import New.OneLift.HeckeValues.CentralAction
+module
+
+public import New.Congruences.FirstOrder.DenominatorBound
+public import New.Congruences.GaloisRepresentations.RowsFromEigensystems
+public import New.Congruences.Selmer.TwistingTheorem
+public import New.Determinant.Chain.NormOfChain
+public import New.OneLift.HeckeValues.CentralAction
 
 /-!
 # All data have regular families of m-fold twists
@@ -42,6 +44,8 @@ of Petersson norms, 2006 (after Ribet, 1976; Wiles); Klosin, Congruences among m
 U(2,2) and the Bloch–Kato conjecture, 2009; Mazur–Rubin, Ranks of twists of elliptic curves, 2010.
 -/
 
+@[expose] public section
+
 open New Selmer Submodule Data GaloisRep Polynomial Multiset Finset Real
 
 /-- Let the projection to the space `Z` of lifts have denominator at most `exp β` per dimension of
@@ -65,7 +69,7 @@ natural number `a` are at most `log b` for every natural number `b ≥ a`. -/
 lemma New.Selmer.sum_padicValNat_mul_log_le (T : Finset ℕ) (hT : ∀ l ∈ T, l.Prime) {a b : ℕ}
     (hab : a ≤ b) : ∑ l ∈ T, (padicValNat l a : ℝ) * log l ≤ log b :=
   calc ∑ l ∈ T, (padicValNat l a : ℝ) * log l = ∑ l ∈ T, a.factorization l * log l :=
-      sum_congr rfl fun l hl ↦ by rw [a.factorization_def (hT l hl)]
+      sum_congr rfl fun l hl ↦ by rw [a.factorization_def (hT l hl), Nat.padicValNat_def]
     _ ≤ ∑ l ∈ T ∪ a.factorization.support, a.factorization l * log l := by
       grw [← T.subset_union_left]
     _ = log a := by
@@ -162,12 +166,13 @@ lemma New.Selmer.isNegligible_padicValNat_oddClassBound {P : Parameters} (D : Da
       ≤ log (2 ^ (4 * (D.cyclotomicConductor + D.t + 3) ^ 27) * NumberField.classNumber D.E : ℕ) :=
         sum_padicValNat_mul_log_le T hT (oddClassBound_le D)
     _ = 4 * (D.cyclotomicConductor + D.t + 3) ^ 27 * log 2 + log (NumberField.classNumber D.E) := by
-        push_cast
-        rw [log_mul (by positivity) (mod_cast NumberField.classNumber_ne_zero D.E), log_pow]
-        push_cast
-        ring
-    _ ≤ 4 * (D.cyclotomicConductor + D.t + 3) ^ 27 * log 2 + D.x ^ 30 := by
-      grw [D.log_classNumber_le]
+        generalize D.cyclotomicConductor = c
+        rw [Nat.cast_mul, Nat.cast_pow, Nat.cast_ofNat,
+          log_mul (by positivity) (Nat.cast_ne_zero.mpr (NumberField.classNumber_ne_zero D.E)),
+          log_pow]
+        simp only [Nat.cast_mul, Nat.cast_pow, Nat.cast_add, Nat.cast_ofNat]
+    _ ≤ 4 * (D.cyclotomicConductor + D.t + 3) ^ 27 * log 2 + D.x ^ 30 :=
+      add_le_add_right D.log_classNumber_le _
     _ ≤ D.x ^ 2000 := D.le_of_hasLogBound
 
 /-- The numbers `twistError l D = (4 f + 3) r v_l(D.chosenGroupOrder) + 2⁻ˡ` are negligible with
@@ -382,10 +387,10 @@ lemma New.Selmer.exists_mFoldTwist_selmerLengthLe_inv_ratio_le {P : Parameters} 
     ∃ τ : D.MFoldTwist, ∀ j : D.LiftIndex,
       let ϑ : D.Twist := τ.powTwist j
       IsAuxTwist (badPlaces D ℓ) ϑ.Q ϑ.invAvatar (twistError ℓ D) ∧
-      (∀ a : A, ∃ (γ : AbsGal D) (ζ : intQpBar ℓ),
-        HasDivisibleSelmerLengthLe ϑ.invAvatar (R a) ϑ.Q γ ζ (twistError ℓ D)) ∧
-      (∀ b : B, ∃ (γ : AbsGal D) (ζ : intQpBar ℓ),
-        HasDivisibleSelmerLengthLe ϑ.invAvatar (R₁ b) ϑ.Q γ ζ (twistError ℓ D)) ∧
+      (∀ a : A, ∃ γ : AbsGal D,
+        HasDivisibleSelmerLengthLe ϑ.invAvatar (R a) ϑ.Q γ (twistError ℓ D)) ∧
+      (∀ b : B, ∃ γ : AbsGal D,
+        HasDivisibleSelmerLengthLe ϑ.invAvatar (R₁ b) ϑ.Q γ (twistError ℓ D)) ∧
       ∀ (p : D.CriticalPair) (s : ℤˣ), p.IsRamified →
         ‖ι.ιℓ (p.ratio ϑ s)⁻¹‖ ≤ exp (twistError ℓ D * log ℓ) := by
   -- join the families over `A ⊕ B`; `SummandCoordIndex` is the index type `D.RowIndex` on the left
@@ -419,8 +424,8 @@ lemma New.Selmer.denominatorLe_range_goodLift {P : Parameters} {D : Data P} {ℓ
       D.goodForms (D.spaceW D.m) ⊓ D.eigenPart (D.spaceW D.m) q ≠ ⊥ →
       ∃ R : GalRep ℓ D.E D.RowIndex,
         IsMainSummand (D.descentPair TameChar.one j) (fun (w : FinPlace D.E) (i : ℕ) ↦ q (w, i)) R ∧
-        ∃ (γ : AbsGal D) (ζ : intQpBar ℓ),
-          HasDivisibleSelmerLengthLe ϑ.invAvatar R ϑ.Q γ ζ (twistError ℓ D)) :
+        ∃ γ : AbsGal D,
+          HasDivisibleSelmerLengthLe ϑ.invAvatar R ϑ.Q γ (twistError ℓ D)) :
     DenominatorLe ι.ιℓ (D.descentPair ϑ j) D.e₀ (D.goodLift ϑ j).range
       (clearingBound D ℓ * log ℓ) := by
   have h_char : (D.descentPair ϑ j).u1Char = (D.descentPair TameChar.one j).u1Char *
@@ -445,8 +450,8 @@ lemma New.Selmer.denominatorLe_span_trivialLift {P : Parameters} {D : Data P} {�
     (ι : PadicIso ℓ) {ϑ : D.Twist} {p : D.CriticalPair} {j : ℕ} (hp : p.IsMainPair j)
     (h_aux : IsAuxTwist (badPlaces D ℓ) ϑ.Q ϑ.invAvatar (twistError ℓ D)) {R : GalRep ℓ D.E Unit}
     (hR : IsMainSummand (p.lValueData hp.hasLiftRank (1 : D.Twist)).descentPair 1 R)
-    (h_selmer : ∃ (γ : AbsGal D) (ζ : intQpBar ℓ),
-      HasDivisibleSelmerLengthLe ϑ.invAvatar R ϑ.Q γ ζ (twistError ℓ D)) :
+    (h_selmer : ∃ γ : AbsGal D,
+      HasDivisibleSelmerLengthLe ϑ.invAvatar R ϑ.Q γ (twistError ℓ D)) :
     open scoped Classical in
     DenominatorLe ι.ιℓ (p.lValueData hp.hasLiftRank ϑ).descentPair
       (tupleIdem Unit fun _ : (p.lValueData hp.hasLiftRank ϑ).descentPair.ChosenIndex ↦

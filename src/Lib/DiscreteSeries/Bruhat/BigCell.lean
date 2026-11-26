@@ -1,4 +1,6 @@
-import Lib.DiscreteSeries.Bruhat.FloorMeasures
+module
+
+public import Lib.DiscreteSeries.Bruhat.FloorMeasures
 
 /-!
 # The big cell: Bruhat decomposition of terms with non-zero leading minors, and its freeness
@@ -34,6 +36,8 @@ Notions from other files:
 This is a case of the known Bruhat decomposition of a unitary group on its big cell. See
 `Lib.DiscreteSeries.Bruhat.ComplexPlace`.
 -/
+
+@[expose] public section
 
 open Matrix New.Floors FloorGroups Sum Function Fin
 
@@ -177,7 +181,7 @@ lemma exists_pivot_mul_eq_one {R : Subring A} (hT : IsIntMatrix R T.splitGram) {
   have hD : D ∈ R := IsIntMatrix.det_mem fun a b ↦ hT.mul h_int _ _
   have h_col (c : Fin 𝔰.ϱ) (hc : c ≤ j) : Z c.castSucc j.castSucc = if c = j then x else 0 := by
     simp only [Z, x, (commute_weylElem hσ).eq]
-    split_ifs with h_eq <;> simp [weylElem, weylOn, frameGram, mul_apply, BesselIndex.level,
+    split_ifs with h_eq <;> simp [weylElem, weylOn, frameGram, Matrix.mul_apply, BesselIndex.level,
       apply_eq_one_apply_of_mem_floorGroup hσ, hc.lt_iff_ne, h_eq]
   have h_entry (b : Fin (j + 1)) : M b (last j) = if b = last j then x else 0 := by
     change Z (b.castLE j.is_lt).castSucc j.castSucc = _
@@ -219,7 +223,7 @@ lemma exists_eq_mul_floorWeyl_mul_of_mem_intGL [IsHermitianUnit T.splitGram]
   have h_fix : g ∈ T.partialUnitriangularGroup (j + 1) ⊓ T.floorGroup j := by
     refine inv_mul_mem_of_orbitPoint_eq (b := j.castSucc) hσ
       (mul_mem (heisenbergElem_mem_floorUnipotent j v).1 floorWeyl_mem_floorGroup) ?_
-    simp [ν, orbitPoint, floorWeyl, weylOn, mul_apply, BesselIndex.level, funext_iff, h_cols]
+    simp [ν, orbitPoint, floorWeyl, weylOn, Matrix.mul_apply, BesselIndex.level, funext_iff, h_cols]
   have g_int : g.val ∈ intGL 𝔰.BesselIndex R :=
     mul_mem (inv_mem σ_int) (mul_mem v_int (weylOn_mem_intGL hT (by simpa using x_int)))
   obtain ⟨v', hv'⟩ : ∃ v', g⁻¹ * ν v' ∈ T.floorGroup (j + 1) :=
@@ -245,7 +249,7 @@ theorem exists_integral_big_cell_decomp [IsHermitianUnit T.splitGram]
     (hT : IsUnimodular R T.splitGram) (hγ : γ.val ∈ intGL 𝔰.BesselIndex R)
     (h_minor : ∀ l : Fin 𝔰.ϱ, ∃ d ∈ R, leadingMinor (T.frameGram γ) l.succ.castSucc * d = 1)
     (j : Fin 𝔰.n) :
-    ∃ᵉ (u ∈ T.besselU) (u' ∈ T.besselU) (p : ℕ → Aˣ) (σ ∈ T.floorGroup j),
+    ∃ u ∈ T.besselU, ∃ u' ∈ T.besselU, ∃ p : ℕ → Aˣ, ∃ σ ∈ T.floorGroup j,
       γ = u⁻¹ * (weylElem j p * σ) * u' ∧
       u.val ∈ intGL 𝔰.BesselIndex R ∧
       u'.val ∈ intGL 𝔰.BesselIndex R ∧
@@ -289,7 +293,7 @@ sends e_a ↦ p_a e*_a and e*_a ↦ e_a/p̄_a for a < ϱ and fixes the other bas
 theorem exists_big_cell_decomp {A : Type} [Field A] [StarRing A] [TraceOne A] {T : 𝔰.Form A}
     [hT : IsHermitianUnit T.splitGram] {γ : T.G}
     (h_minor : ∀ l : Fin 𝔰.n, leadingMinor (T.frameGram γ) l.castSucc ≠ 0) :
-    ∃ᵉ (u ∈ T.besselU) (u' ∈ T.besselU) (p : ℕ → Aˣ) (σ ∈ T.floorGroup 𝔰.ϱ),
+    ∃ u ∈ T.besselU, ∃ u' ∈ T.besselU, ∃ p : ℕ → Aˣ, ∃ σ ∈ T.floorGroup 𝔰.ϱ,
       γ = u⁻¹ * (weylElem 𝔰.ϱ p * σ) * u' := by
   -- Apply the integral normal form to the subring `R = A`, where nonzero minors are invertible.
   have : IsStarStable (⊤ : Subring A) := ⟨fun _ ↦ trivial⟩
@@ -318,9 +322,9 @@ lemma big_cell_column_eq {τ y y' : T.G} (hσ : σ ∈ floorGroup 𝔰.ϱ) (hτ 
   have h_entry (i : 𝔰.BesselIndex) : y.val i (eStar b) * q b = z i := by
     trans (weylElem 𝔰.ϱ p * σ * y').val i (inl b)
     · rw [mul_assoc (weylElem 𝔰.ϱ p), h_eq, Subgroup.coe_mul, Units.val_mul, coe_weylElem_mul hτ]
-      simp [mul_apply, diagonal]
+      simp [Matrix.mul_apply, diagonal]
     · rw [Subgroup.coe_mul, Units.val_mul, coe_weylElem_mul hσ]
-      rcases i with a | m | a <;> simp [z, mul_apply, diagonal, apply_inr_of_mem_besselU hy']
+      rcases i with a | m | a <;> simp [z, Matrix.mul_apply, diagonal, apply_inr_of_mem_besselU hy']
   have h_pq : p b = q b := by
     simpa [z, mem_besselU.1 hy _ _ le_rfl, mem_besselU.1 hy' (inl b) (inl b) le_rfl,
       Units.ext_iff, eq_comm] using h_entry (eStar b)
@@ -329,8 +333,8 @@ lemma big_cell_column_eq {τ y y' : T.G} (hσ : σ ∈ floorGroup 𝔰.ϱ) (hτ 
   · simpa [z] using h_entry (inl a)
   · simpa [z] using h_entry (inr (inl m))
   obtain h_le | h_lt := le_or_gt a b
-  · simp [mem_besselU.1 hy (eStar a) (eStar b) (Nat.sub_le_sub_left h_le _), one_apply]
-  · simpa [z, mem_besselU.1 hy' (inl a) (inl b) h_lt.le, one_apply, h_lt.ne']
+  · simp [mem_besselU.1 hy (eStar a) (eStar b) (Nat.sub_le_sub_left h_le _), Matrix.one_apply]
+  · simpa [z, mem_besselU.1 hy' (inl a) (inl b) h_lt.le, Matrix.one_apply, h_lt.ne']
       using h_entry (eStar a)
 
 /-- The factors of the normal form on the big cell are unique: if `u⁻¹ w_p σ u' = v⁻¹ w_q τ v'` with
@@ -356,7 +360,7 @@ theorem big_cell_factors_unique {τ : T.G} (hσ : σ ∈ floorGroup 𝔰.ϱ) (h�
   let B : Matrix 𝔰.BesselIndex (Fin 𝔰.ϱ) A := fromRows 0 (fromRows 0 1)
   have h_fix : (y : Matrix 𝔰.BesselIndex 𝔰.BesselIndex A) * B = B := by
     ext i b
-    rcases i with a | m | a <;> simp [B, mul_apply, one_apply, h_col]
+    rcases i with a | m | a <;> simp [B, Matrix.mul_apply, Matrix.one_apply, h_col]
   obtain rfl : y = 1 := eq_one_of_mem_besselU_of_fix hu h_fix rfl
   -- then `w_p = w_q`, and `y' = σ⁻¹ τ` is unipotent and fixes the hyperbolic planes, so `y' = 1`
   have h_weyl : (weylElem 𝔰.ϱ p : T.G) = weylElem 𝔰.ϱ q :=

@@ -1,5 +1,7 @@
-import New.Appendix.DiscreteSeries.Periods
-import New.Appendix.DiscreteSeries.StationaryPosition
+module
+
+public import New.Appendix.DiscreteSeries.Periods
+public import New.Appendix.DiscreteSeries.StationaryPosition
 
 /-!
 # The group of a position
@@ -29,6 +31,8 @@ Notions from other files:
   and decreases in `[-3 B, -B]` on the other coordinates, with alternating signs there.
 * `IsLaplaceDatum` collects the hypotheses of Laplace's method on a map into `U(ε) × U(η)`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -77,7 +81,7 @@ lemma LowersFlag.inv {g : (Matrix n n ℂ)ˣ} {σ : ℂ}
       _ = initCols v * T⁻¹ := by rw [← Matrix.mul_assoc, Units.inv_mul, Matrix.one_mul]
   -- The matrix of `g⁻¹ - 1 = -g⁻¹ (g - 1)` is `-(T⁻¹ N)`.
   have h_tri (a : Fin d) (b : Fin (d + 1)) (hba : b.val ≤ a.val) : (-(T⁻¹ * N)) a b = 0 := by
-    rw [Matrix.neg_apply, neg_eq_zero, mul_apply]
+    rw [Matrix.neg_apply, neg_eq_zero, Matrix.mul_apply]
     refine sum_eq_zero fun t _ ↦ (lt_or_ge t a).elim (fun hta ↦ ?_) fun hat ↦ ?_
     · exact mul_eq_zero_of_left (blockTriangular_inv_of_blockTriangular hT_tri hta) _
     · exact mul_eq_zero_of_right _ (hN_tri t b (hba.trans hat))
@@ -183,13 +187,13 @@ lemma inducesOn (hP : IsPosition ε η d v i₀) (g : positionGroup ε v) :
         Matrix.zero_mul, zero_add] at h_orth
     have h_entry :
         (vᴴ * signMatrix ε * v) (Fin.last d) (Fin.last d) * T (Sum.inr (Fin.last d)) j = 0 := by
-      simpa [mul_apply (M := vᴴ * signMatrix ε * v), hP.gram_eq_zero, Fin.sum_univ_castSucc,
+      simpa [Matrix.mul_apply (M := vᴴ * signMatrix ε * v), hP.gram_eq_zero, Fin.sum_univ_castSucc,
         Fin.castSucc_ne_last] using congrFun₂ h_gram (Fin.last d) j
     obtain h_norm | h_norm := hP.gram_last_eq_sign <;> simpa [h_norm] using h_entry
   refine ⟨(toRows₂ T).submatrix Fin.castSucc id, ?_⟩
   rw [hT, h_top, add_right_inj]
   ext i j
-  simp [mul_apply, Fin.sum_univ_castSucc, h_last, initCols]
+  simp [Matrix.mul_apply, Fin.sum_univ_castSucc, h_last, initCols]
 
 /-- Let `(v, i₀)` be a position: the `d + 1` columns of `v` are independent, their products for the
 form of signs `ε` vanish except that the last has norm `±1`, `i₀` is an isometry of `(ℂ^m, η)` into
@@ -341,13 +345,13 @@ theorem IsStationary.isLaplaceDatum [Fintype X] [DecidableEq X] {l : HCParam ε}
   have h_inc : i₀ * inclMatrix ℂ (e' ∘ Sum.inl) = inclMatrix ℂ (e ∘ Sum.inl) := by
     rw [mul_inclMatrix]
     ext i x
-    simp [inclMatrix, hP.apply_inl, one_apply]
+    simp [inclMatrix, hP.apply_inl, Matrix.one_apply]
   have h_inc_adj : (inclMatrix ℂ (e' ∘ Sum.inl))ᴴ * formAdjoint ε η i₀ =
       (inclMatrix ℂ (e ∘ Sum.inl))ᴴ := by
     rw [← formAdjoint_inclMatrix (τ := e' ∘ Sum.inl) h_sign_inl, ← formAdjoint_mul, h_inc,
       formAdjoint_inclMatrix (τ := e ∘ Sum.inl) h_steep.sign_inl]
   refine ⟨g, Prod.ext ?_ hy⟩
-  show (g : Matrix n n ℂ) - 1 =
+  change (g : Matrix n n ℂ) - 1 =
     inclMatrix ℂ (e ∘ Sum.inl) * (u - 1) * (inclMatrix ℂ (e ∘ Sum.inl))ᴴ
   rw [hg, hy, Matrix.mul_assoc, Matrix.mul_assoc, h_inc_adj, ← Matrix.mul_assoc, ← Matrix.mul_assoc,
     h_inc]
@@ -456,7 +460,7 @@ theorem IsStationary.period_lower_bound_of_surjective [Fintype X] [DecidableEq X
     simp (disch := fun_prop) only [Measure.map_map, Function.comp_def, map_mul]⟩
   have : IsFiniteMeasureOnCompacts (ν.map f) := ⟨fun K hK ↦ by
     rw [Measure.map_apply hf hK.measurableSet, ← Set.preimage_image_eq K Subtype.val_injective]
-    exact (h_proper.isCompact_preimage (hK.image continuous_subtype_val)).measure_lt_top⟩
+    exact (h_proper.isCompact_preimage (hK.image continuous_subtypeVal)).measure_lt_top⟩
   obtain ⟨h_int, h_vol⟩ := hP.integrable_periodIntegrand_and_measure_le h_steep hB h_sign_inl
     h_weight_inl
     h_weight_nonneg h_weight_le hl_gap hk_gap hl_le hk_le hβ h_card hh (ν.map f)
@@ -511,7 +515,7 @@ lemma conj_inl_sub_one (w : USign (Sum.elim ε (1 : Unit → ℤˣ))) (g : USign
         (↑(w⁻¹) : Matrix (n ⊕ Unit) (n ⊕ Unit) ℂ) := by
   have h_block : (U.inl ε (1 : Unit → ℤˣ) g : Matrix (n ⊕ Unit) (n ⊕ Unit) ℂ) - 1 =
       fromBlocks ((g : Matrix n n ℂ) - 1) 0 0 0 := by
-    ext (a | a) (b | b) <;> simp [one_apply]
+    ext (a | a) (b | b) <;> simp [Matrix.one_apply]
   simp [← h_block, mul_sub_one, sub_mul]
 
 /-- If `g` in `U(ε)` is within `1` of the identity, then `‖w (g ⊕ 1) w⁻¹‖ ≤ 1 + ‖w‖²` for `w` in
@@ -734,7 +738,11 @@ theorem IsSteep.exists_volume_le_mul_norm_integral_dsCoeff [Nonempty n] {B β : 
     simp [j, mul_comm]
   have h_ball : {g : USign ε | ‖(g : Matrix n n ℂ) - 1‖ ≤ 1} ⊆ Large := fun g hg ↦
     ⟨(norm_conj_inl_le w hg).trans (by linarith),
-      norm_le_add_one_of_norm_sub_one_le (by linarith) hg⟩
+      by
+        change ‖(g : Matrix n n ℂ)‖ ≤ β + 1
+        refine (norm_le_norm_add_norm_sub' _ 1).trans ?_
+        rw [norm_one]
+        exact add_le_add (by linarith) hg⟩
   refine ⟨w⁻¹, by rwa [U.norm_inv], ENNReal.toReal_le_of_le_ofReal (by positivity) ?_⟩
   simpa only [h_integrand, inv_inv] using (measure_mono h_ball).trans h_period
 

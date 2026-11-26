@@ -1,5 +1,7 @@
-import Lib.Weil.Periods.BesselIntegral
-import Lib.Weil.Periods.Equivariant
+module
+
+public import Lib.Weil.Periods.BesselIntegral
+public import Lib.Weil.Periods.Equivariant
 
 /-!
 # Real and finite points of the Bessel group
@@ -16,6 +18,8 @@ Notions used in the statements:
   `Y.besselFin`.
 * A level `K` (`IsLevel K`) is an open subgroup of `G_f` inside the standard compact subgroup.
 -/
+
+@[expose] public section
 
 open MeasureTheory Measure
 
@@ -142,7 +146,7 @@ lemma exists_integral_eq_mul_integral_besselReal (K : Subgroup (Gf E ι)) [hK : 
   have h_emb : MeasurableEmbedding Y.besselProdEquiv :=
     Y.besselProdEquiv.toHomeomorph.measurableEmbedding
   let J : Set Y.besselFin := Subtype.val ⁻¹' K
-  have hJ_open : IsOpen J := hK.isOpen.preimage continuous_subtype_val
+  have hJ_open : IsOpen J := hK.isOpen.preimage continuous_subtypeVal
   have hJ_compact : IsCompact J :=
     (IsClosed.isClosedEmbedding_subtypeVal inferInstance).isCompact_preimage hK.isCompact
   have hJ_pos : haar J ≠ 0 := hJ_open.measure_ne_zero haar ⟨1, one_mem K⟩
@@ -170,7 +174,8 @@ lemma exists_integral_eq_mul_integral_besselReal (K : Subgroup (Gf E ι)) [hK : 
         simp only [integral_smul_nnreal_measure, ν, h_emb.integral_map, h_prod, NNReal.smul_def,
           Complex.real_smul]
     _ = (c * haar.real J : ℝ) * ∫ s : Y.besselReal, a s ∂haar := by
-        simp [integral_prod_mul, integral_indicator hJ_open.measurableSet, mul_assoc, mul_comm]
+        simp [integral_prod_mul, integral_indicator hJ_open.measurableSet, Set.univ_inter, mul_assoc,
+          mul_comm]
 
 end New.Grading
 

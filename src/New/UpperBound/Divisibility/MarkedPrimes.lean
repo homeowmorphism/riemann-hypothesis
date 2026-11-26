@@ -1,4 +1,6 @@
-import New.UpperBound.Divisibility.JetExponent
+module
+
+public import New.UpperBound.Divisibility.JetExponent
 
 /-!
 # Marked primes above `p`, full marks and the scaled Hecke operator
@@ -34,6 +36,8 @@ Notions from other files:
 * `New.Data.lowColumns`: the number of columns at `τ` of height below `n_{j+1}` and different
   from `1`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -140,8 +144,8 @@ not divide the first factor, then `2 ^ (e + 1)` divides the second. -/
 lemma two_pow_dvd_right_of_dvd_mul {e s q o : ℕ} (hs : 2 * e < s) (h_dvd : 2 ^ s ∣ q * o)
     (hq : ¬2 ^ (e + 1) ∣ q) : 2 ^ (e + 1) ∣ o := by
   -- Compare `2`-adic valuations: that of `q` is at most `e`, that of `q * o` at least `s`.
-  simp only [padicValNat_dvd_iff, mul_eq_zero, not_or, not_le] at h_dvd hq ⊢
-  grind [padicValNat.mul]
+  simp only [multiplicity_dvd_iff, mul_eq_zero, not_or, not_le] at h_dvd hq ⊢
+  grind [Nat.multiplicity_mul]
 
 /-- Let `p` be an exceptional prime: inert in `K = ℚ(√-d)`, not congruent to `±1` modulo the number
 `m` of lifts, and such that the order `o₀` of `-p` modulo `q₀` is odd and at most `ceilLogLifts p`,

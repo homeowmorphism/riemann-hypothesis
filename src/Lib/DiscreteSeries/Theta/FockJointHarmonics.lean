@@ -1,4 +1,6 @@
-import Lib.DiscreteSeries.Theta.FockDualPair
+module
+
+public import Lib.DiscreteSeries.Theta.FockDualPair
 
 /-!
 # Weights of matched pairs and uniqueness of joint harmonics in Fock space
@@ -43,6 +45,8 @@ Notions from other files:
 
 Known; see `Lib.DiscreteSeries.Theta.LocalCorrespondence` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -186,7 +190,6 @@ theorem IsMatch.sign_mul_relWeight_nonneg (hm : IsMatch T l l') (r : R) (s : ℤ
   have card_le : #{j : R | v j ∈ S} ≤ #S :=
     card_le_card_of_injOn v (fun j hj ↦ by simpa using hj) fun i _ j _ hij ↦ by grind
   specialize parity r
-
   -- Termwise comparison. Column terms are `≤ 0`, and row terms with `v j ∈ S` are `≥ 0`. For
   -- `v j ∉ S` a matched row has the term of its column, and an unmatched row is close to `r`, so
   -- `ε j = ε r` by `gap` and its term is `0`.
@@ -439,6 +442,8 @@ inductive DiscreteSeries.IsEigenDirection (F : MvPolynomial ι ℂ) (x : ι → 
 theorem DiscreteSeries.bind₁_X_add_C_pderiv {τ : Type*} (x : τ → ℂ) (G : MvPolynomial τ ℂ) (i : τ) :
     bind₁ (fun j : τ ↦ X j + MvPolynomial.C (x j)) (pderiv i G) =
       pderiv i (bind₁ (fun j : τ ↦ X j + MvPolynomial.C (x j)) G) := by
+  change aeval (fun j : τ ↦ X j + MvPolynomial.C (x j)) (pderiv i G) =
+    pderiv i (aeval (fun j : τ ↦ X j + MvPolynomial.C (x j)) G)
   induction G using induction_on with
   | C a => simp
   | add p q hp hq => simp only [map_add, hp, hq]
@@ -448,6 +453,7 @@ theorem DiscreteSeries.bind₁_X_add_C_pderiv {τ : Type*} (x : τ → ℂ) (G :
 /-- The constant coefficient of `G (X + x)` is the value of `G` at `x`. -/
 theorem DiscreteSeries.coeff_zero_bind₁_X_add_C {τ : Type*} (x : τ → ℂ) (G : MvPolynomial τ ℂ) :
     (bind₁ (fun j : τ ↦ X j + MvPolynomial.C (x j)) G).coeff 0 = eval x G := by
+  change (aeval (fun j : τ ↦ X j + MvPolynomial.C (x j)) G).coeff 0 = eval x G
   rw [← constantCoeff_eq]
   induction G using induction_on with
   | C a => simp
@@ -464,11 +470,11 @@ theorem DiscreteSeries.exists_not_isEigenDirection {F : MvPolynomial ι ℂ} {x 
   -- Take a monomial of least degree in the Taylor series `H = F (X + x)`. It is not constant, so
   -- its exponent is `t + single i 1` for some variable `i`. Compare the coefficients of `t`.
   let shift (y : ι → ℂ) : MvPolynomial ι ℂ →ₐ[ℂ] MvPolynomial ι ℂ :=
-    bind₁ fun i ↦ X i + MvPolynomial.C (y i)
+    aeval fun i ↦ X i + MvPolynomial.C (y i)
   have shift_pderiv (G : MvPolynomial ι ℂ) (i : ι) : shift x (pderiv i G) = pderiv i (shift x G) :=
     bind₁_X_add_C_pderiv x G i
   set H : MvPolynomial ι ℂ := shift x F with hH
-  have shift_back : shift (-x) H = F := by simp [hH, shift, bind₁_bind₁]
+  have shift_back : shift (-x) H = F := by simp [hH, shift, comp_aeval_apply, aeval_X_left_apply]
   have H_ne : H ≠ 0 := fun h_zero ↦ hF (by rw [← shift_back, h_zero, map_zero])
   obtain ⟨n, n_mem, n_min⟩ := H.support.exists_min_image Finsupp.degree (support_nonempty.2 H_ne)
   have n_ne : n ≠ 0 := by
@@ -527,7 +533,6 @@ theorem IsMatch.lt_or_exists_isMatchedPair (hm : IsMatch T l l') (r : R) (c : C)
   · obtain rfl : d = c := hm.hasGap_column.injective (mul_left_cancel₀ s.ne_zero h_eq)
     exact .inl ⟨((le_abs_self _).trans_eq (abs_sub_comm _ _)).trans_lt r_large, hrd⟩
   · -- The parameter of column `c` is further out than that of `d`, so `c` is matched too.
-    have param_rd : T.centredParam l r = -T.swap.centredParam l' d := hrd.1
     have c_not_free : ¬|T.swap.centredParam l' c| < card C - card R := by grind
     obtain ⟨a, hac⟩ : ∃ a : R, T.IsMatchedPair l l' a c := (hm.right c).resolve_right c_not_free
     have a_above : s * l r < s * l a := by grind
@@ -644,23 +649,6 @@ theorem IsJointHarmonic.exists_eq_smul_of_row_weight {Φ P : MvPolynomial ι ℂ
   · have hP : T.IsPreJointHarmonic l l' P := ⟨h_ne, h_cols, h_harmonic.isLaplaceHarmonic, h_rows,
       h_harmonic_swap.isLaplaceHarmonic⟩
     exact hΦ.unique hP hΦ.isJointHighest.isPreJointHarmonic
-
-/-- Let `T` be a dual pair in Fock space, whose variables in `ι` are indexed by rows `R` and columns
-`C`, and let `Φ` be a joint harmonic for matching `l`, `l'`. That is, `Φ ≠ 0` is `K`-highest, of the
-weights of the lowest `K`-types, for the row action `T.oscRows` and the column action
-`T.swap.oscRows`, and it is termwise harmonic for `T` and `T.swap`: no monomial has two variables of
-one column from rows of opposite signs, or two variables of one row from columns of opposite signs.
-Then every polynomial `P` satisfying both termwise harmonic conditions, killed by the compact
-raising operators of the row action for `l`, and `K`-highest of weight `l'.lowestKType` for the
-column action, is a scalar multiple of `Φ`. -/
-theorem IsJointHarmonic.exists_eq_smul_of_column_weight {Φ P : MvPolynomial ι ℂ}
-    (hΦ : IsJointHarmonic T l l' Φ) (h_harmonic : T.IsTermwiseHarmonic P)
-    (h_harmonic_swap : T.swap.IsTermwiseHarmonic P)
-    (h_rows : T.oscRows.IsCompactPrimitive l P)
-    (h_cols : l'.IsKHighest T.swap.oscRows l'.lowestKType P) :
-    ∃ c : ℂ, P = c • Φ :=
-  hΦ.swap.exists_eq_smul_of_row_weight h_harmonic_swap (by rwa [swap_swap]) h_cols
-    (by rwa [swap_swap])
 
 end New
 

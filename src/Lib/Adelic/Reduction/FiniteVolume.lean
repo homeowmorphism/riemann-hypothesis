@@ -1,6 +1,8 @@
-import Lib.Adelic.Reduction.MinkowskiTheorems
-import Lib.Adelic.Unitary.WeakApproximation
-import Lib.General.NumberTheory.SUnitsAndClassNumber
+module
+
+public import Lib.Adelic.Reduction.MinkowskiTheorems
+public import Lib.Adelic.Unitary.WeakApproximation
+public import Lib.General.NumberTheory.SUnitsAndClassNumber
 
 /-!
 # Adelic reduction theory, Mahler's criterion and finite volume of the arithmetic quotient
@@ -49,6 +51,8 @@ Bombieri-Vaaler, On Siegel's lemma, Invent. Math. 73 (1983).
 For the adelic points of unitary groups and their Haar measures, see
 `Lib.Adelic.Unitary.WeakApproximation`.
 -/
+
+@[expose] public section
 
 /-! ## Reduced rational bases in a compact set of adelic matrices -/
 
@@ -101,7 +105,7 @@ lemma isCompact_setOf_le_ideleAbs_det {M : Set (Matrix n n (𝔸 E))} (hM : IsCo
     (fun (A, b) ↦ (A, MulOpposite.op ((t * b) • A.adjugate))) '' M ×ˢ T
   have hK : IsCompact K := (hM.prod (hB.mul (hF.image _).isCompact)).image_of_continuous _
   refine (Units.isClosedEmbedding_embedProduct.isCompact_preimage hK).of_isClosed_subset
-    (.and hM.isClosed.preimage_of_continuous (.preimage_of_continuous isClosed_Ici)) ?_
+    (.and hM.isClosed.preimage_of_continuous (isClosed_le continuous_const (by fun_prop))) ?_
   rintro (A : GL n (𝔸 E)) ⟨hA, hdet⟩
   have h_lt : (2 * NumberField.rootDiscr E) ^ numInfPlaces E <
       ideleAbs A.det * (2 ^ (2 * numInfPlaces E)) ^ N := by grw [← hdet, ← div_lt_iff₀' hc, hN]
@@ -488,7 +492,7 @@ lemma Core.two_pow_sq_le_encard_profileBases {M : Set (GL n (𝔸 E))} {x : n �
   -- So `1 + uᵀ` is unitriangular for the order of the `x i`.
   have h_det : (1 + (of u.curry)ᵀ).det = 1 :=
     det_eq_one_of_unitriangular fun i j (h_le : x j ≤ x i) ↦ by simp [u_zero (j, i) h_le]
-  let Z : GL n E := .mk'' (1 + (of u.curry)ᵀ) (by simp [h_det])
+  let Z : GL n E := .mk'' (1 + (of u.curry)ᵀ) (by simp [h_det, -transpose_of])
   -- The conjugate of `Z` by the diagonal matrix of `x` has its entries in the unit box.
   have h_conj : dyadicDiag x * Z.map toAdele * (dyadicDiag x)⁻¹ ∈ unitBoxGL E n := by
     refine ⟨fun i j ↦ ?_, by simp [Z, field]⟩
@@ -502,7 +506,8 @@ lemma Core.two_pow_sq_le_encard_profileBases {M : Set (GL n (𝔸 E))} {x : n �
     simpa [h_ne, h_le, Z, D, Core.dyadicDiag, ← map_inv diagGL, -map_inv, mul_comm,
       _root_.zpow_sub, mul_assoc, mulVec_diagonal] using h_box
   -- The basis `Y * Z` has profile `x` for `M * unitBoxGL E n`, and `Y⁻¹ * (Y * Z) - 1 = uᵀ`.
-  exact ⟨Y * Z, mem_mul.2 ⟨_, hY, _, h_conj, by simp [mul_assoc]⟩, by simp [Z, funext_iff]⟩
+  exact ⟨Y * Z, mem_mul.2 ⟨_, hY, _, h_conj, by simp [mul_assoc]⟩,
+    by simp [Z, funext_iff, -transpose_of]⟩
 
 /-- For a compact `M` there is a compact set `S` of adeles that holds the Gram entries
 `(Yᴴ V.J Y) i j`, divided by `2 ^ (x i + x j)` at the infinite places, for every space `V` with
@@ -595,7 +600,8 @@ lemma Space.encard_profileBases_mul_le_lintegral {N : Set (GL n (𝔸 E))} {x : 
   let F (T : 𝒯) : G E s → ℝ≥0∞ := ((fun h ↦ (A T)⁻¹ * h) ⁻¹' B).indicator fun _ ↦ w
   let T (Z : Bases) : 𝒯 := ⟨(Z : GL n E).valᴴ * V.J * (Z : GL n E), h_gram g Z Z.property⟩
   have h_unitary (Z : Bases) : r (T Z) * (Z : GL n E)⁻¹ ∈ U V.J :=
-    gram_mul_of_gram_eq (h_gram_basis g Z Z.property) (gram_inv_of_gram_eq rfl)
+    mem_unitaryGroupOf_iff.2 <| gram_mul_of_gram_eq (h_gram_basis g Z Z.property)
+        (gram_inv_of_gram_eq rfl)
   let γ (Z : Bases) : V.Γ := ⟨V.ratEmbed ⟨r (T Z) * (Z : GL n E)⁻¹, h_unitary Z⟩, _, rfl⟩
   have h_inj : Injective fun Z ↦ (T Z, γ Z) := by
     simp +contextual [Injective, Subtype.ext_iff, V.ratEmbed_injective.eq_iff, γ]
@@ -688,7 +694,9 @@ lemma Space.exists_encard_le_of_mem_profileBases {t : Type*} [Fintype t] {M : Se
   -- Row `i` of `Y⁻¹ ξ` is `2 ^ (-x i)` times row `i` of some `A⁻¹ * V.x⁻¹ * η` with `A ∈ M` and
   -- `η ∈ Ω`; these products lie in a compact set `B`.
   let B : Set (t × n → 𝔸 E) := (fun (A, η) (j, i) ↦ (A.inv * V.x.inv * η) i j) '' M ×ˢ Ω
-  have hB : IsCompact B := (hM.prod hΩ).image_of_continuous _
+  have hB : IsCompact B := (hM.prod hΩ).image_of_continuous _ <| by
+    have : Continuous fun u : GL n (𝔸 E) ↦ u.inv := Units.continuous_coe_inv
+    fun_prop
   obtain ⟨C, hC, h_count⟩ := encard_le_of_dyadic_box (α := Matrix n t E) hB
   refine ⟨C, hC, fun {g x Y} hY ↦ ?_⟩
   have h_inj : Injective fun ξ : Matrix n t E ↦ (Y⁻¹.val * ξ).vec :=

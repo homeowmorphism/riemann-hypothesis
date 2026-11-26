@@ -1,6 +1,8 @@
-import Lib.General.Analysis.HolomorphicIntegrals
-import Lib.General.Geometry.GeometricPoints
-import Lib.Shimura.Uniformisation.HolomorphicFamilies
+module
+
+public import Lib.General.Analysis.HolomorphicIntegrals
+public import Lib.General.Geometry.GeometricPoints
+public import Lib.Shimura.Uniformisation.HolomorphicFamilies
 
 /-!
 # Exponential of compact commutative Lie groups and uniformisation of abelian varieties
@@ -41,6 +43,8 @@ Notions from other files:
 
 Known; see `Lib.Shimura.Uniformisation.AppellHumbert` for sources.
 -/
+
+@[expose] public section
 
 /-! ## The exponential map of a compact commutative complex Lie group -/
 

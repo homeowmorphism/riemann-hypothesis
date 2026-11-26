@@ -1,6 +1,8 @@
-import Lib.Weil.DualPair.KernelLaws
-import New.Derivatives.Vacuum.Divisibility
-import New.UpperBound.Kernels.JetConjugatesAndBounds
+module
+
+public import Lib.Weil.DualPair.KernelLaws
+public import New.Derivatives.Vacuum.Divisibility
+public import New.UpperBound.Kernels.JetConjugatesAndBounds
 
 /-!
 # p-adic gauge bounds for one theta lift and data from functions modulo an ideal
@@ -44,6 +46,8 @@ Notions from other files:
 See `New.UpperBound.Divisibility.LocalDivisibility` and
 `New.UpperBound.Kernels.JetConjugatesAndBounds` for related work.
 -/
+
+@[expose] public section
 
 /-! ## Standard data and the p-adic gauge of a theta kernel -/
 
@@ -407,6 +411,8 @@ lemma _root_.New.Modulus.card_residueRing_le {k : ℕ} (hk_mem : (k : 𝓞 (P.E 
   have h_dvd : absNorm 𝔪.ideal ∣ absNorm (span {(k : 𝓞 (E P s))}) :=
     map_dvd absNorm (dvd_span_singleton.2 hk_mem)
   rw [absNorm_span_natCast_eq_pow_numInfPlaces] at h_dvd
+  change Nat.card (_ ⧸ 𝔪.ideal) ≤ _
+  rw [← Ideal.absNorm_eq_natCard]
   exact Nat.le_of_dvd (by positivity) h_dvd
 
 /-- Let `V` be a hermitian space over the CM field `E = P.E s` with basis indexed by `n` and signs

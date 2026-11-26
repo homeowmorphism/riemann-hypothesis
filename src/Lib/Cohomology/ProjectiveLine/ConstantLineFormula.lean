@@ -1,5 +1,7 @@
-import Lib.Cohomology.ProjectiveLine.TiltedLineFormula
-import Lib.PadicComparison.Duality.LineIntegration
+module
+
+public import Lib.Cohomology.ProjectiveLine.TiltedLineFormula
+public import Lib.PadicComparison.Duality.LineIntegration
 
 /-!
 # The projective line formula for locally constant ℤ/ℓ coefficients
@@ -43,13 +45,13 @@ coefficients serve only to show that η acts non-trivially. Source: SGA 4½ [Cyc
 (Jouanolou); Milne, Étale Cohomology; Scholze, p-adic Hodge theory for rigid-analytic varieties.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New.Variety
 
 open CategoryTheory MonoidalCategory ObjectProperty CommAlgCat TotalH Period Ideal Finsupp
-
-set_option backward.isDefEq.respectTransparency false
 
 variable {C : Type _} [Category C] {ℓ : ℕ} {A : Type} [CommRing A] {g : C ⥤ TestOver A}
 
@@ -215,12 +217,9 @@ lemma etaOneClass_eq_zero_of_hasUniversalPoints {c : TestOver A}
   let one : freeAb (onePointFunctor (projLineAlong g).Elements) ⟶
       locConstAlong (elementsProj (projLineAlong g) ⋙ g) := oneLocConst
   have h_pull : (P (etaOneClass c)).toTotalH = 0 :=
-    calc (P (etaOneClass c)).toTotalH
-        = comp (P (etaOneClass c)).toTotalH (homClass (𝟙 _)) := comp_id.symm
-      _ = pullbackAlong one (comp (homClass (𝟙 M.onElements.functor)) M.cupClass.toTotalH) :=
-          comp_pull_etaOneClass_eq_pullbackAlong_oneLocConst (M := M) u
-      _ = pullbackAlong one M.cupClass.toTotalH := congrArg _ pullbackAlong_id
-      _ = 0 := h_zero
+    comp_id.symm.trans <|
+      (comp_pull_etaOneClass_eq_pullbackAlong_oneLocConst (M := M) u).trans <|
+        (congrArg _ pullbackAlong_id).trans h_zero
   have h_pull_two : P (etaOneClass c) = 0 :=
     DirectSum.of_injective 2 (h_pull.trans (map_zero _).symm)
   have h_injective : Function.Injective P := (hu.on_elements.isBijective 2).injective
@@ -240,7 +239,7 @@ def TestOver.structurePt :
     onePointFunctor (TestOver k) ⟶ restrictScalars A k ⋙ reprBy
       ⟨of A k, isTest_of_preValuationRing⟩ :=
   sectionMap
-    { val B := ⟨⟨CommAlg.homOfRingHom _ (by tauto)⟩⟩
+    { val B := ⟨⟨CommAlg.homOfRingHom (algebraMap k B.obj) (by tauto)⟩⟩
       property f := congr(⟨⟨$(by ext; apply f.1.hom.2)⟩⟩) }
 
 /-- For an algebraically closed field k over A, restriction of scalars from tests over k to tests
@@ -331,6 +330,7 @@ lemma lerayHirsch_lineBasis_single_false_eq_zero_of_etaOneClass_eq_zero {C : Typ
   -- `oneLocConst` to the points of ℙ¹.
   erw [← comp_pull_etaOneClass_eq_pullbackAlong_oneLocConst u, h_generic]
   simp
+  rfl
 
 /-- If `New.Variety.etaOneClass` vanishes at a test k over A that is a field, then it vanishes at
 the residue field of A at its generic point. -/
@@ -352,8 +352,11 @@ lemma etaOneClass_residueTest_bot_eq_zero {ℓ : ℕ} {A : Type} [CommRing A] [I
   -- Vanishing then passes to the generic point, as the vanishing locus is open.
   have h_open : IsOpen {P : PrimeSpectrum A |
       etaOneClass (ℓ := ℓ) (residueTest (TestOver.ofSelf A) P).right = 0} := by
-    simpa only [map_etaOneClass] using isDetectedAtPoints_projLine.isOpen_setOf_map_eq_zero
-      (TestOver.ofSelf A) 2 (etaOneClass (TestOver.ofSelf A))
+    convert isDetectedAtPoints_projLine.isOpen_setOf_map_eq_zero
+      (TestOver.ofSelf A) 2 (etaOneClass (TestOver.ofSelf A)) using 1
+    ext P
+    simp only [Set.mem_ofPred_eq, map_etaOneClass]
+    rfl
   have h_specializes : (⊥ : PrimeSpectrum A) ⤳ Q := (PrimeSpectrum.le_iff_specializes ..).mp bot_le
   exact h_specializes.mem_open h_open h_eta_under
 

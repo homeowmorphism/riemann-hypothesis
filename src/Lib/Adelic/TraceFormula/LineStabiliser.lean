@@ -1,6 +1,8 @@
-import Lib.Adelic.TraceFormula.LineCount
-import Lib.Adelic.TraceFormula.TestFunction
-import Lib.Shimura.HeckeTower.HeckeData
+module
+
+public import Lib.Adelic.TraceFormula.LineCount
+public import Lib.Adelic.TraceFormula.TestFunction
+public import Lib.Shimura.HeckeTower.HeckeData
 
 /-!
 # The stabiliser of a line at a finite place
@@ -33,6 +35,8 @@ Notions from other files:
 A relation in the Hecke algebra of a parahoric subgroup of `GL_n`, proved by a direct count of
 cosets.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -797,7 +801,7 @@ lemma keepsLineMod_lineElement : KeepsLineMod i (lineElement w i) where
     have h_block : (diagonal fun j : n ↦ residueOrZero (if j = i then (uniformizer w).1 else 1)
         ).toSquareBlockProp (· ≠ i) = 1 := by
       ext ⟨a, ha⟩ ⟨b, hb⟩
-      simp [toSquareBlockProp_def, diagonal_apply, one_apply, ha, h_one]
+      simp [toSquareBlockProp_def, diagonal_apply, Matrix.one_apply, ha, h_one]
     simp [h_block]
 
 /-- An element `g` of the double coset of `diag (ϖ, 1, …, 1)` by the stabiliser of the line of

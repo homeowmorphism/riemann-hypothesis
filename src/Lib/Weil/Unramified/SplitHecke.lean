@@ -1,5 +1,7 @@
-import Lib.General.LinearAlgebra.Eigenvalues
-import Lib.Weil.Unramified.HeckeGL
+module
+
+public import Lib.General.LinearAlgebra.Eigenvalues
+public import Lib.Weil.Unramified.HeckeGL
 
 /-!
 # Hecke operators and Hecke polynomials at split places; spherical eigenvectors
@@ -45,6 +47,8 @@ Notions from other files:
 
 Known; see `Lib.General.LinearAlgebra.IntegralLattices` for sources.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -406,21 +410,13 @@ with eigenvalue the polynomial made from the `t i`. -/
 theorem hasHeckePolynomial_of_heckeSplit (hy : y ∈ sphericalAt π w) {t : ℕ → ℂ}
     (h : ∀ i : ℕ, heckeSplit π hw i y = t i • y) :
     HasHeckePolynomial π hw (heckePolyEval n w t) y := by
-  show y ∈ sphericalAt π w ∧ ∀ T : ℂ, heckePolyOp π hw T y = heckePolyEval n w t T • y
+  change y ∈ sphericalAt π w ∧ ∀ T : ℂ, heckePolyOp π hw T y = heckePolyEval n w t T • y
   refine ⟨hy, fun T ↦ ?_⟩
   -- termwise, `T_i` acts on `y` by `t i`
   calc heckePolyOp π hw T y
       = ∑ i ∈ range (Fintype.card n + 1), ((-T) ^ i * w.q ^ i.choose 2) • heckeSplit π hw i y := by
         simp [heckePolyOp, heckePolyEval]
     _ = heckePolyEval n w t T • y := by simp [heckePolyEval, h, sum_smul, mul_smul]
-
-/-- A scalar multiple of a spherical eigenvector of the Hecke polynomial is one with the same
-eigenvalue `p`. -/
-theorem HasHeckePolynomial.smul {a : ℂ} (h : HasHeckePolynomial π hw p y) :
-    HasHeckePolynomial π hw p (a • y) := by
-  obtain ⟨hy, h_eigen⟩ := h
-  refine ⟨Submodule.smul_mem _ a hy, fun T ↦ ?_⟩
-  rw [map_smul, h_eigen T, smul_comm]
 
 /-- A `σ`-semilinear map that is equivariant on `y` for the elements supported above `w` and
 `star w` carries the Hecke polynomial at `T` to the Hecke polynomial at `σ T`. -/
@@ -490,7 +486,7 @@ theorem heckeSplit_mem_of_heckePolyOp (N : Submodule ℂ (Module.End ℂ W))
       have h_poly : (∑ j ∈ range (Fintype.card n + 1), f (a j) • .X ^ j : ℂ[X]) = 0 :=
         Polynomial.funext fun U ↦ by
           simpa [Polynomial.eval_finsetSum, mul_comm] using congrArg f (h_eval U)
-      simpa [Polynomial.coeff_X_pow, hi] using congrArg (Polynomial.coeff · i) h_poly
+      simpa [Polynomial.coeff_X_pow, hi] using congrArg (·.coeff i) h_poly
     -- the factor, a power of `q`, is nonzero
     have h_mkQ : N.mkQ (heckeSplit π hw i) = 0 :=
       (smul_eq_zero.mp h_a_zero).resolve_left (by simp [w.q_bounds])

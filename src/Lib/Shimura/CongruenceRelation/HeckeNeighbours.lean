@@ -1,5 +1,7 @@
-import Lib.Shimura.CongruenceRelation.KernelReduction
-import Lib.Shimura.IntegralModel.UniversalFamily
+module
+
+public import Lib.Shimura.CongruenceRelation.KernelReduction
+public import Lib.Shimura.IntegralModel.UniversalFamily
 
 /-!
 # Hecke elements on adelic torsion and reductions of Frobenius twists of Hecke neighbours
@@ -42,6 +44,8 @@ sum with one fixed non-zero subspace. Source: Wedhorn, Congruence relations on s
 varieties, J. reine angew. Math. 524 (2000) 43–71; the method follows Katz–Mazur 1985 ch. 13 and
 Harris–Taylor 2001 III.4.
 -/
+
+@[expose] public section
 
 /-! ## The w-torsion and the action of Hecke elements on adelic torsion -/
 
@@ -177,7 +181,7 @@ lemma torsionClass_inv_mulVec_eq_of_mem_levelTorsion
   -- At every place `u`, the two vectors differ by an integral vector: the matrix is integral and
   -- acts trivially at the places dividing the level.
   simp only [PEL.levelTorsion, mem_torsionBy_iff, smul_torsionClass_eq_zero_iff] at hv
-  refine torsionClass_eq_iff.mpr fun i ↦ Subring.mem_iInf.mpr fun u ↦ ?_
+  refine torsionClass_eq_iff.mpr fun i ↦ mem_Ô.mpr fun (u : FinPlace E) ↦ ?_
   by_cases h𝔑 : D.level ∈ u.asIdeal
   · -- At a place dividing the level the matrix acts trivially, since `w` is safe.
     have hu_ne : u ≠ w.val := by grind [IsSafe]

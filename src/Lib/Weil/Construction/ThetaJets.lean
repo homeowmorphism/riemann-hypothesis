@@ -1,7 +1,9 @@
-import Lib.General.LinearAlgebra.PolarDecomposition
-import Lib.Shimura.ComplexTheta.DimensionFormula
-import Lib.Weil.DualPair.Defs
-import Lib.Weil.MixedModel.RealTheta
+module
+
+public import Lib.General.LinearAlgebra.PolarDecomposition
+public import Lib.Shimura.ComplexTheta.DimensionFormula
+public import Lib.Weil.DualPair.Defs
+public import Lib.Weil.MixedModel.RealTheta
 
 /-!
 # Jet series of theta functions and translation by rational vectors
@@ -44,6 +46,8 @@ unitary group and the invariant theta functional. See `Lib.Weil.MixedModel.ZeroT
 
 See also `Lib.Weil.CompactLift.DefiniteThetaLift` and `Lib.Weil.DualPair.KernelLaws`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -106,9 +110,10 @@ lemma Space.jet_jetSeries_eq_theta (f : 𝒮 V) (P : MvPolynomial (InfinitePlace
   -- the factorials of `jet` cancel those of `jetSeries`.
   induction P using MvPolynomial.induction_on' with
   | monomial d r =>
-    have h_fact : (d.prod fun _ k ↦ (k ! : ℂ)) ≠ 0 := by simp [factorial_ne_zero]
-    simp [jetSeries_apply, jet_monomial, bind₁_monomial, smul_pow, field, C_mul', prod_smul,
-      prod_pow_eq_pow_sum, degree_apply, MvPowerSeries.coeff_apply]
+    have h_fact : (∏ x ∈ d.support, ((d x)! : ℂ)) ≠ 0 :=
+      Finset.prod_ne_zero_iff.2 fun _ _ ↦ by exact_mod_cast factorial_ne_zero _
+    simp [jetSeries_apply, jet_monomial, aeval_monomial, Finsupp.prod, algebraMap_eq, smul_pow,
+      field, C_mul', prod_smul, prod_pow_eq_pow_sum, degree_apply, MvPowerSeries.coeff_apply]
   | add P Q hP hQ => simp [hP, hQ]
 
 /-- The number of boxes in the columns of height below `N`, where `κ τ h` is the number of columns

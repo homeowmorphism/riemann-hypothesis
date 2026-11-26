@@ -1,10 +1,12 @@
-import Lib.Weil.Periods.Unfolding
-import New.UpperBound.Objects.CharactersAtLevel
-import New.UpperBound.Objects.RowChain
-import New.UpperBound.Seesaw.Frequency
-import New.UpperBound.Seesaw.GluedLevel
-import New.UpperBound.Seesaw.LevelIdeles
-import New.UpperBound.Seesaw.Sandwich
+module
+
+public import Lib.Weil.Periods.Unfolding
+public import New.UpperBound.Objects.CharactersAtLevel
+public import New.UpperBound.Objects.RowChain
+public import New.UpperBound.Seesaw.Frequency
+public import New.UpperBound.Seesaw.GluedLevel
+public import New.UpperBound.Seesaw.LevelIdeles
+public import New.UpperBound.Seesaw.Sandwich
 
 /-!
 # Unfolding the chain of lifts: double lifts and the functions of the unfolding
@@ -44,6 +46,8 @@ Notions from other files:
 See `New.UpperBound.Seesaw.SeesawIdentity` for related work. See
 `Lib.Weil.CompactLift.DefiniteThetaLift` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Two unfolding steps and the double lift of the finite evaluation
@@ -108,7 +112,7 @@ lemma arrowProduct_integrated_polyVector (P : MvPolynomial (NumberField.Infinite
           (rename (fun (v, j, i) ↦ (v, Sum.inl i, j)) P *
             rename (fun (v, i, j) ↦ (v, Sum.inr i, j)) Q))
         (arrowTensor (Φ ⊗ₜ Φ')) := by
-  simp [arrowProduct, flipPoly, pairSign, rename_eq_aeval, bind₁_bind₁, map_integrated,
+  simp [arrowProduct, flipPoly, pairSign, rename_eq_aeval, aeval_bind₁, map_integrated,
     realMap_flipCoords_polyVector, boxProd_integrated, realBoxProd_polyVector]
   -- the two descriptions of the renamed variables of `P` and `Q` agree by definition
   rfl
@@ -195,7 +199,7 @@ lemma integral_theta_tripleWeil_eq_lift_comp {κ : NumberField.InfinitePlace E �
     rw [← h_eq, hJ, integral_prod _ (hF _)]
     simp [F, integral_const_mul]
   refine isClosed_property denseRange_polyVector
-    (Λ.range.closed_of_finiteDimensional.preimage_of_continuous (f := J)) fun R ↦ ?_
+    (Λ.range.isClosed_of_finiteDimensional.preimage_of_continuous (f := J)) fun R ↦ ?_
   -- `R` is a sum of products of a polynomial on `Hom(X, X')` and one on `Hom(X', X'')`.
   let inl : NumberField.InfinitePlace E × X' × X → NumberField.InfinitePlace E × (X ⊕ X'') × X' :=
     fun (v, j, i) ↦ (v, Sum.inl i, j)
@@ -700,7 +704,14 @@ lemma integral_unfoldStageOn (ϑ : D.TameChar)
     using integral_besselGroup_unfold Y' (rankTwist (D.chainChar ϑ (k + 1))) (movedDatum ϑ ξ y k)
       (isEquivariant_unfoldStageOn ϑ t φ ξ y k hk) hz_aut hz_rapid
 
-set_option synthInstance.maxSize 512 in
+noncomputable local instance instDecidableEqDoubleLiftSplitting (i : ℕ) (hi : 2 * i < 2 * D.ϱ + 1)
+    {X q : Type} {s : ℕ} [Fintype X] [DecidableEq X] [Fintype q] [DecidableEq q]
+    {Y : Grading (D.spaceY (2 * i + 2)) D.N X s} :
+    DecidableEq ({ i_1 : (D.Y (2 * i) ⊕ D.Y (2 * i + 2)) × D.Y (2 * i + 1) //
+        0 < Sum.elim (D.gradingY (2 * i) hi.le).gradeOf Y.gradeOf i_1.1 -
+          (D.gradingY (2 * i + 1) hi).gradeOf i_1.2 } ⊕ q × D.X (2 * i + 1)) :=
+  @instDecidableEqSum _ _ Subtype.instDecidableEq instDecidableEqProd
+
 /-- Let `R` be data for the two lifts `Y_{2i} → Y_{2i+1} → Y_{2i+2}`, the last space with the
 grading `Y`. Suppose that the linear map `D.doubleLiftEvalY i` on finite data is `R.finEval`, the
 finite analogue of the translation and zero term below. Fix archimedean points `ξ k` of U(Y_k) and

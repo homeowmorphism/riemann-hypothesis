@@ -1,7 +1,9 @@
-import Lib.Adelic.AutomorphicForms.AutomorphicAsAlgebraic
-import Lib.Shimura.Uniformisation.HolomorphicFamilies
-import Lib.Weil.CompactLift.ThetaKernelDefs
-import Lib.Weil.Lift
+module
+
+public import Lib.Adelic.AutomorphicForms.AutomorphicAsAlgebraic
+public import Lib.Shimura.Uniformisation.HolomorphicFamilies
+public import Lib.Weil.CompactLift.ThetaKernelDefs
+public import Lib.Weil.Lift
 
 /-!
 # Theta lifts between definite unitary groups and algebraic lifts by jets
@@ -40,6 +42,8 @@ Taylor coefficients of the theta function against Schur polynomials. The constan
 unspecified. Source: B. Gross, Algebraic modular forms, Israel J. Math. 113 (1999); Kashiwara–Vergne
 1978; R. Howe, Transcending classical invariant theory, JAMS 2 (1989).
 -/
+
+@[expose] public section
 
 /-! ## The harmonic theta lift of definite spaces as a multiple of the algebraic lift -/
 
@@ -316,8 +320,9 @@ lemma isThetaLift_thetaKernel [Nonempty n] [Nonempty n'] [DecidableEq n'] [Decid
       (realPairWeil ea eb (x, 1) (Fock.polyVector _ P))
       (by simp [realPairWeil_polyVector, ← map_smul])
     let T (u : GInf E (1 : n' → ℤˣ)) : (WeylIndex n' κ → ℂ) →L[ℂ] ℂ :=
-      .mk <| (α u * (β / stdLevelIndex K)) •
-        gramForm (highestVector κ l') ∘ₗ conjWeylRep κ ea (s := 1) u⁻¹
+      .mk ((α u * (β / stdLevelIndex K)) •
+        gramForm (highestVector κ l') ∘ₗ conjWeylRep κ ea (s := 1) u⁻¹)
+        (LinearMap.continuous_of_finiteDimensional _)
     refine ⟨(strongIntegral volume T).toLinearMap, fun o Φ φ h ↦ ?_⟩
     have h_realPart : HasRealPart (pairThetaKer (stdSpace E n) (stdSpace E n') (a o n) (a o n'))
         (realPairWeil ea eb) := pairWeil_integrated _ _ (a o n) (a o n')

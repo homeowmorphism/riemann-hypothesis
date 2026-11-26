@@ -1,6 +1,8 @@
-import Lib.Adelic.Adeles.AdditiveCharacter
-import Lib.Adelic.Hecke.Basic
-import Lib.General.Topology
+module
+
+public import Lib.Adelic.Adeles.AdditiveCharacter
+public import Lib.Adelic.Hecke.Basic
+public import Lib.General.Topology
 
 /-!
 # Adelic unitary groups over a CM field: levels, hermitian spaces, lattices and mass
@@ -36,6 +38,8 @@ Notions from earlier files:
 Known; see `Lib.Adelic.Unitary.WeakApproximation` and `Lib.Adelic.Witt.IwasawaDecomposition` for
 sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -303,7 +307,7 @@ lemma singleGL_mul_star_singleGL_inv_mem_U {w : FinPlace E} (hw : w.IsSplit)
     (g : GL n (LocField w)) :
     singleGL w g * star (singleGL w g⁻¹) ∈ U (1 : Matrix n n (𝔸f E)) := by
   set a : GL n (𝔸f E) := singleGL w g * star (singleGL w g⁻¹) with ha
-  suffices h_eq : star a * 1 * a = 1 from congrArg Units.val h_eq
+  suffices h_eq : star a * 1 * a = 1 from mem_unitaryGroupOf_iff.2 (congrArg Units.val h_eq)
   -- The identity is checked at each place, treating `w` and `star w` separately.
   refine GL_ext_evalAt fun u ↦ ?_
   rcases eq_or_ne u w with rfl | hu
@@ -386,7 +390,7 @@ lemma mem_stdLevel {g : Gf E n} : g ∈ stdLevel E n ↔ ∀ i j : n, g.val i j 
 lemma isOpen_stdLevel : (stdLevel E n).IsOpen := (isOpen_intGL isOpen_Ô).preimage_val
 
 lemma isCompact_stdLevel : IsCompact (stdLevel E n : Set (Gf E n)) :=
-  (isCompact_intGL isCompact_Ô).preimage_val (isClosed_U _)
+  (isCompact_intGL isCompact_Ô).preimage_val (isClosed_unitaryGroupOf _)
 
 /-- The subgroup K of the finite adelic unitary group G_f is a level: it is open and contained
 in K_0 = G_f ∩ GL_n(Ô). -/
@@ -420,13 +424,14 @@ def G.toUnitary : G E s ≃* U (stdForm E s) where
   toFun g :=
     ⟨mkAdelicGL (fun v ↦ g.1 v, g.2), by
       -- The relation is checked at every infinite place and on the finite part.
+      rw [mem_unitaryGroupOf_iff]
       apply matrix_ext_𝔸
       · simp only [↓Matrix.map_mul, stdForm, evalInf_apply, Prod.fst_zero, Pi.zero_apply,
           diagonal_map]
-        exact fun v ↦ (g.1 v).property
+        exact fun v ↦ mem_unitaryGroupOf_iff.1 (g.1 v).property
       · simp only [↓Matrix.map_mul, RingHom.coe_snd, stdForm, Prod.snd_zero, diagonal_map,
           diagonal_one]
-        exact g.2.property⟩
+        exact mem_unitaryGroupOf_iff.1 g.2.property⟩
   invFun g :=
     (fun v ↦ U.map (evalInf v) (by simp) (by simp [stdForm, signMatrix]) g,
       U.map (RingHom.snd ..) (by simp) (by simp [stdForm]) g)
@@ -529,8 +534,6 @@ abbrev Γf : Subgroup (Gf E n) := V.embFin.range
 def vecAtPoint : (n → E) →ₛₗ[(toAdele : E →+* 𝔸 E)] n → 𝔸 E :=
   V.x⁻¹.1.mulVecLin ∘ₛₗ LinearMap.mk (σ := toAdele) ⟨fun y ↦ toAdele ∘ y, by simp⟩
     (by simp [funext_iff])
-
-lemma vecAtPoint_apply (y : n → E) : V.vecAtPoint y = V.x⁻¹.val *ᵥ (toAdele ∘ y) := rfl
 
 /-- For a space (J, x), the lattice E^n ∩ x_f Ô^n, as an additive subgroup of E^n. It consists of
 the y whose vector x⁻¹y has integral finite part. -/

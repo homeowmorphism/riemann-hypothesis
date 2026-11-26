@@ -1,4 +1,7 @@
-import Lib.PadicHodge.Crystalline.HodgeTateForms
+module
+
+public import Lib.General.Measure.HaarModulus
+public import Lib.PadicHodge.Crystalline.HodgeTateForms
 
 /-!
 # Hodge frames and Hodge–Tate jumps under operations on representations
@@ -51,6 +54,8 @@ Notions from other files:
 
 Known; see `Lib.PadicHodge.Crystalline.Regularity` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -197,7 +202,7 @@ lemma hodgeMatrix_mul_map_updateCol {W : Matrix ι ι BdRPlus} {k : ι → ℤ} 
       _ = hodgeMatrix (W.updateCol i V) (k + Pi.single i 1) m l := by
           simp [hl, tUnit, zpow_add_one₀, prime_tPeriod.ne_zero, field, hodgeMatrix, diagonal,
             Matrix.mul_apply]
-  · simp [hl, one_apply, hodgeMatrix, diagonal, Matrix.mul_apply]
+  · simp [hl, Matrix.one_apply, hodgeMatrix, diagonal, Matrix.mul_apply]
 
 /-- Let `Γ` map to `Gp p` by `j` with open image, let `F` be a filter on `Γ` with `nearOne Γ ≤ F`
 (`nearOne Γ` is the pull-back along `j` of the neighbourhoods of `1`), and let `N g` be matrices
@@ -272,7 +277,7 @@ lemma exists_isHodgeFrame (Γ : Type*) [Group Γ] [OverGp Γ p] {F : Filter Γ} 
   have h_mem : W.updateCol i V ∈ S := by
     refine ⟨⟨Y * updateCol 1 i a, by simp [← cramer_apply, a_one]⟩, k + Pi.single i 1,
       mul_mem Y_int fun x ↦ ?_, ?_, ?_⟩
-    · simp [updateCol_apply, one_apply, ite_mem, a_int]
+    · simp [updateCol_apply, Matrix.one_apply, ite_mem, a_int]
     · filter_upwards [Y_fix, eventually_all.2 a_fix] with g hY (ha : ∀ l : ι, toGp g (a l) = a l)
       simp [Matrix.map_mul, map_updateCol, hY, ha, comp_def]
     · rw [Matrix.map_mul, ← mul_assoc, hUY]
@@ -318,7 +323,7 @@ lemma inv_mul_apply_of_isHodgeTateFrame {N : Matrix ι ι ℂ_[p]} {k : ι → �
       (Pinv *ᵥ (N *ᵥ (g • (P *ᵥ (Pinv *ᵥ col 1 l))))) i := by rw [h_frame.mulVec_twist]
   -- Cancel `P⁻¹ P` on the left and `P P⁻¹` on the right.
   simp only [mulVec_mulVec, hPinv, Units.inv_mul, Units.mul_inv, one_mulVec] at h_entry
-  simpa [hPinv, one_apply, mulVec_apply_eq_sum] using h_entry.symm
+  simpa [hPinv, Matrix.one_apply, mulVec_apply_eq_sum] using h_entry.symm
 
 /-- Let `R` be algebraic over `ℤ_[p]` and `e` a finite basis of `T`. Let `Q` be invertible over
 `ℂ_[p]` with `Q · γ(ρ g) = diag (χ(g) ^ (-k i)) · g(Q)` for `g` near `1`, where `ρ g` is written
@@ -346,7 +351,7 @@ lemma hasJumps_of_rows {γ : R →ₐ[ℤ_[p]] ℂ_[p]} (Q : GL ι ℂ_[p]) (k :
     have h_expand : ρ g (e l) = ∑ j : ι, (ρ g).toMatrix e e j l • e j := by
       simp only [LinearMap.toMatrix_apply, e.sum_repr]
     rw [h_expand]
-    simpa [h_val, mul_apply, mul_comm] using hg i l
+    simpa [h_val, Matrix.mul_apply, mul_comm] using hg i l
   exact ⟨hasJumps_of_basis (F := .of_basis e) h_mem, b, h_mem, h_val⟩
 
 variable [Module ℤ_[p] T] [IsScalarTower ℤ_[p] R T]
@@ -531,7 +536,7 @@ lemma jump_twist_of_period (a : Γ → R) {v : ℤ} {y : ℂ_[p]} (hy : y ≠ 0)
   have h_iff (F : T →ₛₗ[toRingHom γ] ℂ_[p]) :
       y • F ∈ hodgeTateMaps ρ' γ (u + v) ↔ F ∈ hodgeTateMaps ρ γ u := by
     refine forall_congr' fun x ↦ eventually_congr (h_period.mono fun g hg ↦ ?_)
-    show (y • F) (ρ' g x) = (χ g ^ (-(u + v))).val • toGp g • (y • F) x ↔
+    change (y • F) (ρ' g x) = (χ g ^ (-(u + v))).val • toGp g • (y • F) x ↔
       F (ρ g x) = (χ g ^ (-u)).val • toGp g • F x
     -- With `c = χ(g) ^ (-v) • g • y ≠ 0`, the condition for `y • F` is `c` times the one for `F`.
     set c : ℂ_[p] := (χ g ^ (-v)).val • toGp g • y with hc
@@ -600,13 +605,13 @@ lemma jump_eq_of_pairing [Module R T'] {σ : Representation R Γ T'} (hρ : IsPo
       simp [hM, w, toMatrix_apply]
     have h_mul : M * (ρ g).toMatrix v v = (χ g ^ c).val • 1 := by
       ext m j
-      simp [hM, ← toMatrix₂_compl₂, h_equiv, w, one_apply, Finsupp.single_apply, eq_comm]
+      simp [hM, ← toMatrix₂_compl₂, h_equiv, w, Matrix.one_apply, Finsupp.single_apply, eq_comm]
     -- Apply `M` to the frame relation for the column `i` of `P`.
     have h_paired : ((cyclotomicGp (toGp g) ^ (-k i) : ℤ_[p]ˣ) : ℤ_[p]) •
           (M.map γ *ᵥ P.val.col i) l =
         (χ g ^ c).val • toGp g • P.val l i := by
       rw [← Pi.smul_apply, ← Matrix.mulVec_smul, ← hg i, mulVec_mulVec, ← Matrix.map_mul, h_mul]
-      simp [mulVec_apply_eq_sum, one_apply, apply_ite]
+      simp [mulVec_apply_eq_sum, Matrix.one_apply, apply_ite]
     have h_entry : (P.valᵀ * ((σ g).toMatrix w w).map γ) i l = (M.map γ *ᵥ P.val.col i) l := by
       rw [h_transpose, transpose_map, ← transpose_mul]
       rfl
@@ -633,8 +638,8 @@ lemma hasJumps_of_cyclotomicGp_zpow (c : ℤ) (h : ∀ (g : Γ) (x : T), ρ g x 
   have h_rows (g : Γ) (i l : Fin (finrank R T)) :
       ((1 : GL (Fin (finrank R T)) ℂ_[p]).val * ((ρ g).toMatrix e e).map γ) i l =
         (χ g ^ (-(-c))).val • toGp g • (1 : GL (Fin (finrank R T)) ℂ_[p]) i l := by
-    simp +contextual [h, LinearMapClass.map_smul_of_tower (S := R), one_apply, toMatrix_apply,
-      apply_ite]
+    simp +contextual [h, LinearMapClass.map_smul_of_tower (S := R), Matrix.one_apply,
+      toMatrix_apply, apply_ite]
   obtain ⟨h_jumps, -⟩ := hasJumps_of_rows e 1 (fun _ ↦ -c) (.of_forall h_rows)
   simpa using h_jumps
 

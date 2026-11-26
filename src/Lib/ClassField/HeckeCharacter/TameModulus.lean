@@ -1,7 +1,9 @@
-import Lib.ClassField.HeckeCharacter.SplittingCharacters
-import Lib.SiegelWeil.SingularForms.CentreCoefficients
-import Lib.Weil.DualPair.KernelDecay
-import Lib.Weil.DualPair.KernelLaws
+module
+
+public import Lib.ClassField.HeckeCharacter.SplittingCharacters
+public import Lib.SiegelWeil.SingularForms.CentreCoefficients
+public import Lib.Weil.DualPair.KernelDecay
+public import Lib.Weil.DualPair.KernelLaws
 
 /-!
 # Characters on determinants, local values and characters tame for a modulus
@@ -42,6 +44,8 @@ Notions from other files:
 Known; see `Lib.ClassField.Global.CMSplittingCharacters` for sources.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-! ## Characters of given weight on determinants of integral unitary points -/
@@ -75,7 +79,7 @@ lemma apply_det_eq_prod (h : μ.HasWeight e ψ) {ι : Type*} [Fintype ι] {w : �
   have hψ_map : ∀ u : FinPlace E, u ∉ Finset.univ.map ⟨w, hw⟩ → ψ u = 1 := by simpa using hψ
   have h_int : (detFin s k.val : 𝔸 E).snd ∈ Ô E := by simp [det_mem (mem_stdLevel.mp k.property)]
   rw [h.apply_eq _ h_int, finprod_tame_eq_prod_reduceU1 (u := detFin s k.val) hψ_map h_int]
-  simp [reduceU1, h_red]
+  simp [reduceU1, -snd_det, h_red]
 
 /-- A character `μ` with trivial tame part (`μ.HasWeight e 1`) is trivial on the determinant
 `detFin s k` of every `k` in the stabiliser `stdLevel E n` of the standard lattice. -/
@@ -317,7 +321,7 @@ def Modulus.charOfTamePart (𝔪 : Modulus E) (ψ : ∀ w : FinPlace E, MulChar 
       let w : places 𝔪 := ⟨⟨M.under _, inferInstance, NeZero.out⟩, le_comap_of_map_le (by simp)⟩
       refine finprod_eq_zero _ w ?_ (toFinite _)
       -- The residue of `x` at `w` is `0`, as `x` lies in the maximal ideal `M` over `w`.
-      show ψ w.val (algebraMap (𝓞 E) (ResField w.val) x) = 0
+      change ψ w.val (algebraMap (𝓞 E) (ResField w.val) x) = 0
       rw [algebraMap_ResField_eq_zero.mpr hM, MulChar.map_zero])
 
 /-- ν is tame for 𝔪 with weight e and character χ: 𝔪 ≠ (1), ν has weight e and a tame part (ψ_w)

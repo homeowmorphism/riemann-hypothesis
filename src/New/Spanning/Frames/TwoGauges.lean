@@ -1,4 +1,6 @@
-import New.Spanning.Frames.Lengths
+module
+
+public import New.Spanning.Frames.Lengths
 
 /-!
 # Comparing the lengths at two points; minors and heads
@@ -37,6 +39,8 @@ Notions from other files:
 
 See `New.Spanning.MainTerm.EnergyEstimate` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -246,13 +250,13 @@ lemma head_prod_mul_dual_mem_ofSize {S : Size T} {K : Set T.G} {j : ℕ} {p : �
       rw [column m d h_level, one_apply_ne fun h_eq ↦ hm ⟨d, h_eq.symm⟩]
     have h_weyl (e : Fin (a + 1)) : (s * weylElem j p).val.val (R b) (inl (c e)) = L b e := by
       have he_lt : e.val < j ∧ e.val < 𝔰.ϱ := by lia
-      simp [L, mul_apply, c, he_lt, weylElem, weylOn, level]
+      simp [L, Matrix.mul_apply, c, he_lt, weylElem, weylOn, level]
     calc Z b d = ∑ m, (s * weylElem j p).val.val (R b) m * η⁻¹.val.val m (inl (c d)) := by
-          simp only [Z, submatrix_apply, Subgroup.coe_mul, Units.val_mul, mul_apply]
+          simp only [Z, submatrix_apply, Subgroup.coe_mul, Units.val_mul, Matrix.mul_apply]
       _ = ∑ e, (s * weylElem j p).val.val (R b) (inl (c e)) * C e d :=
           (sum_of_injective _ (inl_injective.comp (Fin.castLE_injective _)) _ _
             (fun m hm ↦ by rw [h_zero m hm, mul_zero]) fun _ ↦ rfl).symm
-      _ = (L * C) b d := by simp only [h_weyl, mul_apply]
+      _ = (L * C) b d := by simp only [h_weyl, Matrix.mul_apply]
   -- The row of s at e*_b agrees with that of 1 outside the columns e*_d, d < b; so L is lower
   -- triangular, with p b on the diagonal for b < a.
   have s_row (b d : Fin (a + 1)) (hbd : b ≤ d) :

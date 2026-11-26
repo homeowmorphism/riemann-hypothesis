@@ -1,4 +1,6 @@
-import Lib.General.Analysis.HolomorphicIntegrals
+module
+
+public import Lib.General.Analysis.HolomorphicIntegrals
 
 /-!
 # Heisenberg cocycles, vacua, the reproducing model and Schur's lemma
@@ -29,6 +31,8 @@ by a Heisenberg representation `ρ`. The file proves superposition and Schur's l
 
 Known; see `Lib.Weil.Construction.WeilOperators` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -519,7 +523,7 @@ lemma eq_zero_of_modelInner_self {v : he.Model} (h : he.modelInner v v = 0) : v 
   -- If `v x ≠ 0`, the integral of the continuous function `‖v ·‖ ^ 2` is positive.
   by_contra hx_ne
   have h_pos : 0 < ∫ y : W, ‖v y‖ ^ 2 ∂μ :=
-    integral_pos_of_integrable_nonneg_nonzero (x := x) (by fun_prop) (integrable_norm_sq v)
+    integral_pos_of_integrable_nonneg_ne_zero (x := x) (by fun_prop) (integrable_norm_sq v)
       (fun y ↦ sq_nonneg ‖v y‖) (by simpa using hx_ne)
   exact h_pos.ne' (mod_cast (modelInner_self v).symm.trans h)
 
@@ -531,7 +535,7 @@ instance : CompleteSpace he.Model := by
   -- that function satisfies the reproducing identity, term by term.
   refine NormedAddCommGroup.completeSpace_of_summable_imp_tendsto fun u hu ↦ ?_
   have h_ae : ⇑(∑' n : ℕ, IsVacuum.toL1 H (u n)) =ᵐ[μ] fun x : W ↦ ∑' n : ℕ, u n x :=
-    (Lp.coeFn_tsum (tsum_enorm_ne_top_iff_summable_norm.mpr hu)).trans
+    (Lp.coeFn_tsum (tsum_eNorm_ne_top_iff_summable_norm.mpr hu)).trans
       ((ae_all_iff.mpr fun n ↦ (u n).integrable.coeFn_toL1).mono fun _ ↦ tsum_congr)
   have h_int : Integrable (fun x : W ↦ ∑' n : ℕ, u n x) μ := .congr (by fun_prop) h_ae
   have h_repr (x : W) :
@@ -613,7 +617,7 @@ identity in operator form. -/
 lemma integrated_vacElem : he.heisenbergRep.integrated v vacElem = v := by
   ext x
   rw [integrated_apply_eq_integral]
-  show ∫ y : W, v y * heisenbergOp y vacElem x ∂μ = v x
+  change ∫ y : W, v y * heisenbergOp y vacElem x ∂μ = v x
   simp only [heisenbergOp_apply, vacElem_apply]
   exact v.integral_mul_beta_mul_eq x
 
@@ -640,7 +644,7 @@ lemma integrated_eq_smul : he.heisenbergRep.integrated v w = w 0 • v := by
   -- Both sides are bounded linear in `v` and in `w`, so by `hom_ext` it is enough to treat
   -- translates of the vacuum, `v = heisenbergOp y vacElem` and `w = heisenbergOp z vacElem`.
   have h_integrated :
-      he.heisenbergRep.integrated = ContinuousLinearMap.smulRightL ℂ (Model H) (Model H)
+      he.heisenbergRep.integrated = ContinuousLinearMap.smulRightL ℂ ℂ ℂ (Model H) (Model H)
         (valueAt 0) := by
     refine hom_ext fun y ↦ hom_ext fun z ↦ ext fun x ↦ ?_
     -- The value at `x` is `H.β y x` times the integral in the vacuum identity at `z`, `x - y`.
@@ -721,15 +725,6 @@ lemma integral_form_eq_mul_modelInner [LocallyCompactSpace W] {Z : Type*} {m : M
     rw [h_right, h_move, h_vac]
     simp [← conj_modelInner (heisenbergOp y vacElem)]
   rw [← h_right v w, h_form, _root_.smul_apply, smul_eq_mul]
-
-/-- Schur's lemma for a single form: if W is locally compact, a bounded sesquilinear form B on the
-reproducing space that is invariant under all ρ(x) is B(vac, vac) times the inner product. -/
-lemma form_eq_mul_modelInner [LocallyCompactSpace W] (B : Model H →L⋆[ℂ] Model H →L[ℂ] ℂ)
-    (hB_inv : ∀ (x : W) (f g : Model H), B (heisenbergOp x f) (heisenbergOp x g) = B f g)
-    (v w : Model H) : B v w = B vacElem vacElem * modelInner v w := by
-  -- A single form is the integral of a constant family against a point mass.
-  simpa using integral_form_eq_mul_modelInner (ν := .dirac ()) (fun _ : Unit ↦ B)
-    (fun f g ↦ integrable_const (B f g)) (by simpa using hB_inv) v w
 
 end IsVacuum
 

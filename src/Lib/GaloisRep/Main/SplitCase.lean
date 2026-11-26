@@ -1,6 +1,8 @@
-import Lib.GaloisRep.Main.AttachedRepresentations
-import Lib.GaloisRep.Main.SeedRepresentation
-import Lib.GaloisRep.WeightCongruence
+module
+
+public import Lib.GaloisRep.Main.AttachedRepresentations
+public import Lib.GaloisRep.Main.SeedRepresentation
+public import Lib.GaloisRep.WeightCongruence
 
 /-!
 # Attached Galois representations in odd rank: the split case
@@ -39,6 +41,8 @@ Notions from other files:
 
 Known; see `Lib.GaloisRep.Main.OddRank` for sources.
 -/
+
+@[expose] public section
 
 section OddRank
 
@@ -283,7 +287,9 @@ lemma New.GaloisRep.exists_isLevel_of_localCongruence_hom {E : Type} {a : ℕ} [
   let χ : K.1 →* ℂ :=
     ϑ.comp (.mk' (fun k ↦ ⟨atPlace v k, ((mem_K k).1 k.2).left⟩) (by simp))
   have χ_near : χ =ᶠ[nhds 1] 1 :=
-    .mono (isOpen_localCongruence.preimage_of_continuous.mem_nhds (by simp)) fun _ ↦ ϑ_one _
+    .mono (((isOpen_localCongruence (m := 1)).preimage_of_continuous
+      ((continuous_atPlace v).comp continuous_subtypeVal)).mem_nhds (by simp)) fun k hk ↦
+      show χ k = 1 from ϑ_one ⟨_, ((mem_K k).1 k.2).left⟩ hk
   have K_off (k : Gf E (Fin a)) (k_int : k ∈ stdLevel E (Fin a)) (k_v : atPlace v k = 1) :
       k ∈ K.1 ↔ k ∈ V := by simp [mem_K, k_v, k_int]
   have χ_off (k : K.1) (k_v : atPlace v k.val = 1) : χ k = 1 := by simp [χ, k_v, ϑ_one]
@@ -340,8 +346,9 @@ lemma New.GaloisRep.isCompatibleAt_of_isApproximatingMonoid {ℓ : ℕ} {E : Typ
       simpa [← h_eq, sum_mul] using h_sum.mul_const ((jumps κ a τ).count k : PadicAlgCl ℓ)
     exact cast_inj.1 (tendsto_nhds_unique h_count h_lim)
   · have X_deg : X.natDegree = a := by simpa using (hX.isMonicOfDegree hf).natDegree_eq
-    refine ρ_limit.polyKillsAt (n := a + 1) (Q := fun η i ↦ (Q ⟨η, i⟩).map ιℓ) (by simp [X_deg])
+    refine ρ_limit.polyKillsAt (n := a + 1) (Q := fun η i ↦ (Q ⟨η, i⟩).map ιℓ.toRingHom) ?_
       (fun η i ↦ by simp [Q_deg u_split]) (fun η i ↦ (r_sph ⟨η, i⟩ hA).2.2 σ hσ) fun j ↦ ?_
+    · simp [X_deg]
     -- Divide the pair `d` of coefficients by `c` and multiply it by the pair of traces.
     obtain ⟨c, hc, c_mem⟩ := coeff_mem u_split X hX j
     let d : N := ⟨_, c_mem⟩
@@ -552,7 +559,7 @@ private lemma New.GaloisRep.exists_attached_of_coeff_mem {ℓ : ℕ} {E : Type} 
     exact ⟨by simpa using p_hecke.isMonicOfDegree hf_ne, neg_mem (p_hecke.coeff_pred_mem hL hf₀),
       fun j ↦ hd p j (coeff_mem p.place p_split _ j p_off star_off p_prime p_hecke)⟩
   exact exists_attached_of_isApproximatingMonoid apx r_cont r_frob
-    L.toSubmodule.complete_of_finiteDimensional d
+    L.toSubmodule.isComplete_of_finiteDimensional d
     most_frob
 
 -- Keeps definitional checks from unfolding the finite sums.

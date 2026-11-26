@@ -1,5 +1,7 @@
-import Lib.General.Analysis.MeanValueAndTaylor
-import Lib.General.NumberTheory.SUnitsAndClassNumber
+module
+
+public import Lib.General.Analysis.MeanValueAndTaylor
+public import Lib.General.NumberTheory.SUnitsAndClassNumber
 
 /-!
 # Theta functions of a CM elliptic curve: Weierstrass equation and spanning monomials
@@ -50,6 +52,8 @@ Known results: sigma and theta functions of a lattice, their addition formulas, 
 equation and the elliptic functions with poles at one point are classical. See `Lib.CM.Sigma.Basic`
 for the sigma function used here and for sources.
 -/
+
+@[expose] public section
 
 section CurveTheta
 
@@ -341,7 +345,7 @@ lemma mul_sigma_mul_deriv_sigma_eq_of_mul_sigma_sq_eq {K : ℂ}
         C.translatedX z * (2 * C.θ z * deriv C.θ z) := by
   have hx_diff : DifferentiableAt ℂ C.translatedX z := by fun_prop [translatedX]
   have h_deriv : deriv (fun w ↦ K * C.σ w ^ 2) z = deriv (fun w ↦ C.translatedX w * C.θ w ^ 2) z :=
-    EqOn.deriv hK C.isOpen_setOf_add_t_notMem hz
+    EqOn.deriv (fun w ↦ hK w) C.isOpen_setOf_add_t_notMem hz
   simpa (disch := fun_prop) using h_deriv
 
 /-- Let Λ be the lattice of `C` with 2-torsion point t, σ the sigma function of Λ, θ = `C.θ`, and
@@ -523,7 +527,7 @@ theorem exists_int_twistedTranslate_theta_eq_neg_one_zpow {l : ℂ} (hl : l ∈ 
   have h_mult : C.multiplier l = (-1 : ℂ) ^ n :=
     calc _ = cexp (Real.pi * I * C.hermitianForm.riemannForm (conj (quadGen d) * l) l) := by
           simp [C.multiplier_eq_canonicalMultiplier hl, ThetaTori.canonicalMultiplier]
-      _ = (-1 : ℂ) ^ n := by rw [hn, ofReal_intCast, mul_comm, exp_int_mul, exp_pi_mul_I]
+      _ = (-1 : ℂ) ^ n := by rw [hn, ofReal_intCast, mul_comm, exp_intCast_mul, exp_pi_mul_I]
   exact ⟨n, h_value, by rw [C.twistedTranslate_theta_of_mem hl, h_mult]⟩
 
 /-- Let C, C′ be CM data for a prime d ≡ 7 mod 8, with aΛ ⊂ Λ′ and a·ā·area(Λ) = N·area(Λ′), N
@@ -873,7 +877,7 @@ namespace New.CMLattice
 
 variable {d : ℕ} (C : CMLattice d) {K : Type*} [Field K] (ι : ℂ →+* K)
 
-@[simp ↓]
+@[simp↓]
 lemma constantCoeff_taylorVia (f : ℂ → ℂ) : constantCoeff (taylorVia ι f) = ι (f 0) := by
   simp [taylorVia, ← coeff_zero_eq_constantCoeff_apply, taylorAtZero]
 

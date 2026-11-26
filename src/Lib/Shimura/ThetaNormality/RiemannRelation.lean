@@ -1,4 +1,6 @@
-import Lib.Shimura.ThetaModuli.PELThetaTori
+module
+
+public import Lib.Shimura.ThetaModuli.PELThetaTori
 
 /-!
 # Riemann's theta relation and the reduction of theta functions at a valuation
@@ -54,6 +56,8 @@ On the equations defining abelian varieties I, Invent. Math. 1 (1966) §3; G. Ke
 on abelian varieties, Amer. J. Math. 111 (1989) 65–94.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New.ThetaTori.ThetaTorus
@@ -87,16 +91,6 @@ instance : Module (𝓞 E) D.dualTorsion :=
 (`star`). -/
 def IsRiemannTuple (D : PEL E) : Prop :=
   ∑ l : K, star (p l).1 * (p l).1 = D.paddedNorm ∧ ∑ l : K, star (p l).1 * (p l).2 = 0
-
-/-- For a Riemann tuple `p` with `p l = (a_l, b_l)`, `∑ ā_l a_l = D.paddedNorm`. -/
-lemma IsRiemannTuple.sum_star_fst_mul_fst {p : K → 𝓞 E × 𝓞 E} (hp : IsRiemannTuple p D) :
-    ∑ l : K, star (p l).1 * (p l).1 = D.paddedNorm :=
-  And.left hp
-
-/-- For a Riemann tuple `p` with `p l = (a_l, b_l)`, `∑ ā_l b_l = 0`. -/
-lemma IsRiemannTuple.sum_star_fst_mul_snd {p : K → 𝓞 E × 𝓞 E} (hp : IsRiemannTuple p D) :
-    ∑ l : K, star (p l).1 * (p l).2 = 0 :=
-  And.right hp
 
 /-- The family of coefficient pairs on two copies of the index set `K`: `(0, b_l)` on the first
 copy, where `k l = (a_l, b_l)`, and `p l` on the second. -/
@@ -163,7 +157,7 @@ lemma thetaShift_thetaProduct {p : K → 𝓞 E × 𝓞 E} (hp : IsRiemannTuple 
   -- `exp (π i r c) = exp (π i c) ^ r`, and `exp (2 π i m) = 1` drops out.
   have h_pow (c : ℂ) : cexp (Real.pi * I * (D.paddedNorm * c)) = cexp (Real.pi * I * c) ^
     D.paddedNorm := by
-    simp [← exp_nat_mul, mul_left_comm]
+    simp [← exp_natCast_mul, mul_left_comm]
   have h_int (c : ℂ) : cexp (2 * Real.pi * I * (c + m)) = cexp (2 * Real.pi * I * c) := by
     simp [mul_add, exp_add, mul_comm _ (m : ℂ)]
   -- By adjunction and `h_chi` the multipliers give `χ(u) ^ r`; by `hm` the phases give
@@ -564,7 +558,7 @@ private lemma isSmallForm_iff_forall_eval_map_eq_zero [Field k] {φ : v.valuatio
       eval₂_mul_of_isHomogeneous g.property (algebraMap ..) s⁻¹ _
   have h_ball : ev.range = (h_good.pow j).normBall (x.thetaCoord c ^ D.paddedNorm ^ j) :=
     x.range_aeval_thetaCoord_eq_normBall h_good c j
-  show (D.paddedNorm ^ j • x.automorphyForm).thetaNorm v (ev f) < x.automorphyForm.thetaNorm v
+  change (D.paddedNorm ^ j • x.automorphyForm).thetaNorm v (ev f) < x.automorphyForm.thetaNorm v
     (x.thetaCoord c) ^ D.paddedNorm ^ j ↔ _
   simpa [thetaNorm_pow, ← h_max, map_eval] using
     (h_good.pow j).thetaNorm_lt_iff_coords (pow (x.thetaCoord_mem_thetaSpace c) _)
@@ -675,7 +669,6 @@ lemma isCutOutAt_reduction [Field k] {φ : v.valuationSubring →+* k} (hφ : Su
             (x.thetaCoord c ^ D.paddedNorm ^ j) := by
       rw [thetaNorm_pow]
       exact Ideal.Quotient.eq_zero_iff_mem.trans (h_ideal j f)
-
     -- The rank is the dimension of the theta space of degree `r ^ j` ...
     have h_ball : ((aeval x.thetaCoord).toLinearMap.domRestrict
           (homogeneousSubmodule D.dualTorsion v.valuationSubring (D.paddedNorm ^ j))).range =

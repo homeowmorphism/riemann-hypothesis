@@ -1,6 +1,8 @@
-import Lib.ClassField.Global.CMSplittingCharacters
-import Lib.ClassField.HeckeCharacter.AlgebraicValues
-import New.Derivatives.Field.PrimeDecomposition
+module
+
+public import Lib.ClassField.Global.CMSplittingCharacters
+public import Lib.ClassField.HeckeCharacter.AlgebraicValues
+public import New.Derivatives.Field.PrimeDecomposition
 
 /-!
 # Weil data of the CM field E = K(ζ) and the number s₀
@@ -35,6 +37,8 @@ Notions from other files:
 * `New.Parameters.relDifferentGen`: P'(ζ), the value at `ζ` of the derivative of the cyclotomic
   polynomial of order `q₁`; it generates the different of `E/K`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -377,8 +381,8 @@ lemma exists_unit_prod_phi_eq_one_and_mul_star_eq (y : P.E s) (hy : IsOfFinOrder
   have hη_val : η.val = P.ζ s ^ m * (P.ζ s - 1) := rfl
   have hη_norm : Algebra.norm P.K η.val = 1 := by
     rw [hη_val, map_mul, norm_zeta_pow_eq_one, norm_zeta_sub_one_eq_one, one_mul]
-  have hη_norm_int : RingOfIntegers.norm P.K η = 1 := ext hη_norm
-  have hη_unit : IsUnit η := (isUnit_norm P.K).1 (by simp [hη_norm_int])
+  have hη_norm_int : NumberField.RingOfIntegers.norm P.K η = 1 := ext hη_norm
+  have hη_unit : IsUnit η := (NumberField.RingOfIntegers.isUnit_norm P.K).1 (by simp [hη_norm_int])
   have hi_sq : P.ζ s ^ m * P.ζ s ^ m = -1 := by
     rw [← pow_add]
     exact (isPrimitiveRoot_zeta.pow (NeZero.pos _) (by omega)).eq_neg_one_of_two_right

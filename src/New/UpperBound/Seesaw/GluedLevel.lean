@@ -1,5 +1,7 @@
-import New.Spanning.Unfolding.Climbing
-import New.UpperBound.Seesaw.AdmissibleCombinations
+module
+
+public import New.Spanning.Unfolding.Climbing
+public import New.UpperBound.Seesaw.AdmissibleCombinations
 
 /-!
 # Congruence levels inside the stabilizer of a glued lattice
@@ -31,6 +33,8 @@ Related work: `Grading.inclXFin_mem_stdLevel` is related to Nikulin's criterion 
 isometries to an overlattice: the congruence on `h` plays the part of the condition that an isometry
 preserve the gluing.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -73,17 +77,18 @@ lemma Grading.exists_inclXFin_sub_one_eq {u : unitary (𝔸f E)} (hL : Y.SpansLa
     ext i j
     obtain ⟨⟨i, rfl⟩, ⟨j, rfl⟩⟩ := e.surjective i, e.surjective j
     rcases i with i | i <;> rcases j with j | j <;>
-      simp [Y.gram_eq, ← he, gradedGram, gradedBlocks, mul_apply, (reindex_equiv e).2,
+      simp [Y.gram_eq, ← he, gradedGram, gradedBlocks, Matrix.mul_apply, (reindex_equiv e).2,
         Matrix.one_apply, mul_sub]
   -- The rows of `V.xFin` in that block are those of `R`, the last divided by `star π` for odd `s`.
   have h_rows : V.xFin.val.submatrix (e ∘ Sum.inl) id = D * R := by
     ext (x | x) j <;> by_cases hs : Odd s <;>
-      simp [xFin_eq, hD, hR, hs, mul_apply, gradedLatticeBasis, diagonal, (reindex_equiv e).2]
+      simp [xFin_eq, hD, hR, hs, Matrix.mul_apply, gradedLatticeBasis, diagonal,
+        (reindex_equiv e).2]
   have h_restrict (A : Matrix (X ⊕ Unit) (X ⊕ Unit) (𝔸f E)) :
       V.xFin.valᴴ * reindex e e (fromBlocks A 0 0 0) * V.xFin.val = (D * R)ᴴ * A * (D * R) := by
     rw [← h_rows]
     ext i j
-    simp [mul_apply, (reindex_equiv e).2]
+    simp [Matrix.mul_apply, (reindex_equiv e).2]
   rw [h_conj, Units.inv_eq_of_mul_eq_one_left gram_xFin, Y.ratCoordMatrixFin_inclXFin,
     Matrix.mul_assoc _ (V.J.map _), h_block, h_restrict, hD]
   split <;> simp [conjTranspose_mul, Matrix.mul_assoc, Pi.star_def, apply_ite star]
@@ -156,7 +161,7 @@ lemma Grading.inclXFin_mem_levelOf {P : Finset (FinPlace E)} {u : unitary (𝔸f
         simpa [idele_inv_apply_and_ne_zero, hπ.v_apply, hw, hw_star] using h_small i x x'
     · exact h_small i x x'
   -- Each entry of `Rᴴ M R` is a sum of products of an entry of `M` with two integral elements.
-  simp only [mul_apply, Finset.mul_sum, map_sum, map_mul]
+  simp only [Matrix.mul_apply, Finset.mul_sum, map_sum, map_mul]
   refine Valued.v.map_sum_lt one_ne_zero fun x _ ↦ Valued.v.map_sum_lt one_ne_zero fun x' _ ↦ ?_
   rw [map_mul, map_mul]
   exact (mul_le_of_le_one_left' (mem_Ô.1 (R_int.conjTranspose b x) (w i))).trans_lt

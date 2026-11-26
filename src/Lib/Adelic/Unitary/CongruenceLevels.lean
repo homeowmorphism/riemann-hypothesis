@@ -1,4 +1,6 @@
-import Lib.Adelic.Unitary.ComponentsAndBlockSums
+module
+
+public import Lib.Adelic.Unitary.ComponentsAndBlockSums
 
 /-!
 # Principal levels and levels defined by reductions in the finite adelic unitary group
@@ -43,6 +45,8 @@ of subgroups of the reductions at a family of places, or principal levels of a g
 the unitary group of the identity form. Source: V. Platonov, A. Rapinchuk, Algebraic groups and
 number theory, ch. 3 and 5; B. H. Gross, Algebraic modular forms, Israel J. Math. 113 (1999) 61-93.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -450,6 +454,7 @@ lemma card_Ô_quot_span (ha_ne : a ≠ 0) :
     Nat.card (Ô E ⧸ span {(a : Ô E)}) = absNorm (span {a}) := by
   have h_comap : (span {algebraMap _ (Ô E) a}).comap (algebraMap (𝓞 E) (Ô E)) = span {a} :=
     Ideal.ext (by simp [dvd_iff_Ô ha_ne, mem_span_singleton])
+  rw [Ideal.absNorm_eq_natCard]
   exact (card_eq_of_bijective _ (bijective_quot_Ô ha_ne h_comap (by simp))).symm
 
 /-- For a CM field `E` and an integer `a` of `E`, the principal level K(a) (the g in K₀ with g -

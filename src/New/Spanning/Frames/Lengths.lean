@@ -1,4 +1,6 @@
-import Lib.DiscreteSeries.Bruhat.FloorGroups
+module
+
+public import Lib.DiscreteSeries.Bruhat.FloorGroups
 
 /-!
 # Sizes, lengths and balanced frames
@@ -89,6 +91,8 @@ Notions from other files:
 See `New.Spanning.MainTerm.EnergyEstimate` for related work.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New.Floors
@@ -159,13 +163,13 @@ lemma coe_weylRatio :
     obtain rfl | hik := eq_or_ne i k
     · by_cases hi : level i < 𝔰.ϱ
       · rw [diagonal_apply_eq, div_eq_inv_mul]
-        simp [weylRatio, weylElem, weylOn, mul_apply, hk, h_invol, h_floor, h_swap, hi]
-      · simp [weylRatio, weylElem, weylOn, mul_apply, hk, h_invol, h_floor, h_swap, hi,
+        simp [weylRatio, weylElem, weylOn, Matrix.mul_apply, hk, h_invol, h_floor, h_swap, hi]
+      · simp [weylRatio, weylElem, weylOn, Matrix.mul_apply, hk, h_invol, h_floor, h_swap, hi,
           division_def]
-    · simp [weylRatio, weylElem, weylOn, mul_apply, hk, h_invol, h_floor, hik]
+    · simp [weylRatio, weylElem, weylOn, Matrix.mul_apply, hk, h_invol, h_floor, hik]
   · obtain rfl | hik := eq_or_ne i k
-    · simp [weylRatio, weylElem, weylOn, mul_apply, hk]
-    · simp [weylRatio, weylElem, weylOn, mul_apply, hk, hik]
+    · simp [weylRatio, weylElem, weylOn, Matrix.mul_apply, hk]
+    · simp [weylRatio, weylElem, weylOn, Matrix.mul_apply, hk, hik]
 
 /-- The inverse of w_q⁻¹ w_p is w_p⁻¹ w_q. -/
 lemma weylRatio_inv : (weylRatio j p q : T.G)⁻¹ = weylRatio j q p := by simp [weylRatio]

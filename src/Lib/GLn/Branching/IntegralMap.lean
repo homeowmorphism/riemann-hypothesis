@@ -1,4 +1,6 @@
-import Lib.GLn.Branching.NormBound
+module
+
+public import Lib.GLn.Branching.NormBound
 
 /-!
 # Branching from GL(n+1) to GL(n) × GL(1): integral equivariant branching maps
@@ -41,6 +43,8 @@ is non-zero is not part of the statement. Source: Goodman, Wallach 2009, Theorem
 Zhelobenko, Compact Lie Groups and their Representations, 1973, ch. X; Molev, Gelfand-Tsetlin bases
 for classical Lie algebras, arXiv math/0211289.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -254,7 +258,8 @@ private lemma exists_eval_detPowToPoly_eq_mul_branchKernel {c : ℤ} {η : WeylI
   clear g hη hy
   conv_rhs => simp +singlePass [← det_transpose, -finRotate_symm_apply]
   congr! <;> simp +instances (disch := grind) [ite_eq_right, ← Fin.eq_mk_iff_val_eq,
-    Nat.mod_eq_of_lt, Fin.add_def, -finRotate_symm_apply, ← Equiv.eq_symm_apply] <;> rfl
+    Nat.mod_eq_of_lt, Fin.add_def, -finRotate_symm_apply, ← Equiv.eq_symm_apply,
+    Function.swap]
 
 /-- Let `c • (weylKernel n γ₁ P₁ * weylKernel n κ' P) = toPoly n κ₀ η` for an integer `c` and an
 integer vector `η`, where `γ₁ τ h = γ τ (h + 1)`, `P` is the permutation array of the row order
@@ -361,7 +366,7 @@ lemma exists_int_branching_of_weylKernel {c : ℤ} {η : WeylIndexFamily n κ₀
   -- side is a power of `s` times `c` times the kernel at `gᵀ x` and `y`.
   simp [schur_mulVec_weylEval_of_schurDetExp_eq_zero, hB_kernel, branchKernel_blockScalar ι g s x y,
     detPowToPoly_smul_schur_mulVec g, mul_smul, eval_rowSubst, mul_left_comm, prod_mul_distrib,
-    -mulVec_mulVec]
+    -mulVec_mulVec, -transpose_of]
 
 /-- Let `v` be the Gram matrix `weylGramOver` times the evaluation vector at the permutation array
 of `rowEquivFin`. Let `B` be an integral matrix such that `nablaCombination` (ξ ↦ Σ ξ_i b_i over the
@@ -511,7 +516,6 @@ lemma _root_.New.exists_branching_matrix (κ₀ : Φ → ℕ → ℕ) (q : ℕ) 
     simp [weylRep, h_schur, h_det, he₀, Units.smul_def, mul_zpow, _root_.zpow_add, smul_smul,
       prod_mul_distrib, mul_assoc, mul_left_comm]
   · have hc_le : (c : ℝ) ≤ ((L : ℝ) ^ L) ^ 3 := by exact_mod_cast c_le L hL
-    have hc_nonneg : (0 : ℝ) ≤ c := by exact_mod_cast c_pos.le
     calc weylNormSq (B.map (Int.cast : ℤ → ℂ) *ᵥ ξ)
       _ ≤ (c : ℝ) ^ 2 * weylNormSq ξ := weylNormSq_mulVec_le_of_equivariant ι hκ₀ B_top B_block ξ
       _ ≤ (((L : ℝ) ^ L) ^ 3) ^ 2 * weylNormSq ξ := by

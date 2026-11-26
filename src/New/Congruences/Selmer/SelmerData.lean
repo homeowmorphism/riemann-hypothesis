@@ -1,7 +1,9 @@
-import Lib.ClassField.GaloisCohomology.TameSelmerCocycles
-import Lib.ClassField.GreenbergWiles.SelmerLevels
-import Lib.General.NumberTheory.CoefficientRings
-import New.Congruences.Selmer.AuxiliaryPrimes
+module
+
+public import Lib.ClassField.GaloisCohomology.TameSelmerCocycles
+public import Lib.ClassField.GreenbergWiles.SelmerLevels
+public import Lib.General.NumberTheory.CoefficientRings
+public import New.Congruences.Selmer.AuxiliaryPrimes
 
 /-!
 # Selmer data, tied Selmer groups and classes as functions
@@ -39,6 +41,8 @@ Known result: Sah's lemma, by which cocycles vanishing at an element that acts b
 See `New.Congruences.Selmer.Descent` for related work.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New.Selmer
@@ -67,7 +71,7 @@ def conjDualHom (a : O) :
     η (ρ g • u) m = η u ((cyclotomicCharIn O Ω ℓ (conjGal g) : O) • ρ (conjGal g)⁻¹ • m)}
   zero_mem' _ _ _ := rfl
   add_mem' {η η'} hη hη' g u m := by
-    show η (ρ g • u) m + η' (ρ g • u) m = η u _ + η' u _
+    change η (ρ g • u) m + η' (ρ g • u) m = η u _ + η' u _
     rw [hη g u m, hη' g u m]
   smul_mem' t η hη g u m := by simpa [smul_comm t] using hη g u (t • m)
 
@@ -606,7 +610,7 @@ lemma span_image_sahGroup_eq_top {T : SelmerDatum ℓ S₀ g₀ O n} {a : O}
     refine fun _ ↦ smul_mem_span_of_forall_smul_mem (T.ρ g) ?_
     rintro _ ⟨h, hh, rfl⟩
     rw [← cocycle_conj_of_fixed hz g (by simp [ρ_eq_one_of_mem_sahGroup hh])]
-    exact h_mem (Normal.conj_mem inferInstance h hh g)
+    exact h_mem (Normal.conj_mem h hh g)
   -- It contains a vector with a unit coordinate.
   obtain ⟨h, hh, j, h_unit⟩ := exists_mem_sahGroup_isUnit_apply hz hγ hz_unit
   exact eq_top_of_stable_of_isUnit T.span_range_eq_top (Set.forall_mem_range.2 h_stable)

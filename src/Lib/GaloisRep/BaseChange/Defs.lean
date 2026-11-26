@@ -1,4 +1,6 @@
-import Lib.Adelic.Unitary.Defs
+module
+
+public import Lib.Adelic.Unitary.Defs
 
 /-!
 # Twisted norms, matching pairs and base change maps for unitary groups
@@ -35,6 +37,8 @@ Notions from other files:
 
 Known; see `Lib.GaloisRep.BaseChange.PrimeDegreeTransfer` for sources.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -98,7 +102,7 @@ lemma twistedNorm_conj (τ : G →* G) (p : ℕ) {y : G} (hy : τ^[p] y = y) (δ
 lemma twistedNorm_mem {K : Subgroup G} (τ : G → G) (p : ℕ) (hK : ∀ k ∈ K, τ k ∈ K) {δ : G}
     (hδ : δ ∈ K) : twistedNorm τ p δ ∈ K := by
   -- Every factor `τ^[i] δ` of the product lies in `K`, as `τ` and its iterates map `K` into `K`.
-  show ((List.range p).map fun i ↦ τ^[i] δ).prod ∈ K
+  change ((List.range p).map fun i ↦ τ^[i] δ).prod ∈ K
   refine Subgroup.list_prod_mem _ fun x hx ↦ ?_
   obtain ⟨i, -, rfl⟩ := List.mem_map.mp hx
   exact Set.MapsTo.iterate hK i hδ
@@ -201,7 +205,7 @@ below it. -/
 lemma below_comap (u : FinPlace E') : (u.comap σ : FinPlace E').below E = u.below E := by
   -- Restricting along `σ` and then to `E` is, by definition, restricting along the composite,
   -- and `σ` fixes `E`.
-  show u.comap ((σ : E' →+* E').comp (algebraMap E E')) = u.comap (algebraMap E E')
+  change u.comap ((σ : E' →+* E').comp (algebraMap E E')) = u.comap (algebraMap E E')
   exact congrArg u.comap σ.toAlgHom.comp_algebraMap
 
 omit [IsCMField E'] in

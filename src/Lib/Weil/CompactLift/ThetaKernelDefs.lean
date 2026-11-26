@@ -1,4 +1,6 @@
-import Lib.Weil.DualPair.WeilAction
+module
+
+public import Lib.Weil.DualPair.WeilAction
 
 /-!
 # The jet matrix of a definite pair is a kernel for algebraic forms
@@ -33,6 +35,8 @@ Notions from other files:
 Known; see `Lib.Weil.CompactLift.DefiniteThetaLift` for sources.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 namespace New
@@ -60,13 +64,13 @@ lemma isHomogeneous_iff_aeval_smul_X {σ : Type*} {Q : MvPolynomial σ ℂ} {d :
     Q.IsHomogeneous d ↔ ∀ t : ℂ, t ≠ 0 → Q.aeval (fun x : σ ↦ t • X x) = t ^ d • Q := by
   refine ⟨fun hQ t _ ↦ ?_, fun hQ m hm ↦ ?_⟩
   · ext m
-    rw [coeff_aeval_smul_X, coeff_smul, smul_eq_mul]
+    rw [coeff_aeval_smul_X, AddMonoidAlgebra.coeff_smul_apply, smul_eq_mul]
     by_cases h : m.degree = d
     · rw [h]
     · simp [hQ.coeff_eq_zero h]
   · -- Compare the coefficients at `m` for `t = 2`.
     have h_pow : (2 : ℂ) ^ m.degree = 2 ^ d := mul_right_cancel₀ hm <| by
-      rw [← coeff_aeval_smul_X, hQ 2 two_ne_zero, coeff_smul, smul_eq_mul]
+      rw [← coeff_aeval_smul_X, hQ 2 two_ne_zero, AddMonoidAlgebra.coeff_smul_apply, smul_eq_mul]
     rw [Finsupp.degree_eq_weight_one] at h_pow
     exact Nat.pow_right_injective le_rfl (mod_cast h_pow)
 
@@ -285,7 +289,7 @@ lemma realPairWeil_schurCoeffPoly (hκ : IsLiftWeight n n' κ eb e) {ea : Infini
         ((y τ : GL n' ℂ) : Matrix n' n' ℂ)ᵀ *
           ((of fun (b : n') (c : n) ↦ w (τ, b, c)) * ((x τ : GL n ℂ) : Matrix n n ℂ)ᵀ) := by
     ext b c
-    simp only [of_apply, mul_apply, transpose_apply, Finset.mul_sum]
+    simp only [of_apply, Matrix.mul_apply, transpose_apply, Finset.mul_sum]
     exact sum_congr rfl fun i _ ↦ sum_congr rfl fun j _ ↦ by ring
   ext w
   -- Evaluate both polynomials at `w` and collect the Schur matrices on the right into one;
@@ -363,7 +367,8 @@ lemma theta_pairWeil_schurCoeffPoly (hκ : IsLiftWeight n n' κ eb e) (c : ℂ) 
   -- The real parts act on the polynomial through `A` and `ξ`, the finite parts act on `f`, and the
   -- theta functional of a polynomial tensored with a datum is a jet of its Taylor series.
   rw [pairWeil_integrated_all, realPairWeil_schurCoeffPoly hκ, schurJet_jetSeries_eq_smul hκ c]
-  simp [conjWeylRep, dotProduct_mulVec, ↓dotProduct_schurJet_mulVec, -mulVec_mulVec, smul_mulVec]
+  simp [conjWeylRep, dotProduct_mulVec, ↓dotProduct_schurJet_mulVec, -mulVec_mulVec, smul_mulVec,
+    aeval_X_left_apply]
 
 /-- The theta kernel of the definite pair `stdSpace E n`, `stdSpace E n'`, for characters `a`, `b`
 of weights `ea`, `eb` and a subgroup `K` of the finite points. The data are the finite part of

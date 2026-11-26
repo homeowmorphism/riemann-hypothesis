@@ -1,4 +1,6 @@
-import Lib.DiscreteSeries.Bessel.Basic
+module
+
+public import Lib.DiscreteSeries.Bessel.Basic
 
 /-!
 # Traces and L² bounds for Bessel functions
@@ -34,6 +36,8 @@ Notions from other files:
 Known; see `Lib.DiscreteSeries.Bessel.UnipotentHaarMeasure` and `Lib.DiscreteSeries.CuspKernel` for
 sources.
 -/
+
+@[expose] public section
 
 /-!
 ## The sum of the simple root entries as a trace against a fixed matrix
@@ -73,12 +77,12 @@ lemma trace_besselCharMatrix_mul (u : T.G) :
       (u.val.val (.inl a) (𝔰.besselFrame a.succ) +
         (T.splitGram * u.val.val) (𝔰.besselFrame a.succ) (eStar a)) := by
     -- The instantiated `sum_comm` moves the frame index outwards; the sums stay over one type.
-    simp [besselCharMatrix, trace, mul_apply, sum_mul, add_mul, sum_add_distrib,
+    simp [besselCharMatrix, trace, Matrix.mul_apply, sum_mul, add_mul, sum_add_distrib,
       @sum_comm (Fin _), -Fintype.sum_sum_type]
   have h_dual (a : Fin 𝔰.ϱ) : (T.splitGram * u.val.val) (𝔰.besselFrame a.succ) (eStar a) =
       star (u⁻¹.val.val (.inl a) (𝔰.besselFrame a.succ)) := by
     rw [h_unitary]
-    simp [mul_apply]
+    simp [Matrix.mul_apply]
   simp [h_trace, h_dual, simpleRootSum, sum_add_distrib]
 
 /-- On the Bessel subgroup S (`New.Shape.Form.besselS`), σ(u⁻¹) = −σ(u), where σ is the sum
@@ -118,7 +122,7 @@ Bochner integral of `‖F‖ ^ 2`. -/
 lemma lintegral_enorm_sq (hF_int : Integrable F ν) (h_top : MemLp F ∞ ν) :
     ∫⁻ y : G, ‖F y‖ₑ ^ 2 ∂ν = ENNReal.ofReal (∫ y : G, ‖F y‖ ^ 2 ∂ν) := by
   have h_sq_int := hF_int.norm.mul_of_top_left h_top.norm
-  simpa [sq] using (ofReal_integral_norm_eq_lintegral_enorm h_sq_int).symm
+  simpa [sq] using (ofReal_integral_norm_eq_lintegral_eNorm h_sq_int).symm
 
 /-- Schur's orthogonality relation for an idempotent kernel `ψ`:
 `∫ ψ a⁻¹ * ψ (g * (a * y)) da = ψ g / ψ 1 * ψ y`, where `ψ a⁻¹ = conj (ψ a)`. -/
@@ -479,7 +483,8 @@ theorem enorm_sq_le_of_forall_mem_inner_sq_le {H : Submodule ℂ E} {V : E} {B :
     ‖V‖ₑ ^ 2 ≤ B := by
   obtain h_top | h_fin := eq_or_ne B ∞
   · simp [h_top]
-  have h_self : ‖⟪V, V⟫_ℂ‖ₑ ^ 2 ≤ B * ‖V‖ₑ ^ 2 := closure_minimal h_le
+  have h_self : ‖⟪V, V⟫_ℂ‖ₑ ^ 2 ≤ B * ‖V‖ₑ ^ 2 :=
+    closure_minimal (t := {u | ‖⟪u, V⟫_ℂ‖ₑ ^ 2 ≤ B * ‖u‖ₑ ^ 2}) (fun u hu ↦ h_le u hu)
     (isClosed_le (by fun_prop) ((ENNReal.continuous_const_mul h_fin).comp (by fun_prop))) hV
   have h_enorm : ‖⟪V, V⟫_ℂ‖ₑ = ‖V‖ₑ ^ 2 := by simp [inner_self_eq_norm_sq_to_K, ← ofReal_norm]
   rw [h_enorm, sq (‖V‖ₑ ^ 2)] at h_self
@@ -520,9 +525,9 @@ theorem IsIdempotentKernel.enorm_integral_convolve_sq_le (hx : Integrable x)
         hψ.integral_inner_convolve_mul hx hψ_one hψ_bdd hx_conv hw hu hu
     calc
       _ ≤ (∫⁻ g, ‖z g * ⟪u, convolve w x g⟫_ℂ‖ₑ) ^ 2 := by
-        grw [inner_V, enorm_integral_le_lintegral_enorm]
+        grw [inner_V, eNorm_integral_le_lintegral_eNorm]
       _ ≤ (∫⁻ g, ‖z g‖ₑ ^ 2) * ∫⁻ g, ‖⟪u, convolve w x g⟫_ℂ‖ₑ ^ 2 :=
-        sq_lintegral_le (hz.1.enorm.pow_const 2) (coef_int.1.enorm.pow_const 2) (by simp [mul_pow])
+        sq_lintegral_le (hz.1.eNorm.pow_const 2) (coef_int.1.eNorm.pow_const 2) (by simp [mul_pow])
       _ = B * ‖u‖ₑ ^ 2 := by
         rw [lintegral_enorm_sq coef_int coef_bdd.memLp_top, orth, ofReal_mul' (by positivity),
           ofReal_pow (norm_nonneg u), ofReal_norm, hB]
@@ -660,7 +665,7 @@ lemma enorm_integral_besselS_mul (hW : IsBesselFunction rep W) {s : 𝔰.G₁} (
     _ = ‖wave (simpleRootSum u) • ∫ y : 𝔰.G₁, A (β y • W (g * y)) ∂μ‖ₑ := by
       simp only [h_transl, map_smul, smul_comm (β _), integral_smul]
     _ = ‖∫ y : 𝔰.G₁, A (β y • W (g * y)) ∂μ‖ₑ := by simp [← ofReal_norm, norm_smul]
-    _ = ‖∫ y : 𝔰.G₁, β y • W (g * y) ∂μ‖ₑ := by rw [A.integral_comp_comm, A.enorm_map]
+    _ = ‖∫ y : 𝔰.G₁, β y • W (g * y) ∂μ‖ₑ := by rw [A.integral_comp_comm, A.eNorm_map]
 
 /-- The norm of a Bessel function `W` is invariant under left multiplication by the Bessel
 subgroup. -/

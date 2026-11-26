@@ -1,6 +1,8 @@
-import Lib.General.Algebra.MultivariatePolynomials
-import Lib.General.Geometry.GeometricPoints
-import Lib.General.LinearAlgebra.MatrixPolynomials
+module
+
+public import Lib.General.Algebra.MultivariatePolynomials
+public import Lib.General.Geometry.GeometricPoints
+public import Lib.General.LinearAlgebra.MatrixPolynomials
 
 /-!
 # Flat families of ideals cut out by points and the flat closure of theta points
@@ -43,6 +45,8 @@ Notions from other files:
 
 Known; see `Lib.Shimura.ThetaModuli.UniversalFamily` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -613,7 +617,7 @@ lemma isDenseFamily_of_isChartPresentation {J W : Type} {X : Scheme} {L : LineBu
     IsDenseFamily x := by
   -- Otherwise a basic open set of some `u c f` contains a point `y` and misses all the `x v`.
   -- Then `f` vanishes at the `θ v`, so `u c f = 0` and the basic open set is empty.
-  show ∀ y : X, y ∈ closure (Set.range fun v : W ↦ x v (IsLocalRing.closedPoint ℂ))
+  change ∀ y : X, y ∈ closure (Set.range fun v : W ↦ x v (IsLocalRing.closedPoint ℂ))
   intro y
   by_contra hy
   obtain ⟨c, hc⟩ := TopologicalSpace.IsOpenCover.exists_mem (cover L) y

@@ -1,4 +1,6 @@
-import Lib.General.Measure.IdempotentKernel
+module
+
+public import Lib.General.Measure.IdempotentKernel
 
 /-!
 # Quotient measures via cutoffs: unfolding, covolume, unimodularity, periodic means
@@ -35,6 +37,8 @@ applications to Palm and related kernels, Probab. Theory Related Fields 139 (200
 cited in D. Gentner, G. Last, Math. Z. 267 (2011), §2); for the classical form, N. Bourbaki,
 Intégration VII, 1963.
 -/
+
+@[expose] public section
 
 /-!
 ## Cutoff weights and the quotient measure
@@ -91,17 +95,6 @@ abbrev HasCutoff (X : Type*) [MeasurableSpace X] [SMul H X] : Prop :=
 lemma isCutoff_chosenCutoff [h_cutoff : HasCutoff ν X] :
     IsCutoff ν (chosenCutoff ν : X → ENNReal) :=
   Classical.epsilon_spec h_cutoff.out
-
-/-- If the action has a cutoff, the chosen weight is measurable. -/
-@[to_additive measurable_chosenAddCutoff]
-lemma measurable_chosenCutoff [HasCutoff ν X] : Measurable (chosenCutoff ν : X → ENNReal) :=
-  (isCutoff_chosenCutoff ν).1
-
-/-- If the action has a cutoff, the chosen weight has integral one over each orbit. -/
-@[to_additive lintegral_chosenAddCutoff_vadd]
-lemma lintegral_chosenCutoff_smul [HasCutoff ν X] (x : X) :
-    ∫⁻ h : H, chosenCutoff ν (h • x) ∂ν = 1 :=
-  (isCutoff_chosenCutoff ν).2 x
 
 /-- Shortcut: the `MulAction` instance of a subgroup `N` on its ambient group `G`. -/
 @[to_additive]
@@ -404,24 +397,8 @@ noncomputable abbrev cosetProdEquiv : (G ⧸ N) × N ≃ G where
   left_inv x := by aesop
   right_inv x := by aesop
 
-omit [TopologicalSpace G] in
-lemma cosetProdEquiv_apply (q : G ⧸ N) (u : N) :
-    cosetProdEquiv N (q, u) = (u : G) * q.out⁻¹ := rfl
-
-omit [TopologicalSpace G] in
-/-- The coset component of `γ` is the left coset of `γ⁻¹`. -/
-lemma cosetProdEquiv_symm_apply_fst (γ : G) :
-    ((cosetProdEquiv N).symm γ).1 = ((γ⁻¹ : G) : G ⧸ N) := rfl
-
-omit [TopologicalSpace G] in
-/-- The `N`-component of `γ` is `γ` times the chosen representative of the left coset of
-`γ⁻¹`. -/
-lemma cosetProdEquiv_symm_apply_snd (γ : G) :
-    (((cosetProdEquiv N).symm γ).2 : G) = γ * ((γ⁻¹ : G) : G ⧸ N).out := by
-  simp [cosetProdEquiv]
-
 instance : DiscreteTopology (Γ.subgroupOf N) :=
-  have h_cont : Continuous (Subtype.val : N → G) := continuous_subtype_val
+  have h_cont : Continuous (Subtype.val : N → G) := continuous_subtypeVal
   .preimage_of_continuous_injective Γ.carrier h_cont Subtype.val_injective
 
 instance : DiscreteTopology ↥(Γ ⊓ N) :=
@@ -605,7 +582,7 @@ instance [IsMulRightInvariant μ] : IsInvInvariant μ := by
   -- `K = K₀ ∪ K₀⁻¹`; the factors agree because `K` is symmetric.
   obtain ⟨K₀⟩ : Nonempty (TopologicalSpace.PositiveCompacts G) := inferInstance
   let K : TopologicalSpace.PositiveCompacts G := K₀ ⊔ K₀.map _ continuous_inv (isOpenMap_inv G)
-  have h_mass : μ.inv K = μ K := by simp [K, union_comm]
+  have h_mass : μ.inv K = μ K := by simp [K, union_comm, ← Set.inv_preimage, preimage_preimage]
   constructor
   calc
     μ.inv = μ.inv K • haarMeasure K := haarMeasure_unique _ K

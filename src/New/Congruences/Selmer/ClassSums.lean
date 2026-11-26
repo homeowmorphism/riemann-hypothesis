@@ -1,9 +1,11 @@
-import New.Congruences.GaloisRepresentations.SelmerHypotheses
-import New.Congruences.Selmer.AuxiliaryPrimes
-import New.OneLift.ComparisonOperator.ThreeExchanges
-import New.OneLift.HeckeValues.AlgebraicPartIntegrality
-import New.OneLift.HeckeValues.PeriodAtOne
-import New.OneLift.HeckeValues.TwistedRatio
+module
+
+public import New.Congruences.GaloisRepresentations.SelmerHypotheses
+public import New.Congruences.Selmer.AuxiliaryPrimes
+public import New.OneLift.ComparisonOperator.ThreeExchanges
+public import New.OneLift.HeckeValues.AlgebraicPartIntegrality
+public import New.OneLift.HeckeValues.PeriodAtOne
+public import New.OneLift.HeckeValues.TwistedRatio
 
 /-!
 # L-values of a pair as integral measures, and avatars of tame characters
@@ -47,6 +49,8 @@ p-adic L-functions for CM fields, Invent. Math. 49 (1978); construction as theta
 Bertolini, Darmon, Invent. Math. 126 (1996), adelic form Chida, Hsieh, J. reine angew. Math. 741
 (2018); Euler factor: Tamagawa, Ann. of Math. 77 (1963).
 -/
+
+@[expose] public section
 
 open New Matrix Finset Complex Rows WeilData HeckeChar Data AlgHeckeChar AutChar HasWeight Unitary
 
@@ -333,7 +337,7 @@ theorem exists_isTwistMeasure_of_z_eq_one {p : D.CriticalPair} (h_ram : p.IsRami
         ((p.character * ϑ.toAutChar * upsilonU1 ^ 1).frobValue (Fin 2) v)⁻¹ * Λ ϑ :=
       detPeriod_mul_upsilonU1_insert hv hQ hχ hψ
     simp [h_period, ↓← mul_conj', AutChar.frobValue, AutChar.spaceChar, ← ofReal_pow,
-      prod_range, inv_eq_conj, prod_mul_distrib]
+      prod_range, inv_eq_conj, prod_mul_distrib, IsDedekindDomain.HeightOneSpectrum.ne_bot]
     ring
   · -- Compare `Λ_twist` at `ϑ` and at `1`: the two values of `lValueProd` differ by the factor
     -- in `lValueProd_eq_mul_prod_ratio_sq`, and `C ≠ 0` cancels.

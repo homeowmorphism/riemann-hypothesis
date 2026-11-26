@@ -1,4 +1,6 @@
-import New.Spanning.Unfolding.Climbing
+module
+
+public import New.Spanning.Unfolding.Climbing
 
 /-!
 # The finite groups `Ū`, `H̄` and `R̄`
@@ -19,6 +21,8 @@ Notions from other files:
   invertible over the integral adeles `Ô E`; `S.reduction` reduces them modulo the chosen places.
 * `S.reducedImage B`: the image of `B ⊓ S.latticeStabilizer` under `S.reduction`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -162,7 +166,7 @@ lemma splitGram_mul_conjTranspose_mul_splitGram_apply_eq_zero {A : Type} [CommRi
     (hZ : ∀ d c : 𝔰.BesselIndex, BesselIndex.level c ≤ BesselIndex.level d → Z d c = 0)
     {i j : 𝔰.BesselIndex} (hij : BesselIndex.level j ≤ BesselIndex.level i) :
     (T'.splitGram * Zᴴ * T.splitGram) i j = 0 := by
-  simp only [mul_apply, sum_mul]
+  simp only [Matrix.mul_apply, sum_mul]
   refine sum_eq_zero fun d _ ↦ sum_eq_zero fun c _ ↦ ?_
   by_cases h_left : BesselIndex.level i + BesselIndex.level c = 2 * 𝔰.ϱ
   · by_cases h_right : BesselIndex.level d + BesselIndex.level j = 2 * 𝔰.ϱ

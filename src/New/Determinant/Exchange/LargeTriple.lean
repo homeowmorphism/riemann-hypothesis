@@ -1,8 +1,10 @@
-import Lib.SiegelWeil.Formula.StrongApproximation
-import Lib.SiegelWeil.Tower.LargeSideConstantTerm
-import New.Determinant.Exchange.EquivariantDifference
-import New.Determinant.Exchange.NegativeIndices
-import New.Determinant.Exchange.StableSpacesStandardData
+module
+
+public import Lib.SiegelWeil.Formula.StrongApproximation
+public import Lib.SiegelWeil.Tower.LargeSideConstantTerm
+public import New.Determinant.Exchange.EquivariantDifference
+public import New.Determinant.Exchange.NegativeIndices
+public import New.Determinant.Exchange.StableSpacesStandardData
 
 /-!
 # Parabolic theta terms, equal ranks, and the exchange identity for the large triple
@@ -49,6 +51,8 @@ Notions from other files:
 
 See `New.Determinant.Exchange.TheoremForPartners` for related work.
 -/
+
+@[expose] public section
 
 /-!
 ## Terms of a standard datum at a point of the parabolic subgroup
@@ -501,7 +505,8 @@ lemma exists_blockSumOne_mul_mem_stdLevel {Y : GL b (𝔸 E)} {k : GL b (𝔸f E
     simpa [Z, w, Yk, G.sum, U.sum, blockGL, IsIntMatrix, ← fromCols_fromRows_eq_fromBlocks,
       Matrix.mul_assoc, fromRows_map, fromCols_mul_fromRows] using h_int.mul hk.isIntMatrix
   have hZ_orth : Zᴴ * (1 : Matrix (b ⊕ n) (b ⊕ n) (𝔸f E)) * Z = 1 :=
-    (congrArg toBlocks₁₁ (u⁻¹ * U.blockSumOne w).prop).trans (by simp [← fromBlocks_one])
+    (congrArg toBlocks₁₁ (mem_unitaryGroupOf_iff.1 (u⁻¹ * U.blockSumOne w).prop)).trans
+        (by simp [← fromBlocks_one])
   have hZ₀_int : IsIntMatrix (Ô E) Z₀ := by simp [Z₀, IsIntMatrix, ite_mem, Matrix.one_apply]
   have hZ₀_orth : Z₀ᴴ * (1 : Matrix (b ⊕ n) (b ⊕ n) (𝔸f E)) * Z₀ = 1 := by
     simp [Z₀, conjTranspose_fromRows_eq_fromCols_conjTranspose, fromCols_mul_fromRows]

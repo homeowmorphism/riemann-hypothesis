@@ -1,6 +1,8 @@
-import Lib.General.Combinatorics
-import Lib.Shimura.CongruenceRelation.HeckeNeighbours
-import Lib.Shimura.IntegralModel.BallImmersion
+module
+
+public import Lib.General.Combinatorics
+public import Lib.Shimura.CongruenceRelation.HeckeNeighbours
+public import Lib.Shimura.IntegralModel.BallImmersion
 
 /-!
 # Existence of the model: the tower of Kuga–Sato covers with its congruence relation
@@ -41,6 +43,8 @@ Source: Harris, Taylor, The geometry and cohomology of some simple Shimura varie
 Kottwitz, Points on some Shimura varieties over finite fields, JAMS 5 (1992), §5.
 -/
 
+@[expose] public section
+
 open NumberField CategoryTheory AlgebraicGeometry IsLocalRing CommRingCat New.Variety Spec
   ULift QuotientGroup Category Function ReducedClosure Finset IncidenceAlgebra Filter Algebra
   RingHom Over Finsupp ModuliPoint UniversalFamily
@@ -67,12 +71,12 @@ lemma New.Variety.cancels_moebius_of_factorsThrough_sup {E n : Type} {X : Type*}
     refine .trans ?_ (sum_fiberwise_eq_sum_filter ..).symm
     by_cases h : W ≤ B
     · simp [h, μ, ← Int.cast_inj (α := ℂ), prod_eq_zero (i := 0), q_binomial_submodule,
-        ← card_ResField, zero_lt_iff, ne_bot_of_le_ne_bot hW]
+        ← card_ResField, pos_iff_ne_zero, ne_bot_of_le_ne_bot hW]
     · simp [h]
   have F_eq_zero (B : Submodule (ResField w) (n → ResField w)) : F B = 0 := by
     simpa using moebius_inversion_bot F 0 sum_F B
   -- `F B` is the coefficient of `B` in the formal sum of the `μ A • [A ⊔ W]`
-  refine .mono ((FreeAbelianGroup.equivFinsupp _).injective (ext fun B ↦ ?_)) hv
+  refine .mono ((FreeAddCommGroup.equivFinsupp _).injective (ext fun B ↦ ?_)) hv
   simpa [sum_ite, single_apply, filter_filter, -zsmul_eq_mul] using F_eq_zero B
 
 /-- Suppose `D.β` is the image of (1 + √−d₀)/2, and `c` sends the complex point of each `a` in the
@@ -191,7 +195,7 @@ lemma New.Variety.UniversalFamily.GraphClosure.isTangentPoly_localTerm_of_transl
   -- it remains to check its dimension and its base point, that `dc` is injective, and `dv = dc K`
   refine ⟨.of ℂ _, ⟨homMk σ ((hσ.comp_base_eq fun _ ↦ w _).trans (map_comp ..).symm)⟩, K, ?_, ?_,
     fun x y hxy ↦ ?_, fun x ↦ up_inj.mpr (OverMorphism.ext ?_), hdet⟩
-  · simp [(f.torus 0).isPeriodMap.finrank_eq_abelianDim, Module.finrank_pi_fintype]
+  · simp [finrank_eq_abelianDim (f.torus 0).realEquiv, Module.finrank_pi_fintype]
   · -- the jet `σ` lies over the point of `f.ballPoint a.markedPoint 0 = a`
     refine congrArg ULift.up (OverMorphism.ext (hσ.fst_comp.trans ?_))
     rw [hf.ballPoint_zero]
@@ -238,28 +242,26 @@ lemma New.Variety.UniversalFamily.GraphClosure.exists_point_act_eq {E : Type} [F
 
 /-- A map `f` from the closure `C` to the base that translates the complex points by `g` is
 determined by the coset of `g` modulo `levelGU D.Index D.level`: there is one map `u` on all cosets
-with `f = u ⟦g⟧` for every such `f`. The map `c` serves only (the hypothesis `_hc` is unused) to
-show that maps to the base exist. -/
+with `f = u ⟦g⟧` for every such `f`. The map `c` witnesses that maps to the base exist. -/
 lemma New.Variety.UniversalFamily.GraphClosure.exists_forall_eq_apply_mk_of_translate {E : Type}
     [Field E] [CMBase E] {R : Subalgebra (𝓞 E) E} {D : PEL E} {U : UniversalFamily D R} {ν : ℕ}
     [NeZero ν] {J : Type} [Finite J] {γ : J → nonZeroDivisors (𝓞 E) × GUPlus E D.Index}
     (C : U.GraphClosure γ ν)
-    {c : C.scheme ⟶ (Over.map U.base.hom).obj
-      (ThetaFamily.fibrePower (NonzeroTorsion 1 D.Index ⊕ Fin ν))}
-    (_hc : ∀ a : ModuliPoint E D.Index ν, C.point a ≫ c = U.datumPoint 1 a) :
+    (c : C.scheme ⟶ (Over.map U.base.hom).obj
+      (ThetaFamily.fibrePower (X := U.family) (NonzeroTorsion (E := E) 1 D.Index ⊕ Fin ν))) :
     ∃ u : (GL D.Index (𝔸f E) ⧸ levelGU D.Index D.level) →
         (C.scheme ⟶ (Over.map U.base.hom).obj
-          (ThetaFamily.fibrePower (NonzeroTorsion 1 D.Index ⊕ Fin ν))),
+          (ThetaFamily.fibrePower (X := U.family) (NonzeroTorsion (E := E) 1 D.Index ⊕ Fin ν))),
       ∀ {g : GL D.Index (𝔸f E)}
         {f : C.scheme ⟶ (Over.map U.base.hom).obj
-          (ThetaFamily.fibrePower (NonzeroTorsion 1 D.Index ⊕ Fin ν))}
+          (ThetaFamily.fibrePower (X := U.family) (NonzeroTorsion (E := E) 1 D.Index ⊕ Fin ν))}
         (hg : g ∈ GUPlus E D.Index),
       (∀ a : ModuliPoint E D.Index ν, C.point a ≫ f = U.datumPoint 1 (a.act ⟨g, hg⟩)) →
       f = u ⟦g⟧ := by
   -- the legs: maps `f` that translate complex points by some `g`
   let Leg := Σ' (g : GUPlus E D.Index)
     (f : C.scheme ⟶ (Over.map U.base.hom).obj
-      (ThetaFamily.fibrePower (NonzeroTorsion 1 D.Index ⊕ Fin ν))),
+      (ThetaFamily.fibrePower (X := U.family) (NonzeroTorsion (E := E) 1 D.Index ⊕ Fin ν))),
     ∀ a : ModuliPoint E D.Index ν, C.point a ≫ f = U.datumPoint 1 (a.act g)
   -- two legs whose `g` have the same coset agree on all complex points, hence are equal
   have factors :
@@ -271,7 +273,7 @@ lemma New.Variety.UniversalFamily.GraphClosure.exists_forall_eq_apply_mk_of_tran
     simpa [hf, hf', act, datumPoint_eq_iff, isLevelIso_iff, ratConj] using ⟨1, by
       simpa [QuotientGroup.eq] using hpq.symm⟩
   have h_nonempty : Nonempty (C.scheme ⟶ (Over.map U.base.hom).obj
-      (ThetaFamily.fibrePower (NonzeroTorsion 1 D.Index ⊕ Fin ν))) := ⟨c⟩
+      (ThetaFamily.fibrePower (X := U.family) (NonzeroTorsion (E := E) 1 D.Index ⊕ Fin ν))) := ⟨c⟩
   obtain ⟨u, hu⟩ := (factorsThrough_iff _).mp factors
   exact ⟨u, fun hg h ↦ congrFun hu ⟨⟨_, hg⟩, _, h⟩⟩
 
@@ -409,7 +411,8 @@ lemma New.Variety.exists_model {E : Type} [Field E] [CMBase E]
   have pt_base (i) (a : ModuliPoint E D.Index ν) :
       (C i).point a ≫ (C i).proj ⟨⟦1⟧, 1, by simp⟩ = U.datumPoint 1 a := by
     simp [↓(C i).point_comp_proj_towerPairs (hM i), act]
-  choose u eq_u using fun i ↦ (C i).exists_forall_eq_apply_mk_of_translate (pt_base i)
+  choose u eq_u using fun i ↦
+    (C i).exists_forall_eq_apply_mk_of_translate ((C i).proj ⟨⟦1⟧, 1, by simp⟩)
   let s i := {g | ∃ hg, ∀ a, (C i).point a ≫ u i ⟦g⟧ = U.datumPoint 1 (a.act ⟨g, hg⟩)}
   have mem_s {i g f} (hg : g ∈ GUPlus E D.Index)
       (h : ∀ a, (C i).point a ≫ f = U.datumPoint 1 (a.act ⟨g, hg⟩)) : g ∈ s i :=

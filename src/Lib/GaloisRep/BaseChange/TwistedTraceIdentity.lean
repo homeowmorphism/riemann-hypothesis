@@ -1,7 +1,9 @@
-import Lib.Adelic.AutomorphicForms.HeckeEigenforms
-import Lib.Adelic.Landherr
-import Lib.GaloisRep.BaseChange.GlobalRoot
-import Lib.Shimura.TraceFormula.DefiniteTrace
+module
+
+public import Lib.Adelic.AutomorphicForms.HeckeEigenforms
+public import Lib.Adelic.Landherr
+public import Lib.GaloisRep.BaseChange.GlobalRoot
+public import Lib.Shimura.TraceFormula.DefiniteTrace
 
 /-!
 # Twisted trace identity for a step E'/E of CM fields of prime degree
@@ -37,6 +39,8 @@ Notions from other files:
 
 Known; see `Lib.GaloisRep.BaseChange.PrimeDegreeTransfer` for sources.
 -/
+
+@[expose] public section
 
 /-! ## Double counting of moves between weighted samples of pairs -/
 
@@ -413,8 +417,8 @@ lemma New.exists_trace_mul_weightRep_eq_of_twistedNorm_eq [DecidableEq n] (hσ :
         univ_eq_empty]
     | succ m ih =>
       -- Use `ih` for `ω δ` and `M * G 0 (ω δ)`; by definition `G l (ω δ) = G (l + 1) δ`.
-      simp [h_norm, ← (consEquiv fun _ : Fin (m + 2) ↦ _).sum_comp, ← mul_assoc, mul_apply, sum_mul,
-        Fintype.sum_prod_type_right, prod_univ_succ, ih]
+      simp [h_norm, ← (consEquiv fun _ : Fin (m + 2) ↦ _).sum_comp, ← mul_assoc, Matrix.mul_apply,
+        sum_mul, Fintype.sum_prod_type_right, prod_univ_succ, ih]
       rfl
   -- `s` permutes the basis by rotating the index `Fin (k + 1)`.
   refine ⟨(submatrix 1 (A.trans ((finRotate _).piCongrLeft' _)) A).toLin',

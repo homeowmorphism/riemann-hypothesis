@@ -1,4 +1,6 @@
-import New.Determinant.Exchange.LargeTriple
+module
+
+public import New.Determinant.Exchange.LargeTriple
 
 /-!
 # Change of point and sign, and descent of the exchange identity by removing hyperbolic planes
@@ -43,6 +45,8 @@ Notions from other files:
 See `Lib.Weil.DualPair.ThetaLiftConvergence` for sources.
 -/
 
+@[expose] public section
+
 namespace New.Exchange
 
 /-! ## Forms and theta integrals under change of point and sign -/
@@ -76,7 +80,8 @@ lemma isForm_neg_iff_and_integral_neg (W : Space E n s) (S : Space E n (-s))
     ∀ F : G E (-s) → ℂ,
       ∫ g : G E (-s), F g ∂S.quotMeasure = ∫ g : G E s, F (G.neg g) ∂W.quotMeasure := by
   -- `U (signMatrix (-s))` is the same subgroup as `U (signMatrix s)`, with the same Haar measure.
-  have h_group : U (signMatrix s : Matrix n n ℂ) = U (signMatrix (-s)) := by simp [U]
+  have h_group : U (signMatrix s : Matrix n n ℂ) = U (signMatrix (-s)) := by
+    ext; simp [mem_unitaryGroupOf_iff]
   -- This is stated for any proof `h_mem` that the subgroups agree, as that proof changes below.
   have h_haar (h_mem : ∀ g : GL n ℂ, g ∈ U (signMatrix s) ↔ g ∈ U (signMatrix (-s))) :
       MeasurePreserving (Equiv.subtypeEquivRight h_mem : USign s ≃ USign (-s)) :=
@@ -237,6 +242,11 @@ variable {E : Type} [Field E] [CMType E] [WeilData E] {n n' r r' p b : Type} [Fi
   [DecidableEq r'] [Fintype p] [DecidableEq p] [Fintype b] [DecidableEq b] {s : n → ℤˣ}
   {s' : n' → ℤˣ} {t : r → ℤˣ} {t' : r' → ℤˣ} {u : b → ℤˣ} {W : Space E n s} {W' : Space E n' s'}
 
+/-- Adding hyperbolic planes contributes one negative sign per plane. -/
+lemma negCount_sumElim_hyperbolicSigns {ι m : Type} [Fintype ι] [Fintype m]
+    (ε : m → ℤˣ) : negCount (Sum.elim (hyperbolicSigns ι) ε) = card ι + negCount ε := by
+  simp [negCount_sumElim, negCount_one_and_neg_one]
+
 variable (p W) in
 /-- Let the signs `t` have the rank and the number of minus signs (`negCount`) of `W` plus `card p`
 hyperbolic planes. Then there is a space `W'` with signs `t` and a splitting of `W'` over `W` with
@@ -248,7 +258,7 @@ lemma exists_isBaseAdapted (t : r → ℤˣ) (h_rank : card r = card n + 2 * car
   -- Relabel `hyperbolicSum p W` along a bijection of index sets that matches the signs.
   obtain ⟨ε, hε⟩ : ∃ ε : r ≃ (p ⊕ p) ⊕ n, (hyperbolicSigns p ⊕ᵥ s) ∘ ε = t :=
     exists_equiv_comp_eq_of_negCount_eq (by simpa +arith)
-      (by simpa [negCount_sumElim, negCount_one_and_neg_one])
+      (by simpa only [negCount_sumElim_hyperbolicSigns] using h_neg)
   let W' : Space E r t := (hyperbolicSum p W).reindex ε.symm hε
   let A : W'.Splitting W p := splittingOfGram (submatrix 1 ε id) (by simp [W']) h_rank
   -- The frame of `A` is that of `removePlanes` with the rows permuted.
@@ -669,8 +679,8 @@ lemma exists_rowColExchangeIdentity_removing_planes (U : Space E b u) (V' : Spac
     let Y := hyperbolicSum (Fin 1) V
     let τ : b ⊕ (Fin 1 ⊕ Fin 1) ⊕ r ≃ (Fin 1 ⊕ Fin 1) ⊕ n :=
       equivOfCardEq (by simp +arith [← card_congr σ])
-    have h_neg : negCount (hyperbolicSigns (Fin 1) ⊕ᵥ t) = card (Fin 1) + negCount t := by
-      simp [negCount_sumElim, negCount_one_and_neg_one]
+    have h_neg : negCount (hyperbolicSigns (Fin 1) ⊕ᵥ t) = card (Fin 1) + negCount t :=
+      negCount_sumElim_hyperbolicSigns t
     obtain ⟨x₁, h_above⟩ : ∃ x₁ : PairFock E (hyperbolicSigns (Fin 1) ⊕ᵥ s)
       (hyperbolicSigns (Fin 1) ⊕ᵥ t),
         RowColExchangeIdentity (hyperbolicSum (Fin 1) W) Y U μ τ x₁ (realSlice B U 0 y) ℓ :=

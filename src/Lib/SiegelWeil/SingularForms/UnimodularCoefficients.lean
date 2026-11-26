@@ -1,5 +1,7 @@
-import Lib.SiegelWeil.SingularForms.CentreCoefficients
-import Lib.Weil.MixedModel.AdaptedSplitting
+module
+
+public import Lib.SiegelWeil.SingularForms.CentreCoefficients
+public import Lib.Weil.MixedModel.AdaptedSplitting
 
 /-!
 # Singular forms governed by unimodular coefficients
@@ -54,6 +56,8 @@ degenerate Fourier coefficients, Amer. J. Math. 119 (1997).
 The tower property for the constant term of a theta lift along an isotropic line is in
 `Lib.SiegelWeil.Tower.LargeSideConstantTerm`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -438,7 +442,7 @@ lemma isIntMatrix_siegelBracket {T : Matrix p p E} {s₂ : n₂ → ℤˣ}
     have hk_D : IsIntMatrix O D.kAdelic := fun i j ↦ by
       simpa only [comp_kAdelic, ← hD, fromCols_apply_inr] using hk i (.inr j)
     have hl_D : IsIntMatrix O D.lCoord := fun i j ↦ by
-      simpa only [lCoord, comp_kAdelic, ← hD, mul_apply, conjTranspose_apply,
+      simpa only [lCoord, comp_kAdelic, ← hD, Matrix.mul_apply, conjTranspose_apply,
         fromCols_apply_inr] using hl (.inr i) j
     simpa only [adeleMatrix_radicalCentre] using IsIntMatrix.one.add ((hk_D.mul hM).mul hl_D)
   have h_centre : (D.radicalCentre M).2 ∈ stdLevel E n := mem_stdLevel.2 h_mat

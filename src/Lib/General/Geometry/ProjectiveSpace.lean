@@ -1,4 +1,6 @@
-import Lib.General.Geometry.LineBundles
+module
+
+public import Lib.General.Geometry.LineBundles
 
 /-!
 # Projective space, linear systems and projective embeddings, with Segre and Veronese
@@ -41,6 +43,8 @@ Notions from other files:
 * `New.PointFn.ofSection`: a section s over U as a function on ring-valued points: its value at t :
   Spec A → X is t*s in A if t lands in U, and 0 otherwise.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -255,7 +259,7 @@ lemma IsLinearSystem.pull (p : Y ⟶ X) (hL : L.IsLinearSystem) : (L.pull p).IsL
 
 /-- The products v_i w_k of homogeneous coordinates v and w of a point t for L and for N are
 homogeneous coordinates of t for the tensor product of L and N. -/
-lemma isHomogeneousCoords_mul_prod (hv : L.IsHomogeneousCoords t v) {w : κ → A}
+lemma IsHomogeneousCoords.mul (hv : L.IsHomogeneousCoords t v) {w : κ → A}
     (hw : N.IsHomogeneousCoords t w) :
     (L.mul N).IsHomogeneousCoords t fun i : ι × κ ↦ v i.1 * w i.2 := by
   refine .intro (fun a ↦ ?_) fun a k h_unit ↦ ?_
@@ -275,8 +279,7 @@ lemma IsLinearSystem.mul (hL : L.IsLinearSystem) (hN : N.IsLinearSystem) :
     · simp [hN.transition_eq_zero j.2 hNt]
   isHomogeneousCoords_transition {A i t} ht := by
     obtain ⟨hLt, hNt⟩ := landsIn_mul_opens_iff.1 ht
-    exact isHomogeneousCoords_mul_prod (hL.isHomogeneousCoords_transition hLt)
-      (hN.isHomogeneousCoords_transition hNt)
+    exact (hL.isHomogeneousCoords_transition hLt).mul (hN.isHomogeneousCoords_transition hNt)
 
 namespace IsHomogeneousCoords
 
@@ -306,12 +309,6 @@ lemma map (hv : L.IsHomogeneousCoords t v) {R : CommRingCat} (hL : L.IsLinearSys
     funext fun j ↦ by simp [hL.isRegularOn_transition i j φ t h_chart, h_scale j]
   rw [h_eq]
   exact (hL.isHomogeneousCoords_transition (h_chart.comp _)).smul (hi.map φ.hom)
-
-/-- The products of homogeneous coordinates of a point for L and for N are homogeneous coordinates
-of it for the tensor product of L and N. -/
-lemma mul (hv : L.IsHomogeneousCoords t v) {w : κ → A} (hw : N.IsHomogeneousCoords t w) :
-    (L.mul N).IsHomogeneousCoords t fun i : ι × κ ↦ v i.1 * w i.2 :=
-      isHomogeneousCoords_mul_prod hv hw
 
 lemma exists_ne_zero [IsLocalRing A] (hv : L.IsHomogeneousCoords t v) : ∃ i : ι, v i ≠ 0 := by
   obtain ⟨i, hi⟩ := L.exists_landsIn t

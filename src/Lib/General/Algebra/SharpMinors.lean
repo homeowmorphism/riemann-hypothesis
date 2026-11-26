@@ -1,4 +1,6 @@
-import Lib.General.Algebra.FittingIdealsAndLengths
+module
+
+public import Lib.General.Algebra.FittingIdealsAndLengths
 
 /-!
 # Maximal minors and lengths
@@ -24,6 +26,8 @@ Notions from other files:
 Known result: Length of a matrix kernel modulo `a` over a discrete valuation ring via maximal
 minors. A consequence of the theorem on elementary divisors.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -54,7 +58,7 @@ the rows of `A.map ev` and `ev a • 1`. -/
 lemma image_maximalMinors (A : Matrix r k Λ) (a : Λ) (ev : Λ →+* O) :
     ev '' maximalMinors A a = maximalMinors (A.map ev) (ev a) := by
   have h_map : (A.fromRows (a • (1 : Matrix k k Λ))).map ev = (A.map ev).fromRows (ev a • 1) := by
-    ext (i | i) j <;> simp [one_apply, apply_ite ev]
+    ext (i | i) j <;> simp [Matrix.one_apply, apply_ite ev]
   simp [maximalMinors, ← Set.range_comp, Function.comp_def, ev.map_det, ← h_map, submatrix_map]
 
 omit [DecidableEq k] in
@@ -67,7 +71,8 @@ lemma smul_mem_rowLattice (A : Matrix r k O) (a : O) (v : k → O) : a • v ∈
   rw [pi_eq_sum_univ' v, Finset.smul_sum]
   refine sum_mem fun j _ ↦ ?_
   rw [smul_comm]
-  exact smul_mem _ _ (subset_span ⟨.inr j, by ext i; simp [one_apply, Pi.single_apply, eq_comm]⟩)
+  exact smul_mem _ _
+    (subset_span ⟨.inr j, by ext i; simp [Matrix.one_apply, Pi.single_apply, eq_comm]⟩)
 
 /-- The kernel of `A` on `(O / a) ^ k` (`QuotSpan a` is `O / a`) has the length of the module of
 linear maps to `O / a` from the quotient of `O ^ k` by `rowLattice A a`, the span of the rows of

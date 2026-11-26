@@ -1,5 +1,7 @@
-import New.UpperBound.Divisibility.MarkedPrimes
-import New.UpperBound.ElementaryDivisors.ElementaryDivisorTheorem
+module
+
+public import New.UpperBound.Divisibility.MarkedPrimes
+public import New.UpperBound.ElementaryDivisors.ElementaryDivisorTheorem
 
 /-!
 # Elementary divisor bound for the scaled Hecke operator via edges
@@ -43,6 +45,8 @@ Notions from other files:
 
 See `New.UpperBound.Divisibility.MarkOperator` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section TwistedHeckeType
 

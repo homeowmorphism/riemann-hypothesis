@@ -1,7 +1,9 @@
-import Lib.Weil.Seesaw
-import New.UpperBound.Objects.AuxiliaryPair
-import New.UpperBound.Objects.Columns
-import New.UpperBound.Objects.Parameters
+module
+
+public import Lib.Weil.Seesaw
+public import New.UpperBound.Objects.AuxiliaryPair
+public import New.UpperBound.Objects.Columns
+public import New.UpperBound.Objects.Parameters
 
 /-!
 # Spaces Y_j and W_j, the forms on them, and the target parameter
@@ -35,6 +37,8 @@ Notions from other files:
 * `New.Data.liftWeight`: the weight w_j = κ(σ) + j·h + h₂ at the infinite place σ, with
   κ = `New.Data.weight`, h the gap and h₂ half the gap.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -231,7 +235,8 @@ lemma exists_space_isStd_of_le_and_gram_eq_of_lt :
     { J
       x := mkAdelicGL (y, hL_unit.unit * (l * k'.val))
       gram_point :=
-        gram_mkAdelicGL hy (gram_mul_of_gram_eq rfl (gram_mul_of_gram_eq hl_orth k.val.prop)) }
+        gram_mkAdelicGL hy (gram_mul_of_gram_eq rfl (gram_mul_of_gram_eq hl_orth
+            (Matrix.mem_unitaryGroupOf_iff.1 k.val.prop))) }
   refine ⟨V, fun h_le ↦ absurd h_le hj.not_ge, fun _ ↦ ⟨rfl, ⟨l, hl⟩ * k', fun x ↦ ?_, by rfl⟩⟩
   have hk' : intGL.map (reduceAt (D.chosenPlace x)) k' =
       (intGL.map (reduceAt (D.chosenPlace x)) ⟨l, hl⟩)⁻¹ :=
@@ -593,6 +598,14 @@ lemma card_filter_basisNumber {q : D.RowIndex → Prop} [DecidablePred q] (a b :
 lemma paramW_lt_iff (τ : D.Φ) {a b : D.RowIndex} :
     D.paramW τ a < D.paramW τ b ↔ D.basisNumber b < D.basisNumber a := by
   simp [paramW, (D.targetParameter_strictAnti τ).lt_iff_gt]
+
+/-- At every infinite place `v`, the parameter `D.paramW v` decreases along the numbering
+`D.basisNumber` of the basis of `Y₀`: exactly `D.basisNumber i` of its entries exceed the entry at
+`i` (`decreasingPosition` is the number of larger entries). -/
+lemma decreasingPosition_paramW (v : D.Φ) (i : D.RowIndex) :
+    decreasingPosition (D.paramW v) i = D.basisNumber i :=
+  D.card_filter_basisNumber (q := fun j : D.RowIndex ↦ D.paramW v i < D.paramW v j) 0
+    (D.basisNumber i) (by simp [paramW_lt_iff]) (by simp)
 
 /-- For 1 ≤ j ≤ m, the space W_j has exactly m − j minus signs. -/
 lemma negCount_signsW (j : D.LiftIndex) : negCount (D.signsW j) = D.m - j := by

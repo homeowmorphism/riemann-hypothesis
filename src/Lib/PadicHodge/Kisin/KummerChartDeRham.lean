@@ -1,4 +1,6 @@
-import Lib.PadicHodge.Kisin.PeriodMatrixBasis
+module
+
+public import Lib.PadicHodge.Kisin.PeriodMatrixBasis
 
 /-!
 # Kummer charts: the different, the primes φ^a E of A_inf and their images in B_dR
@@ -35,6 +37,8 @@ Notions from other files:
 
 Known; see `Lib.PadicHodge.Kisin.PeriodMatrixFrame` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -112,7 +116,8 @@ lemma exists_derivative_dvd_p_pow :
   set m : ℕ := padicValNat p k.e + 1
   -- divisibility in `O_C` is total, so it suffices to exclude `p ^ m ∣ θ (P'(z))`
   refine (dvd_total _ _).resolve_right fun h_dvd ↦ ?_
-  apply pow_succ_padicValNat_not_dvd (p := p) (NeZero.ne k.e)
+  apply pow_succ_multiplicity_not_dvd (p := p) (NeZero.ne k.e)
+  rw [← Nat.padicValNat_def]
   -- the quotient can be taken in `S` modulo `E`: apply `exists_frobE_dvd_sub_of_dvd` to an
   -- `S`-linear retraction of `A_inf` onto `S`
   have h_theta_zero (r : Ainf) : thetaPhiInv 0 r = theta r := by
@@ -139,7 +144,8 @@ lemma exists_derivative_dvd_p_pow :
   have h_coeff : ((p ^ m : ℕ) : WittFq k.f) ∣ (k.e : WittFq k.f) := by
     have h_top : (X ^ k.e - R).derivative.coeff (k.e - 1) = (k.e : WittFq k.f) := by
       simp [coeff_derivative, hR_deg, NeZero.one_le]
-    exact ⟨(rem x).val.coeff (k.e - 1), by rw [← h_top, h_eq, coeff_smul, nsmul_eq_mul]⟩
+    exact ⟨(rem x).val.coeff (k.e - 1), by
+      rw [← h_top, h_eq, AddMonoidAlgebra.coeff_smul_apply, nsmul_eq_mul]⟩
   -- pass from `Λ` to `O_C` by `θ`, and on to `ℕ` by `p`-adic norms
   have h_coeff_OC : ((p ^ m : ℕ) : OC) ∣ (k.e : OC) := by
     simpa using (theta.comp (algebraMap (WittFq k.f) Ainf)).map_dvd h_coeff

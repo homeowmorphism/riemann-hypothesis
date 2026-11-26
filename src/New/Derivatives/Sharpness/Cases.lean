@@ -1,6 +1,8 @@
-import New.Derivatives.Sharpness.Couplings
-import New.Derivatives.Sharpness.NearPairs
-import New.Derivatives.Vacuum.Scale
+module
+
+public import New.Derivatives.Sharpness.Couplings
+public import New.Derivatives.Sharpness.NearPairs
+public import New.Derivatives.Vacuum.Scale
 
 /-!
 # The valuation bound `v(l!) + val₁₂(l) ≤ S_p + 2 ∑ v(B_τ)` for every prime
@@ -37,6 +39,8 @@ Notions from other files:
   after `(l_τ - n♯)₊`.
 * `P.cmCurve`: the curve `ℂ / Ω₀ 𝓞_K`, whose theta series is `θ`.
 -/
+
+@[expose] public section
 
 /-!
 ## Least valuations along a tight frame at non-split primes
@@ -101,18 +105,6 @@ lemma piMBar_mul_conj (D : Data P) : D.piMBar * conj (D.piMBar : ℂ) = D.M := b
 
 lemma coe_piMBar_ne_zero (D : Data P) : (D.piMBar : ℂ) ≠ 0 :=
   left_ne_zero_of_mul (D.piMBar_mul_conj.trans_ne (cast_ne_zero.2 (NeZero.ne D.M)))
-
-/-- The period scale `π_M * jetScale` has the squared modulus `M / Ω`. Here `π_M` is the complex
-conjugate of `D.piMBar`, `jetScale = periodFactor * √(2π / √d) / Ω₀` is the scale of the Taylor
-series of theta functions, `M = D.M` is the level, and
-`Ω = P.bigOmega D.towerExp = exp (γ - Re L′/L(1, χ_K)) * 2π / rd_E`, with `γ` Euler's constant and
-`rd_E` the root discriminant of `E`. -/
-lemma norm_conj_piMBar_mul_jetScale_sq (D : Data P) :
-    ‖conj (D.piMBar : ℂ) * P.jetScale D.towerExp‖ ^ 2 = D.M / P.bigOmega D.towerExp := by
-  have h_norm : ‖conj (D.piMBar : ℂ)‖ ^ 2 = D.M := by
-    rw [Complex.norm_conj, ← Complex.normSq_eq_norm_sq]
-    exact_mod_cast (Complex.mul_conj _).symm.trans D.piMBar_mul_conj
-  rw [norm_mul, mul_pow, h_norm, P.norm_jetScale_sq, div_eq_mul_inv]
 
 omit [Fintype J] in
 lemma phi_resolutionVectors (D : Data P) {w : J → D.E} (τ : D.Φ) (i : J) :
@@ -604,7 +596,7 @@ lemma leastValLE_six_of_isNearPair (D : Data P) {p : ℕ} [Fact p.Prime] [PadicP
           (padicValNat p (partnerDegree (P.partner D.towerExp p) Φ₀ e j x)! : ℝ)) := by
   rcases Φ₀.eq_empty_or_nonempty with rfl | ⟨τ, hτ⟩
   · -- Without near pairs, in particular for `p = d`, the degree is `0`.
-    simpa [powerDegree, partnerDegree] using leastValLE_zero
+    simpa [powerDegree, partnerDegree, Nat.padicValNat_def] using leastValLE_zero
   have h_inert : chiK P.d p = -1 := (he τ hτ).inert
   obtain ⟨ϖ, lam, hϖ, h_lam_unit, h_normal⟩ :=
     D.exists_hasNormalForm_resolutionForms (p := p) hw h_inert

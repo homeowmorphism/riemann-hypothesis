@@ -1,4 +1,7 @@
-import Lib.General.Algebra.AdicCompletion
+module
+
+public import Lib.General.Algebra.AdicCompletion
+public import TauCeti.RingTheory.MvPowerSeries.Derivative
 
 /-!
 # Power series with prime power exponents, congruences and convergent sums
@@ -30,6 +33,8 @@ Known result: elementary facts on power series in characteristic `p`.
 Known result: elementary facts on formal power series with the topology of coefficientwise
 convergence. Source: Bourbaki, Algebra II, Chapter IV.
 -/
+
+@[expose] public section
 
 /-! ## Series with prime power exponents -/
 
@@ -106,7 +111,8 @@ lemma injective_pow_add_one_mul_pow (hp : p ≠ 2) :
     · simpa [Nat.prime_dvd_prime_iff_eq h_prime Nat.prime_two] using hp
     · simpa [Nat.dvd_add_right (dvd_pow_self p he.ne')] using h_prime.ne_one
   have h_val (e j : ℕ) : padicValNat p ((p ^ e + 1) * p ^ j) = j := by
-    simp [padicValNat.mul, padicValNat.eq_zero_of_not_dvd (h_not_dvd e), h_prime.ne_zero]
+    simp [Nat.padicValNat_def, Nat.multiplicity_mul, multiplicity_eq_zero_of_not_dvd (h_not_dvd e),
+      h_prime.ne_zero]
   rintro ⟨e, j⟩ ⟨e', j'⟩ (h : (p ^ e + 1) * p ^ j = (p ^ e' + 1) * p ^ j')
   obtain rfl : j = j' := by rw [← h_val e j, h, h_val]
   have h_pow : p ^ e = p ^ e' := by simpa [h_prime.ne_zero] using h
@@ -291,11 +297,8 @@ lemma continuous_subst_of_constantCoeff_eq_zero [Finite σ] [TopologicalSpace R]
 /-- Partial differentiation of power series is continuous in the topology of coefficientwise
 convergence. -/
 lemma continuous_pderiv [TopologicalSpace R] [IsTopologicalRing R] (y : σ) :
-    Continuous (pderiv y : MvPowerSeries σ R → MvPowerSeries σ R) := by
-  refine continuous_pi fun d ↦ ?_
-  change Continuous fun F : MvPowerSeries σ R ↦ coeff d (pderiv y F)
-  simp only [coeff_pderiv]
-  exact (continuous_coeff R _).mul continuous_const
+    Continuous (pderiv y : MvPowerSeries σ R → MvPowerSeries σ R) :=
+  MvPowerSeries.WithPiTopology.continuous_pderiv y
 
 /-- A family of power series is summable, in the topology of coefficientwise convergence, if for
 each `n` only finitely many of its members have order at most `n`. -/
@@ -340,7 +343,7 @@ multiple of `π`. -/
 lemma dvd_of_hasSum {π a : valRingCp p} {f : ι → valRingCp p} (h_sum : HasSum f a)
     (hf : ∀ i : ι, π ∣ f i) : π ∣ a := by
   have h_closed : IsClosed {y : valRingCp p | π ∣ y} := by
-    simpa only [dvd_iff_norm_le] using isClosed_le continuous_subtype_val.norm continuous_const
+    simpa only [dvd_iff_norm_le] using isClosed_le continuous_subtypeVal.norm continuous_const
   exact h_closed.mem_of_tendsto h_sum (.of_forall fun t ↦ Finset.dvd_sum fun i _ ↦ hf i)
 
 /-- A convergent sum of power series over the valuation ring `valRingCp p` of `ℂ_[p]`, each

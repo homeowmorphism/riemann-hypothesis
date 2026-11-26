@@ -1,4 +1,6 @@
-import Lib.LocalGL.Green.LabelCharacters
+module
+
+public import Lib.LocalGL.Green.LabelCharacters
 
 /-!
 # Shintani lifting of Green's characters along extensions of prime degree
@@ -53,6 +55,8 @@ Algebra 319 (2008) 4147-4176, Thm 5.1; for tensor induction, Gluck-Isaacs, Illin
 
 See also `Lib.LocalGL.Green.TauFunctions`.
 -/
+
+@[expose] public section
 
 /-!
 ## Frobenius reciprocity for parabolically induced characters
@@ -180,9 +184,11 @@ lemma exists_rankInner_labelChar_eq_finMean (hP : Irreducible P) (hx : Polynomia
   revert h_dvd
   refine hc.induction_irreducible_mul K (fun _ ↦ ?_)
     fun S m c z hS_monic hS hS_zero hzS ih h_dvd ↦ ?_
-  · simp [eq_simClassOf_zero_of_dim_eq_zero, finMean, univ_eq_empty, rankInner,
-    finsum_eq_sum_of_fintype,
-      mulMoebius, finrank_pi_fintype]
+  · -- `b = 0`: both sides are `B` at the class of dimension `0` (naming `b` first keeps `simp`
+    -- from trying `eq_simClassOf_zero_of_dim_eq_zero` on classes of unknown dimension).
+    refine ⟨0, Fin.elim0, by simp, zero_mul _, fun B ↦ ?_⟩
+    simp [eq_simClassOf_zero_of_dim_eq_zero, finMean, univ_eq_empty, rankInner,
+      finsum_eq_sum_of_fintype, mulMoebius, finrank_pi_fintype]
   -- The new factor `S` has a root `x ^ |k| ^ e`, and its degree is `[k'(x) : k']`.
   have hzP : Polynomial.aeval z P = 0 := by simpa [hzS] using map_dvd (aeval z) h_dvd
   have h_dvd_iff (d : ℕ) : S.natDegree ∣ d ↔ finrank k' k'⟮x⟯ ∣ d := by
@@ -193,20 +199,25 @@ lemma exists_rankInner_labelChar_eq_finMean (hP : Irreducible P) (hx : Polynomia
     exists_pow_card_pow_eq_of_root hP hx hzP
   -- the statement for `c`, by induction
   obtain ⟨b, a, roots, rfl, h_avg⟩ := ih (dvd_of_mul_left_dvd h_dvd)
-  refine ⟨b + 1, cons e a, ?_, by grind, fun B ↦ ?_⟩
+  refine ⟨b + 1, cons e a, ?_, by rw [degree_eq, Nat.add_one_mul, add_comm], fun B ↦ ?_⟩
   · -- A root of `S * c` is a root of `S`, and then conjugate to `x ^ |k| ^ e`, or a root of `c`.
     suffices h_roots : ∀ z : K, Polynomial.aeval z S = 0 ∨ Polynomial.aeval z c = 0 →
         (∃ v < finrank k' k'⟮x⟯, e < P.natDegree ∧ z ^ Nat.card k' ^ v = x ^ Nat.card k ^ e) ∨
           ∃ i : Fin b, ∃ v < finrank k' k'⟮x⟯,
             a i < P.natDegree ∧ z ^ Nat.card k' ^ v = x ^ Nat.card k ^ a i by
       simpa [exists_fin_succ] using h_roots
-    grind [exists_pow_card_pow_eq_of_root]
+    rintro z (hz | hz)
+    · obtain ⟨v, hv, h_conj⟩ := exists_pow_card_pow_eq_of_root hS hz hzS
+      exact .inl ⟨v, degree_eq ▸ hv, he, h_conj⟩
+    · exact .inr (roots z hz)
   -- Removing the factor `greenTau T S` replaces `B` by `B'`: up to sign, `B' o` is the mean over
   -- `z` in `k'(x)ˣ` of `conj (θ z)` times `B` at the direct sum of `o` and multiplication by `z`.
-  let θ : MulChar K ℂ := thetaChar T (.card k'⟮x⟯) (x ^ .card k ^ e)
+  -- (`Nat.card` in the exponent and `LinearMap.mulLeft` are written in full here and below: `.card`
+  -- there and the overloaded `mulLeft` (also `Units.mulLeft`) are slow to elaborate.)
+  let θ : MulChar K ℂ := thetaChar T (.card k'⟮x⟯) (x ^ Nat.card k ^ e)
   let B' : Hall k' := fun o ↦ (-1) ^ finrank k' k'⟮x⟯ * finMean fun z : k'⟮x⟯ˣ ↦
     conj (θ (k'⟮x⟯.val z.val)) *
-      B (simClassOf ((simClassOf (mulLeft k' z.val)).out.2.prodMap o.out.2))
+      B (simClassOf ((simClassOf (LinearMap.mulLeft k' z.val)).out.2.prodMap o.out.2))
   have h_skew : skew (finrank k' k'⟮x⟯) (greenTau T S) (mulMoebius B) = mulMoebius B' := by
     -- `greenTau T S` is Green's function of `θ` up to sign, and
     -- `rankInner_greenCuspidal_mulMoebius` computes its pairing.
@@ -219,12 +230,12 @@ lemma exists_rankInner_labelChar_eq_finMean (hP : Irreducible P) (hx : Polynomia
     ac_rfl
   -- Multiplication by `cons z u` is the direct sum of the multiplications by `z` and by `u`.
   have block (z : k'⟮x⟯ˣ) (u : Fin b → k'⟮x⟯ˣ) :
-      simClassOf ((simClassOf (mulLeft k' z.val)).out.2.prodMap
-          (simClassOf (mulLeft k' fun j : Fin b ↦ (u j).val)).out.2) =
-        simClassOf (mulLeft k' fun j : Fin (b + 1) ↦
+      simClassOf ((simClassOf (LinearMap.mulLeft k' z.val)).out.2.prodMap
+          (simClassOf (LinearMap.mulLeft k' fun j : Fin b ↦ (u j).val)).out.2) =
+        simClassOf (LinearMap.mulLeft k' fun j : Fin (b + 1) ↦
           ((Fin.cons z u : Fin (b + 1) → k'⟮x⟯ˣ) j).val) := by
-    obtain ⟨f, hf⟩ := exists_equiv_simClassOf_out (mulLeft k' z.val)
-    obtain ⟨g, hg⟩ := exists_equiv_simClassOf_out (mulLeft k' fun j ↦ (u j).val)
+    obtain ⟨f, hf⟩ := exists_equiv_simClassOf_out (LinearMap.mulLeft k' z.val)
+    obtain ⟨g, hg⟩ := exists_equiv_simClassOf_out (LinearMap.mulLeft k' fun j ↦ (u j).val)
     refine simClassOf_eq_of_equiv (f.prodCongr g ≪≫ₗ consLinearEquiv k' fun _ ↦ k'⟮x⟯) fun v ↦ ?_
     simp [hf, hg, funext_iff, forall_fin_succ]
   -- Split off the factor `greenTau T S` with its sign, and apply the case of `c` to `B'`.
@@ -237,7 +248,9 @@ lemma exists_rankInner_labelChar_eq_finMean (hP : Irreducible P) (hx : Polynomia
   -- Both sides are double sums, over `z` and over the other coordinates `u`; compare the terms.
   rw [finMean_equiv (consEquiv _) fun _ ↦ rfl]
   simp only [finMean_prod]
-  simp [finMean, prod_univ_succ, mul_sum, sum_div, sum_comm (α := _ˣ), B', finsum_eq_sum_of_fintype]
+  simp only [finMean, card_eq_fintype_card, coe_val, finsum_eq_sum_of_fintype, sum_div, mul_sum,
+    sum_comm (α := _ˣ), Fintype.card_pi, Finset.prod_const, Finset.card_univ, Fintype.card_fin,
+    cast_pow, consEquiv_apply, prod_univ_succ, cons_zero, cons_succ, B']
   congr! 2 with z _ u
   rw [block z u]
   -- The sign in `B'` cancels the one split off by `pow_add`.
@@ -301,7 +314,7 @@ private lemma conj_thetaChar_prod_eq_prod_conj_thetaChar (hP : Irreducible P)
     (t : (k' ⊗[k] L)ˣ) :
     conj (thetaChar T (.card k ^ P.natDegree) x
         (k'⟮x⟯.val.comp (χ 0) (∏ τ : Gal(k'/k), map τ.toAlgHom (.id k L) (t : k' ⊗[k] L)))) =
-      ∏ j : Fin g, conj (thetaChar T (.card k'⟮x⟯) (x ^ .card k ^ a j) (χ (a j) t)) := by
+      ∏ j : Fin g, conj (thetaChar T (.card k'⟮x⟯) (x ^ Nat.card k ^ a j) (χ (a j) t)) := by
   -- Group the norm by `j`. Each group is the `|k| ^ a j`-th power of the norm of `χ (a j) t` from
   -- `k'(x)` to its subfield with `|k| ^ deg P` elements, to which `thetaChar_eq_apply_norm_pow`
   -- applies.
@@ -385,7 +398,7 @@ lemma exists_isChar_descendsTo_labelChar [Finite L] (hP : Irreducible P) (hP_lab
       (k'⟮x⟯.val.comp (χ 0))
   -- `E` respects multiplication, so it keeps the similarity classes of the multiplications.
   have h_cls (t : (k' ⊗[k] L)ˣ) :
-      simClassOf (mulLeft k' (t : k' ⊗[k] L)) = simClassOf (mulLeft k' (π t)) :=
+      simClassOf (LinearMap.mulLeft k' (t : k' ⊗[k] L)) = simClassOf (LinearMap.mulLeft k' (π t)) :=
     simClassOf_eq_of_equiv E (map_mul π _)
   refine ⟨Ψ, hΨ_char, hΨ_down, hΨ_up _ fun B ↦ ?_⟩
   calc
@@ -395,11 +408,11 @@ lemma exists_isChar_descendsTo_labelChar [Finite L] (hP : Irreducible P) (hP_lab
       ac_rfl
     _ = finMean fun u : Fin g → k'⟮x⟯ˣ ↦
           (∏ j : Fin g, conj (thetaChar T (Nat.card k'⟮x⟯) (x ^ Nat.card k ^ a j) (u j))) *
-            B (simClassOf (mulLeft k' fun j : Fin g ↦ (u j).val)) := h_avg B
+            B (simClassOf (LinearMap.mulLeft k' fun j : Fin g ↦ (u j).val)) := h_avg B
     _ = finMean fun t : (k' ⊗[k] L)ˣ ↦
           conj (thetaChar T (.card k ^ P.natDegree) x
             (k'⟮x⟯.val.comp (χ 0) (∏ τ : Gal(k'/k), map τ.toAlgHom (.id k L) (t : k' ⊗[k] L)))) *
-          B (simClassOf (mulLeft k' (t : k' ⊗[k] L))) := by
+          B (simClassOf (LinearMap.mulLeft k' (t : k' ⊗[k] L))) := by
       -- Change variables by `E`: the weights agree by `conj_thetaChar_prod_eq_prod_conj_thetaChar`.
       refine finMean_equiv ((mapEquiv ⟨E.toEquiv, map_mul π⟩).trans .piUnits) fun t ↦ ?_
       simp only [h_cls t,

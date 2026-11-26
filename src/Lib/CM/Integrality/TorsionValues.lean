@@ -1,5 +1,7 @@
-import Lib.CM.GoodReduction
-import Lib.CM.Integrality.Doubling
+module
+
+public import Lib.CM.GoodReduction
+public import Lib.CM.Integrality.Doubling
 
 /-!
 # Integrality of values of sections at torsion points
@@ -40,13 +42,13 @@ Known result: the integrality of Siegel functions at torsion points. Source: Kub
 *Modular Units*.
 -/
 
+@[expose] public section
+
 /-! ## Integrality of the coefficient `a₁` -/
 
 namespace New.CMLattice
 
 variable {d : ℕ} [PrimeSevenModEight d] (C : CMLattice d) {p : ℕ} [Fact p.Prime]
-
-lemma mem_valRingCp_iff_norm_le_one {x : ℂ_[p]} : x ∈ valRingCp p ↔ ‖x‖ ≤ 1 := Iff.rfl
 
 /-- If `g ^ 2 + u g = v` in `ℂ_p` and `‖u‖, ‖v‖ ≤ 1`, then `‖g‖ ≤ 1`: a root of a monic quadratic
 with integral coefficients is integral. -/
@@ -65,8 +67,8 @@ lemma norm_le_one_of_sq_add_mul_eq {g u v : ℂ_[p]} (hu : ‖u‖ ≤ 1) (hv : 
 lemma norm_a₁_le_one [PadicPlace p] : ‖ιₚ C.a₁‖ ≤ 1 := by
   -- `a₁ ^ 4 = (a₁ ^ 4 - 64) + 64` is a sum of two integral elements.
   have h_pow : ιₚ C.a₁ ^ 4 - 64 + 64 ∈ valRingCp p :=
-    add_mem (mem_valRingCp_iff_norm_le_one.2 (C.norm_disc_eq_one ιₚ).le) (ofNat_mem _ 64)
-  rwa [sub_add_cancel, mem_valRingCp_iff_norm_le_one, norm_pow,
+    add_mem (mem_valRingCp.2 (C.norm_disc_eq_one ιₚ).le) (ofNat_mem _ 64)
+  rwa [sub_add_cancel, mem_valRingCp, norm_pow,
     pow_le_one_iff_of_nonneg (norm_nonneg _) four_ne_zero] at h_pow
 
 end New.CMLattice
@@ -132,8 +134,8 @@ lemma torsionValue_eq (n : ℕ) (G : ℂ → ℂ) (u : ℂ) :
     change -(n • C.hermitianForm u u / 2) = _
     rw [nsmul_eq_mul, hermitianForm_apply, mul_conj']
     ring
-  simp only [torsionValue, thetaShift_apply, zero_add, neg_zero, add_zero, map_zero, ← exp_nat_mul,
-    ← h_exponent, mul_comm (G u)]
+  simp only [torsionValue, thetaShift_apply, zero_add, neg_zero, add_zero, map_zero,
+    ← exp_natCast_mul, ← h_exponent, mul_comm (G u)]
 
 /-- Products: degrees add and torsion values multiply. -/
 lemma torsionValue_mul (m n : ℕ) (F G : ℂ → ℂ) (u : ℂ) :

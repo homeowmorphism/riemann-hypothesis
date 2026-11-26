@@ -1,7 +1,9 @@
-import Lib.ClassField.HeckeL.EulerProduct
-import Lib.ClassField.Local.ArtinMap
-import Lib.Cohomology.Etale.Basic
-import Lib.Weil.Construction.FiniteMultiplier
+module
+
+public import Lib.ClassField.HeckeL.EulerProduct
+public import Lib.ClassField.Local.ArtinMap
+public import Lib.Cohomology.Etale.Basic
+public import Lib.Weil.Construction.FiniteMultiplier
 
 /-!
 # Values of algebraic Hecke characters
@@ -41,6 +43,8 @@ Notions from other files:
 Known result: the values of characters of type A₀. Source: A. Weil, On a certain type of characters
 of the idèle-class group of an algebraic number-field (1956).
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -189,16 +193,6 @@ def conjugateBy (σ : ℂ ≃+* ℂ) : AlgHeckeChar K where
     rw [← e.prod_comp]
     simp [e, h_principal, ← RingHom.comp_assoc]
 
-/-- For an algebraic Hecke character `θ` of the number field `K`, an automorphism `σ` of `ℂ` and a
-finite idele `y`, the finite-idele character of the conjugate `θ.conjugateBy σ` (that is, `σ ∘ θ`)
-takes at `y` the value `σ` applied to the value of `θ` at `y`. -/
-lemma conjugateBy_apply (σ : ℂ ≃+* ℂ) : ((θ.conjugateBy σ).val.fst y : ℂ) = σ (θ.val.fst y) := rfl
-
-/-- The conjugate of the character `θ` by `σ` has at `σ ∘ τ` the exponent of `θ` at `τ`. -/
-lemma conjugateBy_exponent (σ : ℂ ≃+* ℂ) (τ : K →+* ℂ) :
-    (θ.conjugateBy σ).val.snd.toAdd (σ.toRingHom.comp τ) = θ.val.snd.toAdd τ := by
-  simp [conjugateBy, ← RingHom.comp_assoc]
-
 end AlgHeckeChar
 
 /-! ## Algebraic characters from unitary Hecke characters of a CM field -/
@@ -281,7 +275,7 @@ lemma HeckeChar.isHeckeOfType_finPart {n : NumberField.InfinitePlace E → ℤ} 
       χ.val.comp
         ⟨Units.map (.inr (NumberField.InfinitePlace E → ℂ) (𝔸f E)), .units_map _ (.prodMk_right _)⟩
     refine (char_eventually_eq_one _ χf.continuous_toFun).mono fun y hy ↦ Units.ext ?_
-    show (χf y : ℂ) = 1
+    change (χf y : ℂ) = 1
     exact congrArg Subtype.val hy
   · -- `χ` is trivial on the principal idele of `x`, the product of its finite and infinite parts.
     let a : (𝔸 E)ˣ := .map (.inr (NumberField.InfinitePlace E → ℂ) (𝔸f E)) (principalIdele x) *

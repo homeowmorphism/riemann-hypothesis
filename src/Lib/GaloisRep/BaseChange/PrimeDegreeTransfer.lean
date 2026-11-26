@@ -1,6 +1,8 @@
-import Lib.GaloisRep.BaseChange.CongruenceLevelMatching
-import Lib.GaloisRep.BaseChange.StepMatchingPairs
-import Lib.GaloisRep.BaseChange.TwistedTraceIdentity
+module
+
+public import Lib.GaloisRep.BaseChange.CongruenceLevelMatching
+public import Lib.GaloisRep.BaseChange.StepMatchingPairs
+public import Lib.GaloisRep.BaseChange.TwistedTraceIdentity
 
 /-!
 # Base change in prime degree for definite U(n): a weak base change eigenform
@@ -41,6 +43,8 @@ matching after P. Scholze, The Langlands-Kottwitz approach for some simple Shimu
 Prop. 2.1 (norms inverted inside O[γ]) and J.-P. Labesse, Fonctions élémentaires et lemme
 fondamental pour le changement de base stable, Duke Math. J. 61, 1990.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -312,15 +316,12 @@ lemma IsMatchingPairAbove.mul_mul {σ : Gal(E'/E)} {Z X Y : Set (FinPlace E)}
     exact IsMatchingPair.mul pair_X pair_Y idem_mul (idem_mul_self _) (idem_mul_self _)
       (star_idem_above X) (star_idem_above Y)
   -- Split `1` as the idempotent of the places above `Z` plus its complement.
-  have h_orth : idem (placesAbove E' Z) * (1 - idem (placesAbove E' Z)) = 0 := by
-    simp [mul_sub, idem_mul_self]
-  have h_compl_idem : (1 - idem (placesAbove E' Z)) * (1 - idem (placesAbove E' Z)) =
-      1 - idem (placesAbove E' Z) := by simp [mul_sub, sub_mul, idem_mul_self]
+  have h_idem : IsIdempotentElem (idem (placesAbove E' Z)) := idem_mul_self _
   have h_compl_star : star (1 - idem (placesAbove E' Z)) = 1 - idem (placesAbove E' Z) := by
     simp [star_idem_above]
   rw [← add_sub_cancel (idem (placesAbove E' Z)) (1 : 𝔸f E')]
-  exact IsMatchingPair.mul pair_Z pair_XY h_orth (idem_mul_self _) h_compl_idem (star_idem_above Z)
-    h_compl_star
+  exact IsMatchingPair.mul pair_Z pair_XY h_idem.mul_one_sub_self h_idem h_idem.one_sub
+    (star_idem_above Z) h_compl_star
 
 /-- A matched place (`New.IsMatched`) is unramified in the step (`New.IsStepUnramifiedAt`): some
 `σ ≠ 1` moves each place above it, so it is not in the inertia group, and `μ` is trivial on
@@ -527,7 +528,6 @@ private lemma exists_isTransferLevel [hμ : IsStep (E := E) E' μ]
   have X_eq_Kw (w : FinPlace E) : w ∈ X → ∀ u ∈ placesAbove E' {w}, m u = localIntGL n u :=
     fun ⟨_hw_off, hw_max, _hw_split, _hw_matched⟩ ↦ hw_max
   let N : Subgroup (Gf E' n) := localLevel n (placesAbove E' Z)ᶜ m
-
   obtain ⟨Y, idem_XY, on_X_le, XY_eq, idem_sum, N_eq⟩ : ∃ Y : Set (FinPlace E),
       idem (placesAbove E' X) * idem (placesAbove E' Y) = 0 ∧
       supportedOn n (placesAbove E' X) ≤ localLevel n (placesAbove E' Y) m ∧
@@ -908,7 +908,7 @@ lemma exists_isWeakBaseChange_of_matching {μ : (𝔸f E)ˣ →* ℂˣ} [hμ : I
     ⟨_, (hasHeckePolyAt_iff hu).mpr ⟨levelSpace_anti hu_max g_fixed, t, rfl, ht⟩⟩
   obtain ⟨H, g_eigenform⟩ :=
     exists_isEigenform_of_hasHeckePolyAt (by simpa using g_ne) h_level.isOpen
-      (tendsto_place_comap_cofinite _ hZ.conjClosure.compl_mem_cofinite) g_poly
+      ((tendsto_place_comap_cofinite _).eventually hZ.conjClosure.eventually_cofinite_notMem) g_poly
   refine ⟨g, H, g_eigenform, isWeakBaseChange_of_forall_heckeSplit_eq_smul hZ ?_ ?_, g_local,
     g_image⟩
   · intro w hw hw_unram hf u hu_below

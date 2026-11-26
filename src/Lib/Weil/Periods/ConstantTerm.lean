@@ -1,8 +1,10 @@
-import Lib.Adelic.AutomorphicForms.BlockPeriods
-import Lib.General.LinearAlgebra.BlockEmbeddings
-import Lib.Weil.DualPair.MixedModel
-import Lib.Weil.Periods.BesselIntegral
-import Lib.Weil.Periods.Equivariant
+module
+
+public import Lib.Adelic.AutomorphicForms.BlockPeriods
+public import Lib.General.LinearAlgebra.BlockEmbeddings
+public import Lib.Weil.DualPair.MixedModel
+public import Lib.Weil.Periods.BesselIntegral
+public import Lib.Weil.Periods.Equivariant
 
 /-!
 # Constant terms of Weil functions along maps of positive degree
@@ -51,6 +53,8 @@ Notions from other files:
 
 See also `Lib.Weil.MixedModel.ZeroTerm`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -192,8 +196,8 @@ lemma zeroTerm_omega_of_inclMatrix [WeilData E] (D : U.Splitting V₀ {i // 0 < 
   -- `C` is block triangular, with a unitriangular block in weights `≤ 0`.
   have h_low : (C.toSquareBlockProp fun i ↦ ¬0 < wt i).det = 1 :=
     det_eq_one_of_unitriangular (lev := fun i ↦ -wt i.1) fun a b hab ↦ by
-      simp [toSquareBlockProp_def, h_one a b (not_lt.1 a.2) (neg_le_neg_iff.1 hab), one_apply,
-        Subtype.ext_iff]
+      simp [toSquareBlockProp_def, h_one a b (not_lt.1 a.2) (neg_le_neg_iff.1 hab),
+        Matrix.one_apply, Subtype.ext_iff]
   have h_det : M.det = u.1 :=
     calc
       _ = (C.toSquareBlockProp fun i ↦ 0 < wt i).det :=
@@ -352,9 +356,9 @@ lemma J_inv_mul_k_mul_eq_diagonal (hd : ∀ b : ι', d (Y'.stringReversal b) = -
   have h_rows : (inclMatrix E pos)ᴴ * (V.hom V').J = ((V.hom V').J * Q).submatrix pos id := by
     ext a l
     by_cases hl : d l.1 < Y.gradeOf l.2
-    · simp [Q, pos, inclMatrix, mul_apply, one_apply, diagonal_apply, hl]
+    · simp [Q, pos, inclMatrix, Matrix.mul_apply, Matrix.one_apply, diagonal_apply, hl]
     · have hl_nonneg : -Y.mapDegree d l ≤ 0 := by simpa using hl
-      simp [Q, pos, inclMatrix, mul_apply, one_apply, diagonal_apply, hl,
+      simp [Q, pos, inclMatrix, Matrix.mul_apply, Matrix.one_apply, diagonal_apply, hl,
         h_pair a.1 l (hl_nonneg.trans_lt a.2).ne]
   have h_zero : ∀ i ∉ range pos, ∀ l : ι' × ι, ((V.hom V').J * Q) i l = 0 := fun i hi l ↦ by
     have hi_nonpos : Y.mapDegree d i ≤ 0 := not_lt.1 fun h_pos ↦ hi ⟨⟨i, h_pos⟩, rfl⟩
@@ -441,8 +445,8 @@ lemma constTerm_congr_rat (hd : ∀ b : ι', d (Y'.stringReversal b) = -d b)
         w.1 (Y'.stringReversal b) (Y.stringReversal a) =
           w'.1 (Y'.stringReversal b) (Y.stringReversal a) :=
       neg_eq _ _ (by simpa [hd, gradeOf_stringReversal] using h)
-    simp +contextual [homBicharacter_eq, trace, mul_apply, formAdjoint_apply Y Y', hu, vecToMatrix,
-      rev_eq]
+    simp +contextual [homBicharacter_eq, trace, Matrix.mul_apply, formAdjoint_apply Y Y', hu,
+      vecToMatrix, rev_eq]
   rw [integrand, integrand, phase]
 
 /-- For weights `d` odd under the string reversal of `Y'`, the constant term at the chosen
@@ -558,21 +562,7 @@ lemma exists_tsum_enorm_constTerm_le (hd : ∀ b : ι', d (Y'.stringReversal b) 
     _ = ∑' a : {r // 0 < Y.mapDegree d r} → E, ‖U.θ (D.slice (toAdele ∘ a) f)‖ₑ := by
       simp only [← e.tsum_eq, term_eq]
     _ ≤ ‖U.θ‖ₑ * (M * ‖f‖ₑ) := by grw [U.θ.le_opENorm, ENNReal.tsum_mul_left, hM]
-    _ = (‖U.θ‖₊ * M : NNReal) * ‖f‖ₑ := by rw [ENNReal.coe_mul, mul_assoc, enorm_eq_nnnorm]
-
-/-- Let `d` be weights on the indices of `V'` that change sign under the string reversal of `Y'`.
-Take rational matrices modulo `Y.nonnegMaps d`, the ones whose entry `(b, a)` vanishes whenever
-`d b` is less than the grade of `a`. (a) The constant terms `Y.constTerm d f` along maps of positive
-degree, taken at representatives of these classes, sum to `f 0`; (b) there is a constant `M` such
-that for every `f` the sum of their norms is at most `M * ‖f‖`. This corollary joins
-`hasSum_constTerm_out` and `exists_tsum_enorm_constTerm_le`. -/
-lemma hasSum_constTerm (hd : ∀ b : ι', d (Y'.stringReversal b) = -d b) :
-    -- (a)
-    HasSum (fun x : ratMatrices E ι' ι ⧸ Y.nonnegMaps d ↦ Y.constTerm d f x.out) (f 0) ∧
-    -- (b)
-    ∃ M : NNReal, ∀ f : 𝒮 (V.hom V'),
-      ∑' x : ratMatrices E ι' ι ⧸ Y.nonnegMaps d, ‖Y.constTerm d f x.out‖ₑ ≤ M * ‖f‖ₑ :=
-  ⟨hasSum_constTerm_out hd, exists_tsum_enorm_constTerm_le hd⟩
+    _ = (‖U.θ‖₊ * M : NNReal) * ‖f‖ₑ := by rw [ENNReal.coe_mul, mul_assoc, eNorm_eq_nnNorm]
 
 variable (Y) in
 /-- The set `𝒞` of classes whose chosen representative agrees with `T = Y.stringMap Y'`
@@ -648,7 +638,7 @@ lemma tsum_constTerm_agreesWithStringMap (hd : ∀ b : ι', d (Y'.stringReversal
   have trace_eq : toAdele j * (y * x.out.1).trace - toAdele j * (y * Y.stringMap Y').trace =
       ((ξ x).map toAdele * v).trace := by
     rw [← mul_sub, ← trace_sub, ← Matrix.mul_sub, trace_mul_comm]
-    simp [trace, mul_apply, ξ, hy, hr, apply_ite, Finset.mul_sum, mul_assoc]
+    simp [trace, Matrix.mul_apply, ξ, hy, hr, apply_ite, Finset.mul_sum, mul_assoc]
   rw [swap, mul_div_right_comm, ← coe_div, ← AddChar.map_sub_eq_div, trace_eq]
 
 omit [Fintype X] in

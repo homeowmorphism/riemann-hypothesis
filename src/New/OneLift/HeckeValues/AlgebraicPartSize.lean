@@ -1,5 +1,7 @@
-import New.OneLift.HeckeValues.AlgebraicPartIntegrality
-import New.OneLift.HeckeValues.TwistedRatio
+module
+
+public import New.OneLift.HeckeValues.AlgebraicPartIntegrality
+public import New.OneLift.HeckeValues.TwistedRatio
 
 /-!
 # Archimedean bounds and heights of squared norms of rank-one theta lifts
@@ -34,6 +36,8 @@ Notions from other files:
 Critical Hecke L-values of CM fields as squared norms of theta lifts from U(1). See
 `Lib.SiegelWeil.RallisInner.SharpData` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 

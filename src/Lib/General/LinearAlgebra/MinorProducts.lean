@@ -1,5 +1,10 @@
-import Lib.DiscreteSeries.FlenstedJensen.Defs
-import Lib.General.Analysis.HolomorphicIntegrals
+module
+
+public import Lib.DiscreteSeries.FlenstedJensen.Defs
+public import Lib.General.Analysis.HolomorphicIntegrals
+import TauCeti.Analysis.ExteriorPower.Plucker
+import TauCeti.Analysis.InnerProductSpace.Gram.Hadamard
+import TauCeti.Analysis.Matrix.GramFactorization
 
 /-!
 # Products of principal minors, Fischer's inequality and the Cauchy–Binet formula
@@ -24,6 +29,8 @@ m_w and the closure properties of the invertible triangular matrices `New.IsBore
 * `New.det_fromCols_eq_sum_minors`, `New.sum_norm_det_fromCols_sq_le`: the Laplace expansion along
   a block of columns and a bound for its complementary minors.
 -/
+
+@[expose] public section
 
 /-!
 ## The products m_w of principal minors and invertible triangular matrices
@@ -183,7 +190,7 @@ lemma weightMinors_diagonal_mul (hx : x.det ≠ 0) (hd : ∀ i : n, d i ≠ 0) :
       Int.card_Ioc_of_le _ _ (h_bound i).1, add_sub_cancel]
   have h_minor (t : ℤ) : principalMinor (diagonal d * x) (t ≤ w ·) =
       (∏ i, ite (t ≤ w i) (d i) 1) * principalMinor x (t ≤ w ·) := by
-    rw [principalMinor_mul (by grind [diagonal_apply])]
+    rw [principalMinor_mul (by grind [Matrix.diagonal_apply])]
     simp [principalMinor_eq_det, ← diagonal_one, apply_ite]
   have h_det : (diagonal d * x).det ≠ 0 := by simp [prod_eq_zero_iff, hd, hx]
   simp_rw [weightMinors_eq_det_zpow_mul_prod h_det _ _ h_bound, det_mul, det_diagonal, h_minor,
@@ -229,7 +236,7 @@ theorem IsBorelMatrix.inv_apply_diag (ho : o.Injective) (hb : IsBorelMatrix o b)
     b⁻¹ i i = (b i i)⁻¹ := by
   -- Compare diagonal entries in `b⁻¹ * b = 1`.
   refine eq_inv_of_mul_eq_one_left ?_
-  rw [← mul_apply_diag ho hb.inv hb, nonsing_inv_mul _ hb.2.isUnit, one_apply_eq]
+  rw [← mul_apply_diag ho hb.inv hb, nonsing_inv_mul _ hb.2.isUnit, Matrix.one_apply_eq]
 
 end New
 
@@ -277,19 +284,13 @@ product of the |z_ii|.
 A weaker form of Hadamard's inequality as in Horn and Johnson, omitting the equality case. -/
 lemma New.hadamard_det_inequality {k : ℕ} {z : Matrix (Fin k) (Fin k) ℂ} (hz : z.PosSemidef) :
     ‖z.det‖ ≤ ∏ i : Fin k, ‖z i i‖ := by
-  induction k with
-  | zero => simp [prod_univ_zero]
-  | succ k ih =>
-    -- split off the last row and column by Fischer's inequality
-    let z' : Matrix (Fin k ⊕ Fin 1) (Fin k ⊕ Fin 1) ℂ := z.submatrix finSumFinEquiv finSumFinEquiv
-    have h_last : z'.toBlocks₂₂.det = z (last k) (last k) := det_unique _
-    calc ‖z.det‖ = ‖z'.det‖ := by rw [det_submatrix_equiv_self]
-      _ ≤ ‖z'.toBlocks₁₁.det‖ * ‖z'.toBlocks₂₂.det‖ := fischer_det_inequality (hz.submatrix _)
-      _ ≤ (∏ i : Fin k, ‖z i.castSucc i.castSucc‖) * ‖z (last k) (last k)‖ := by
-        rw [h_last]
-        gcongr
-        exact ih (hz.submatrix castSucc)
-      _ = ∏ i : Fin (k + 1), ‖z i i‖ := (prod_univ_castSucc fun i ↦ ‖z i i‖).symm
+  obtain ⟨A, rfl⟩ := posSemidef_iff_eq_conjTranspose_mul_self.1 hz
+  have hdiag (i : Fin k) : ‖WithLp.toLp 2 (Aᵀ i)‖ ^ 2 = ‖(Aᴴ * A) i i‖ := by
+    simp [EuclideanSpace.norm_sq_eq, Matrix.mul_apply, Complex.conj_mul',
+      ← Complex.ofReal_pow, ← Complex.ofReal_sum,
+      abs_of_nonneg (Finset.sum_nonneg fun j _ ↦ sq_nonneg ‖A j i‖)]
+  simpa [det_mul, Complex.norm_conj, ← sq, ← Finset.prod_pow, hdiag] using
+    pow_le_pow_left₀ (norm_nonneg _) (norm_det_le_prod_norm_toLp Aᵀ) 2
 
 end FischerInequality
 
@@ -341,14 +342,12 @@ lemma alternatingMap_eq_sum_minors [Fintype I] [LinearOrder I]
 theorem det_mul_eq_sum_minors [Fintype I] [LinearOrder I] (A : Matrix (Fin k) I R)
     (X : Matrix I (Fin k) R) :
     (A * X).det = ∑ S : Set.powersetCard I k,
-      (X.submatrix (enumSubset S) id).det * (A.submatrix id (enumSubset S)).det := by
-  let f : (I → R) [⋀^Fin k]→ₗ[R] R := detRowAlternating.compLinearMap A.mulVecLin
-  have h_det : (A * X).det = f fun a ↦ X.col a := (det_transpose (A * X)).symm
-  have h_minor (S : Set.powersetCard I k) :
-      f (fun a ↦ Pi.single (enumSubset S a) 1) = (A.submatrix id (enumSubset S)).det := by
-    rw [← det_transpose]
-    exact congrArg det (by ext; simp)
-  simp_rw [h_det, alternatingMap_eq_sum_minors, h_minor]
+      (X.submatrix (enumSubset S) id).det * (A.submatrix id (enumSubset S)).det :=
+  (TauCeti.det_mul_transpose_eq_sum_plucker_mul A Xᵀ).trans <|
+    sum_congr rfl fun S _ ↦ by
+      rw [mul_comm, ← det_transpose (X.submatrix _ _)]
+      exact congrArg₂ (· * ·) (TauCeti.plucker_apply (Xᵀ : Fin k → I → R) S)
+        (TauCeti.plucker_apply (A : Fin k → I → R) S)
 
 /-- The determinant of the matrix with columns `(Y Z)`, made square by `e`, is an alternating form
 in the `k` columns of `Y`. -/
@@ -359,7 +358,7 @@ lemma exists_alternatingMap_det_fromCols [Fintype L] [DecidableEq L] (e : L ≃ 
   -- The determinant `g` is an alternating form in columns indexed by `Fin k ⊕ c`. Curry it along
   -- this sum and evaluate the arguments indexed by `c` at the columns of `Z`.
   let g : (L → R) [⋀^Fin k ⊕ c]→ₗ[R] R := detRowAlternating.domDomCongr e
-  let atZ : MultilinearMap R (fun _ : c ↦ L → R) R →ₗ[R] R :=
+  let atZ : MultilinearMap (RingHom.id R) (fun _ : c ↦ L → R) R →ₗ[R] R :=
     { toFun φ := φ fun b ↦ Z.col b
       map_add' _ _ := rfl
       map_smul' _ _ := rfl }
@@ -412,9 +411,10 @@ lemma norm_det_fromCols_one_submatrix [Fintype L] [DecidableEq L] [Fintype c] [D
     ext x y
     obtain ⟨x, rfl⟩ := ε.surjective x
     have h_eq (a : Fin k) : Sum.elim ι t x = ι a ↔ x = .inl a := h_bij.1.eq_iff (b := .inl a)
-    simp only [submatrix_apply, Equiv.trans_apply, Equiv.symm_apply_apply, Equiv.apply_symm_apply]
+    simp only [Matrix.submatrix_apply, Equiv.trans_apply, Equiv.symm_apply_apply,
+      Equiv.apply_symm_apply]
     -- compare the four blocks: `x` is a row in `ι` or in `t`, and `y` a column of `1` or of `Z`
-    cases x <;> cases h : e y <;> simp_all [ε, one_apply]
+    cases x <;> cases h : e y <;> simp_all [ε, Matrix.one_apply]
   rw [h_block, det_permute, det_submatrix_equiv_self, det_fromBlocks_zero₂₁]
   simp [abs_unit_intCast]
 
@@ -455,16 +455,13 @@ theorem sum_norm_det_fromCols_sq_le [Fintype L] [DecidableEq L] [Fintype c] [Fin
     _ ≤ ∑ U, ‖(Z'.submatrix (enumSubset U) id).det‖ ^ 2 := by
       rw [← sum_image (f := fun U ↦ ‖(Z'.submatrix (enumSubset U) id).det‖ ^ 2) T_inj.injOn]
       exact sum_le_univ_sum_of_nonneg fun _ ↦ sq_nonneg _
-    -- Cauchy–Binet
-    _ = ‖(Z'ᴴ * Z').det‖ := by
-      simp [det_mul_eq_sum_minors, ← conjTranspose_submatrix, Complex.mul_conj',
-        ← Complex.ofReal_pow, ← Complex.ofReal_sum, abs_sum_of_nonneg]
-    -- Hadamard's inequality
-    _ ≤ ∏ b, ‖(Z'ᴴ * Z') b b‖ := hadamard_det_inequality (posSemidef_conjTranspose_mul_self Z')
-    _ = ∏ b : c, ∑ x : L, ‖Z x b‖ ^ 2 := by
-      refine (Fintype.prod_equiv ε _ _ fun b ↦ ?_).symm
-      simp [Z', mul_apply, Complex.conj_mul', ← Complex.ofReal_pow, ← Complex.ofReal_sum,
-        abs_of_nonneg (sum_nonneg fun x _ ↦ sq_nonneg ‖Z x b‖)]
+    -- Cauchy–Binet and Hadamard's inequality
+    _ ≤ ∏ b, ∑ x : L, ‖Z' x b‖ ^ 2 := by
+      have h (U : Set.powersetCard L (Fintype.card c)) :
+          (Z'.submatrix (enumSubset U) id).det = TauCeti.plucker Z'ᵀ U :=
+        (det_transpose _).symm.trans (TauCeti.plucker_apply (Z'ᵀ : Fin _ → L → ℂ) U).symm
+      simpa only [h, transpose_apply] using TauCeti.sum_norm_plucker_sq_le Z'ᵀ
+    _ = ∏ b : c, ∑ x : L, ‖Z x b‖ ^ 2 := Equiv.prod_comp ε.symm fun b ↦ ∑ x : L, ‖Z x b‖ ^ 2
 
 end New
 

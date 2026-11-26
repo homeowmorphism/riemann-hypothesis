@@ -1,5 +1,7 @@
-import New.Spanning.Frames.Densities
-import New.Spanning.Frames.StandardLevel
+module
+
+public import New.Spanning.Frames.Densities
+public import New.Spanning.Frames.StandardLevel
 
 /-!
 # The Bessel vector at the finite places
@@ -38,6 +40,8 @@ Notions from other files:
 
 See `New.Spanning.MainTerm.EnergyEstimate` for related work.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -331,11 +335,6 @@ namespace IntegralPlace.IsLargeLatticeData
 
 variable [h : IsLargeLatticeData F]
 
-/-- The compact set `F.boxSet` of a large lattice datum is the integral unitary group. -/
-theorem box_eq : F.boxSet = unitaryLevel integers 1 T.splitGram := by
-  obtain ⟨-, h_box, -⟩ := h.volume_le_and_boxSet_closePairs_positions_eq
-  exact h_box
-
 /-- For a large lattice datum `F` (hypothesis `IsLargeLatticeData F`), a subgroup `S` of the
 integral unitary group `unitaryLevel integers 1 T.splitGram` has finite measure `F.groupMeasure S`,
 for the convolution measure `F.groupMeasure` on the unitary group. -/
@@ -375,7 +374,7 @@ theorem setLIntegral_congruenceSubgroup_integral_sq :
       ‖∫ y : T.G in Z, extendedBesselChar F.levelUnit (y * x * y⁻¹) ∂F.groupMeasure‖ₑ ^ 2 =
         F.groupMeasure Z ^ 2 := by
     rw [setIntegral_congr_fun Z.isOpen.measurableSet (h_const x hx)]
-    simp [Measure.real, ← ofReal_norm, groupMeasure_ne_top Z.le_unitaryLevel_one]
+    simp [Measure.real, ← ofReal_norm, groupMeasure_ne_top Z.le_unitaryLevel_one, Set.univ_inter]
   rw [setLIntegral_congr_fun measurableSet_unitaryLevel h_inner, setLIntegral_const]
 
 /-- For a large lattice datum `F` (hypothesis `IsLargeLatticeData F`) and `Z` with K(g) ≤ Z ≤ K, the
@@ -396,22 +395,9 @@ theorem isCut_besselVector : F.IsCut Z.besselVector := by
     obtain ⟨u, hu, -, -, hux, -⟩ : ∃ u ∈ T.besselU, ∃ v ∈ T.besselU,
         u * x ∈ unitaryLevel integers 1 T.splitGram ∧ (u * x)⁻¹ * (v * x) ∈ F.congruenceSubgroup :=
       exists_mem_congruenceSubgroup_of_inner_ne_zero Z (inner_self_ne_zero.2 hx)
-    exact ⟨u, hu, box_eq.ge hux⟩
+    exact ⟨u, hu, boxSet_eq.ge hux⟩
   exact { toIsBoundedMeasurable := ⟨h_meas, _,
     h_bdd⟩, map_unipotent_mul := h_law, exists_mul_mem_box := h_supp }
-
-/-- For a large lattice datum and K(g) ≤ Z ≤ K, let the orbital integral J(γ) = ∫_G W(y) ⊗ W(γ⁻¹y)^*
-dy (`besselOrbitalIntegral`, for the Haar measure `F.groupMeasure`) of the finite Bessel vector
-`W = Z.besselVector` be non-zero. Then all leading minors of `T.frameGram γ`, the matrix of the
-products h(f_a, γ f_b) of the frame vectors f_a under the form h = `T.splitGram`, are integral. -/
-theorem leadingMinor_mem_of_besselOrbitalIntegral_ne_zero (Z : F.IntermediateGroup) {γ : T.G}
-    (hγ : besselOrbitalIntegral F.groupMeasure Z.besselVector γ ≠ 0) (j : Fin (𝔰.n + 1)) :
-    leadingMinor (T.frameGram γ.val.val) j ∈ P.integers := by
-  -- For the gauge of scale `1`, having any given size means being integral.
-  let Γ : Gauge F := h.gauge 1 (one_mem P.integers) (star_one A)
-  have h_size : leadingMinor (T.frameGram γ.val.val) j ∈ Γ.ofSize (9 * 𝔰.n) :=
-    Γ.leadingMinor_mem_ofSize_of_besselOrbitalIntegral_ne_zero (isCut_besselVector Z) hγ j
-  simpa [Γ, gauge] using h_size
 
 /-- The pairing of two translates of the finite Bessel vector as an integral over the Bessel
 unipotent group 𝖴. For a large lattice datum and K(g) ≤ Z ≤ K, let fl = `F.unipotentMass` be the
@@ -486,21 +472,6 @@ theorem unipotentMass_mul_inner_besselVector (y x : T.G) :
     mul_one]
   simp [a, Complex.real_smul]
 
-/-- For a large lattice datum `F` and a group `Z` with K(g) ≤ Z ≤ K, the Haar measure of `Z` is the
-number of cosets of K(g) = `F.congruenceSubgroup` in `Z` times the measure of K(g). -/
-theorem card_cosets_mul_groupMeasure :
-    card Z.Cosets * F.groupMeasure F.congruenceSubgroup = F.groupMeasure Z := by
-  obtain ⟨h_lower, h_upper⟩ : F.congruenceSubgroup ≤ Z.val ∧ Z.val ≤ unitaryLevel integers 1
-    T.splitGram :=
-    Z.prop
-  have h_compact : IsCompact (Z.val : Set T.G) :=
-    unitaryLevel_open_compact.2.of_isClosed_subset (Z.val.isClosed_of_isOpen Z.isOpen) h_upper
-  have h_card : card Z.Cosets = F.congruenceSubgroup.relIndex Z.val := by
-    rw [← Nat.card_eq_fintype_card]
-    exact Nat.card_congr (quotientRightRelEquivQuotientLeftRel _)
-  rw [h_card, ← relIndex_mul_measure_inf h_compact unitaryLevel_open_compact.1,
-    inf_of_le_left h_lower]
-
 /-- For a large lattice datum `F` and a group `Z` with K(g) ≤ Z ≤ K, the set of `u` with `u y ∈ Z`
 has mass at most one for the convolution of the measures `heisenbergMeasure`, which is carried by
 the Bessel unipotent group 𝖴. -/
@@ -544,7 +515,7 @@ theorem enorm_sq_besselVector_mul_unipotentMass (y : T.G) :
       -- `toReal_prod` would expand the product `F.unipotentMass`.
       simp [← ofReal_norm, mul_comm F.unipotentMass, -toReal_prod]
     _ = ν {u : T.G | u * y ∈ Z.val} := by
-      rw [h_unfold, enorm_smul, h_phase, mul_one, Real.enorm_of_nonneg measureReal_nonneg,
+      rw [h_unfold, eNorm_smul, h_phase, mul_one, Real.eNorm_of_nonneg measureReal_nonneg,
         ofReal_measureReal ((ascConv_setOf_mul_mem_le_one Z y).trans_lt one_lt_top).ne]
 
 /-- For a large lattice datum `F` and a group `Z` with K(g) ≤ Z ≤ K, the normalised Bessel vector
@@ -608,7 +579,7 @@ theorem lintegral_inner_besselVector_sq_mul_le (x : T.G) :
         v * x ∈ unitaryLevel integers 1 T.splitGram ∧ (v * x)⁻¹ * (w * y) ∈ F.congruenceSubgroup :=
       exists_mem_congruenceSubgroup_of_inner_ne_zero Z hy
     refine ⟨u * v⁻¹ * w, mul_mem (mul_mem hu (inv_mem hv)) hw, ?_⟩
-    simpa [mul_assoc] using conj_mem_unitaryLevel (box_eq.le hux) h_close
+    simpa [mul_assoc] using conj_mem_unitaryLevel (boxSet_eq.le hux) h_close
   have h_bound (y : T.G) :
       ‖⟪Z.besselVector x, Z.besselVector y⟫_ℂ‖ₑ ^ 2 * F.unipotentMass ≤
         S.indicator (fun _ ↦ ‖Z.besselVector x‖ₑ ^ 2) y := by
@@ -616,7 +587,7 @@ theorem lintegral_inner_besselVector_sq_mul_le (x : T.G) :
     · simp [hy]
     have h_schwarz : ‖⟪Z.besselVector x, Z.besselVector y⟫_ℂ‖ₑ ≤
         ‖Z.besselVector x‖ₑ * ‖Z.besselVector y‖ₑ :=
-      coe_le_coe.2 (nnnorm_inner_le_nnnorm _ _)
+      coe_le_coe.2 (nnNorm_inner_le_nnNorm _ _)
     rw [Set.indicator_of_mem (h_supp y hy)]
     grw [h_schwarz, mul_pow, mul_assoc, enorm_sq_besselVector_mul_le_one, mul_one]
   calc

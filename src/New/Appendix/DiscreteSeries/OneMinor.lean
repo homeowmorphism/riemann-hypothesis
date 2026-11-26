@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.FlenstedJensen.CasimirEigenfunction
-import New.Appendix.DiscreteSeries.MinorSecondOrder
+module
+
+public import Lib.DiscreteSeries.FlenstedJensen.CasimirEigenfunction
+public import New.Appendix.DiscreteSeries.MinorSecondOrder
 
 /-!
 # One minor near the identity
@@ -29,6 +31,8 @@ All norms of matrices are Frobenius norms, and `ε : n → ℤˣ` is a vector of
 
 See `New.Appendix.DiscreteSeries.Periods` for related work.
 -/
+
+@[expose] public section
 
 open Matrix Finset Norms.Frobenius Complex ComplexConjugate ComplexOrder
 
@@ -141,7 +145,7 @@ lemma exp_apply_eq_one_apply_of_le (hu : ∀ i j : n, o i ≤ o j → u i j = 0)
     | zero => simpa using hu
     | succ m ih =>
       intro a b hab
-      rw [pow_succ, mul_apply]
+      rw [pow_succ, Matrix.mul_apply]
       refine sum_eq_zero fun c _ ↦ ?_
       rcases le_total (o a) (o c) with hac | hca
       · rw [ih a c hac, zero_mul]
@@ -201,7 +205,6 @@ lemma det_reducedExp : (reducedExp ε o Z).det = cexp Z.trace := by
 
 /-- If `X` and `Y` are within `ρ` and `σ` of the identity in the Frobenius norm, then their product
 is within `ρ σ + ρ + σ` of it. -/
-
 lemma norm_mul_sub_one_le {ρ σ : ℝ} (hX : ‖X - 1‖ ≤ ρ) (hY : ‖Y - 1‖ ≤ σ) :
     ‖X * Y - 1‖ ≤ ρ * σ + ρ + σ := by
   rw [show X * Y - 1 = (X - 1) * (Y - 1) + (X - 1) + (Y - 1) by noncomm_ring]
@@ -250,7 +253,6 @@ lemma flenstedJensen_reducedExp {ε : n → ℤˣ} {Z : Matrix n n ℂ} {h : ℕ
     one_mul]
 
 /-- The absolute value of an entry of a matrix is at most the Frobenius norm of the matrix. -/
-
 lemma norm_apply_le (X : Matrix n n ℂ) (i j : n) : ‖X i j‖ ≤ ‖X‖ := by
   rw [← sq_le_sq₀ (norm_nonneg _) (norm_nonneg _), frobenius_norm_sq_eq_sum]
   exact (single_le_sum (fun b _ ↦ sq_nonneg ‖X i b‖) (mem_univ j)).trans
@@ -306,7 +308,7 @@ lemma sum_norm_conj_coordProj_sub_le {k : Matrix n n ℂ} {p : n → Prop} [Deci
     split_ifs <;> simp [sq]
   rw [factor, frobenius_norm_sq_eq_sum]
   refine sum_le_sum fun a _ ↦ ?_
-  rw [Matrix.neg_apply, norm_neg, mul_apply]
+  rw [Matrix.neg_apply, norm_neg, Matrix.mul_apply]
   exact norm_sum_le_of_le _ fun b _ ↦ (entry a b).le
 
 /-- Let `o` be injective, let `k` be unitary and block diagonal for the signs `ε`, and let
@@ -332,7 +334,7 @@ lemma norm_trace_conj_coordProj_mul_sub_le (ho : o.Injective) (hZ_le : ‖Z‖ �
     · simp [mem_blockDiagAlg.1 Q_mem a b hε]
   have trace_Q : (Q * W).trace = ∑ a : n, Q a a * Z a a := by
     refine sum_congr rfl fun a _ ↦ ?_
-    rw [diag_apply, mul_apply, Fintype.sum_eq_single a (off_diagonal a)]
+    rw [diag_apply, Matrix.mul_apply, Fintype.sum_eq_single a (off_diagonal a)]
     simp [hW]
   have trace_P : (coordProj p * Z).trace = ∑ a : n, coordProj p a a * Z a a := by
     simp [coordProj, trace]
@@ -348,7 +350,6 @@ lemma norm_trace_conj_coordProj_mul_sub_le (ho : o.Injective) (hZ_le : ‖Z‖ �
 
 /-- Multiplication on the right by an orthogonal projection does not increase the Frobenius
 norm. -/
-
 lemma norm_mul_proj_le {ρ : ℝ} (hP : IsStarProjection P) (hX : ‖X‖ ≤ ρ) : ‖X * P‖ ≤ ρ := by
   rw [← norm_star, star_mul, hP.isSelfAdjoint.star_eq]
   exact norm_proj_mul_le hP (by rwa [norm_star])
@@ -441,7 +442,8 @@ outside the set. -/
 lemma crossTrace_coordProj :
     crossTrace (coordProj p) A B =
       ∑ i : n, ∑ j : n, if p i ∧ ¬p j then A i j * B j i else 0 := by
-  simp only [crossTrace, trace, diag_apply, mul_apply (M := coordProj p * A * (1 - coordProj p))]
+  simp only [crossTrace, trace, diag_apply,
+    Matrix.mul_apply (M := coordProj p * A * (1 - coordProj p))]
   refine sum_congr rfl fun i _ ↦ sum_congr rfl fun j _ ↦ ?_
   by_cases hi : p i <;> by_cases hj : p j <;> simp [coordProj, mul_sub, hi, hj]
 

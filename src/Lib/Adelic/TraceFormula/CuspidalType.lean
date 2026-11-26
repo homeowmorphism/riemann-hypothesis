@@ -1,5 +1,7 @@
-import Lib.Adelic.TraceFormula.TestFunction
-import Lib.LocalGL.Green.LabelCharacters
+module
+
+public import Lib.Adelic.TraceFormula.TestFunction
+public import Lib.LocalGL.Green.LabelCharacters
 
 /-!
 # An irreducible label in a tuple gives a cuspidal test function
@@ -30,6 +32,8 @@ Notions from other files:
 The finite-field input is part of Green's theory of the characters of `GL_n(F_q)`; see
 `Lib.LocalGL.Green.TauFunctions`.
 -/
+
+@[expose] public section
 
 open NumberField MonoidAlgebra Matrix Multiplicative Finset Polynomial
 
@@ -72,7 +76,7 @@ lemma simClassOf_radicalHom (T : Finset n) (Z : Matrix n n k) :
       simp [coe_radicalHom, coordProjector, mul_sub, hi, hj]
   have h_blocks : (radicalHom (isIdempotentElem_coordProjector T) (ofAdd Z)).1.submatrix e e =
       fromBlocks 1 0 (Z.submatrix Subtype.val Subtype.val) 1 := by
-    ext (⟨i, hi⟩ | ⟨i, hi⟩) (⟨j, hj⟩ | ⟨j, hj⟩) <;> simp [h_entry, e, one_apply] <;> grind
+    ext (⟨i, hi⟩ | ⟨i, hi⟩) (⟨j, hj⟩ | ⟨j, hj⟩) <;> simp [h_entry, e, Matrix.one_apply] <;> grind
   rw [← simClassOf_submatrix e, h_blocks]
   -- splitting a vector into its coordinates outside and in `T` intertwines the two endomorphisms
   refine simClassOf_eq_iff.2

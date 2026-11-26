@@ -1,5 +1,7 @@
-import Lib.ClassField.GreenbergWiles.CocycleCounts
-import Lib.ClassField.GreenbergWiles.SelmerRelations
+module
+
+public import Lib.ClassField.GreenbergWiles.CocycleCounts
+public import Lib.ClassField.GreenbergWiles.SelmerRelations
 
 /-!
 # Relations at split primes
@@ -35,6 +37,8 @@ Part of a known result: Greenberg–Wiles formula, as a lower bound for the dual
 `Lib.ClassField.GreenbergWiles.CocycleCounts`. Source: Darmon, Diamond, Taylor, Fermat's Last
 Theorem, Theorem 2.19; the case that is used is proved here.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -194,7 +198,7 @@ instance finite_relations [Finite M] (T : Finset (FinPlace K)) : Finite (D.relat
     (f := fun (y : Gal(Ω/K) → CharacterModule M) (u : D.subgroup.toSubgroup) ↦ y u)
     (fun y hy ↦ ?_) (fun y hy y' hy' h ↦ funext fun g ↦ ?_)
     (finite_cocycles_unramified_outside V h_above)
-  · exact ⟨⟨hy.isLocallyConstant.continuous.comp continuous_subtype_val,
+  · exact ⟨⟨hy.isLocallyConstant.continuous.comp continuous_subtypeVal,
       fun a b ↦ hy.map_mul a a.2 b b.2⟩,
       fun w hw A hA τ hτ ↦ hy.unramified τ ⟨w.below K, hw, A, hA.isPlaceOver_below, hτ⟩⟩
   · by_cases hg : g ∈ D.subgroup
@@ -368,7 +372,7 @@ lemma form_sum_eq_zero (hS : ∀ v ∈ D.localPrimes, ↑q ∈ v.asIdeal)
       isPlaceOver := Sum.forall.2 ⟨s.isPlaceOver, fun j ↦ (p j).isPlaceOver⟩
       φ := Sum.elim s.φ fun j ↦ (p j).frob
       isFrob := Sum.forall.2 ⟨s.isFrob, fun j ↦ ⟨(p j).isFrob, (p j).frob_mem⟩⟩
-      mem_inertia_iff _ := Iff.rfl }
+      mem_inertia_iff _ := Iff.of_eq Set.mem_ofPred_eq }
   have hγ' : ∀ n : (Gal(Ω/K) ⧸ O.toSubgroup) ⊕ J,
       IsTameGeneratorFor (K := K) m (s'.valuationSubring n)
         (Sum.elim γ (fun j ↦ (p j).tameGenerator) n) :=

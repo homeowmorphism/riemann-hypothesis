@@ -1,6 +1,8 @@
-import Lib.Adelic.Unitary.RationalPoints
-import Lib.Weil.Construction.FiniteCocycle
-import Lib.Weil.Fock.Basic
+module
+
+public import Lib.Adelic.Unitary.RationalPoints
+public import Lib.Weil.Construction.FiniteCocycle
+public import Lib.Weil.Fock.Basic
 
 /-!
 # The adelic Weil representation on 𝒮(V) and its theta functional
@@ -53,6 +55,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.MixedModel.ZeroTerm` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -151,14 +155,14 @@ sign −1, and Δ_f is `New.finMultiplier`, the multiplier of the action `finAct
 vectors. -/
 def weilMultiplier : ℂ := (∏ w : InfinitePlace E, realMultiplier (g.1 w)) * finMultiplier g.2
 
-set_option synthInstance.maxSize 999
-
 /-- The Haar measure on 𝔸^n that is the image of the product of `New.Fock.normalizedVolume` and
 `New.latticeMeasure` under the isomorphism `New.adelicSum` from real and finite coordinates. The
 isomorphism does not depend on the signs, so the signs `1` are used. -/
 def vacuumMeasure : Measure (n → 𝔸 E) :=
   ((normalizedVolume (InfinitePlace E × n)).prod (latticeMeasure E n)).map (adelicSum E 1).equiv
-  deriving IsAddHaarMeasure
+
+instance : (vacuumMeasure (E := E) (n := n)).IsAddHaarMeasure :=
+  (adelicSum E 1).equiv.isAddHaarMeasure_map _
 
 /-- The function `New.vacuumFn` (Gaussian at infinity times twisted lattice indicator at finite
 places) is a vacuum, in the sense of `New.Heisenberg.IsVacuum`, for the bicharacter β of signs s and
@@ -336,8 +340,6 @@ open Matrix ComplexConjugate Heisenberg.IsVacuum
 variable {E : Type _} [Field E] [CMType E] [WeilData E]
   {n : Type _} [Fintype n] [DecidableEq n]
   {s : n → ℤˣ} (V : Space E n s) (g : G E s) (x y : n → 𝔸 E) (f f' : 𝒮 V)
-
-lemma dataInner_apply : V.dataInner f f' = modelInner f f' := rfl
 
 /-- Superposition: a bounded linear map `T` from `𝒮 V` to a complex Banach space is determined by
 its values on the translates ϱ(y) vac of the vacuum `vacElem`. Specifically, `T f` = ∫ ⟨ϱ(y) vac, f⟩
@@ -568,7 +570,7 @@ lemma summable_modelInner (f' f : Model (adelicHeisenberg E s)) :
   have h_norm (z x : n → 𝔸 E) :
       ‖modelInner f' (heisenbergOp (z + ContinuousAddMonoidHom.id (n → 𝔸 E) x) IsVacuum.vacElem)‖ₑ =
         ‖f' (id z + x)‖ₑ := by
-    rw [← conj_modelInner, modelInner_heisenbergOp_vacElem, RCLike.enorm_conj]
+    rw [← conj_modelInner, modelInner_heisenbergOp_vacElem, RCLike.eNorm_conj]
     simp only [ContinuousAddMonoidHom.id_toFun, id_eq]
   obtain ⟨B, hB, M, hM⟩ :=
     wiener_bound (modelInner f') h_vac_ne (ContinuousAddMonoidHom.id (n → 𝔸 E)) h_int id h_norm
@@ -579,7 +581,7 @@ lemma summable_modelInner (f' f : Model (adelicHeisenberg E s)) :
   have h_fin : (V.vecAtPoint ⁻¹' B).Finite :=
     isCovolOneLattice_ratVectors.finite_preimage (hB.preimage_smul V.x⁻¹)
   rw [← h_fin.cast_ncard_eq] at h_bound
-  exact .of_enorm (ne_top_of_le_ne_top (by simp [ENNReal.mul_ne_top]) h_bound)
+  exact .of_eNorm (ne_top_of_le_ne_top (by simp [ENNReal.mul_ne_top]) h_bound)
 
 namespace IsRatInvariant
 

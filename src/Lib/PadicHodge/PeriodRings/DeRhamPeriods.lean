@@ -1,5 +1,7 @@
-import Lib.ClassField.Places.DecompositionCyclotomic
-import Lib.PadicHodge.PeriodRings.CrystallineRings
+module
+
+public import Lib.ClassField.Places.DecompositionCyclotomic
+public import Lib.PadicHodge.PeriodRings.CrystallineRings
 
 /-!
 # The cyclotomic action on μ, the period t, and the de Rham field B_dR
@@ -43,6 +45,8 @@ III.2-III.3; J.-M. Fontaine, Le corps des périodes p-adiques, Astérisque 223 (
 introduction to p-adic period rings (2019), §3.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-! ## The action of G_p on μ modulo μ² -/
@@ -83,7 +87,7 @@ lemma mu_sq_dvd_smul_mu_sub (g : Gp p) : mu ^ 2 ∣ g • mu - (cyclotomicGp g :
   -- Let `u = [ε^{1/p^m}]` and let `a` be the cyclotomic character of `g` modulo `p ^ m`.
   let u : Ainf := teichmuller p ((frobeniusEquiv _ p).symm^[m] epsTilt)
   let a : ℕ := (cyclotomicCharMod ℂ_[p] (p ^ m) g : ZMod (p ^ m)).val
-  have hu : u ^ p ^ m = 1 + mu := by simp [u, mu, ← map_pow]
+  have hu : u ^ p ^ m = 1 + mu := by simp [u, mu_eq, ← map_pow]
   -- `θ u` is a `p ^ m`-th root of unity, as `u ^ p ^ m = 1 + μ` and `θ μ = 0`; `g` acts on it as
   -- the `a`-th power, and `ker θ = (ξ)`.
   have h_root : theta u ^ p ^ m = 1 := by
@@ -97,7 +101,8 @@ lemma mu_sq_dvd_smul_mu_sub (g : Gp p) : mu ^ 2 ∣ g • mu - (cyclotomicGp g :
   -- The cyclotomic characters of the algebraic closure and of its completion agree.
   have h_chi : (p : ℤ_[p]) ^ m ∣ (cyclotomicGp g).val - a := by
     rw [cyclotomicGp,
-      cyclotomicChar_eq_of_equivariant p (j := algebraMap _ ℂ_[p]) fun x ↦ (smul_coe_Cp g x).symm]
+      cyclotomicChar_eq_of_equivariant p (j := algebraMap _ ℂ_[p])
+        fun x ↦ (UniformSpace.Completion.algEquiv_smul_coe g x).symm]
     exact (pow_dvd_cyclotomicChar_sub_iff m).mpr zmod_eq_natCast_val
   have h_lin : (p : Ainf) ^ m ∣ (cyclotomicGp g : ℤ_[p]) • mu - a * mu := by
     simpa [sub_mul, Algebra.smul_def] using (map_dvd (algebraMap _ Ainf) h_chi).mul_right mu
@@ -214,10 +219,6 @@ one) with p is associated to the chosen period `tPeriodAmax`. That is, `mu * p` 
 times a unit of `Amax`. -/
 lemma associated_mu_mul_p_tPeriodAmax : Associated (mu * p : Amax) tPeriodAmax :=
   exists_tPeriod.choose_spec.1
-
-lemma frobEnd_tPeriodAmax : frobEnd tPeriodAmax = p * tPeriodAmax := by
-  obtain ⟨-, h_frob, -⟩ := (exists_tPeriod (p := p)).choose_spec
-  exact h_frob
 
 /-- For every `g` in the absolute Galois group G_p of Q_p, `g` acts on the chosen period
 `tPeriodAmax` in `Amax` by multiplication by χ(`g`) ∈ ℤ_p, where χ = `cyclotomicGp` is the p-adic

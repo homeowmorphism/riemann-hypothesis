@@ -1,5 +1,7 @@
-import Lib.Adelic.Adeles.IdeleModulus
-import Lib.GaloisRep.Hilbert90.UnitaryGroups
+module
+
+public import Lib.Adelic.Adeles.IdeleModulus
+public import Lib.GaloisRep.Hilbert90.UnitaryGroups
 
 /-!
 # Witt's theorem over fields and over Ô; quasi-reflections, Eichler maps, frames
@@ -39,6 +41,7 @@ Notions from other files:
 * `New.frameMatrix`: the submatrix of γ on the rows and columns of the frame.
 * `New.intGL`: for a subring O of R, the subgroup GL_n(O) of GL_n(R): matrices with entries in O
   whose inverse has entries in O.
+* `New.IsPrimitiveMatrix`: a matrix and some left inverse of it have entries in a subring.
 
 ## Relation to the literature
 
@@ -46,11 +49,9 @@ Known; see `Lib.Adelic.Witt.IwasawaDecomposition`, `Lib.DiscreteSeries.Bruhat.Fl
 `Lib.DiscreteSeries.Bruhat.ComplexPlace` for sources.
 -/
 
-/-!
-## Left invertible and primitive matrices, quasi-reflections
+@[expose] public section
 
-* `New.IsPrimitiveMatrix`: a matrix and some left inverse of it have entries in a subring.
--/
+/-! ## Quasi-reflections -/
 
 section QuasiReflection
 
@@ -58,17 +59,7 @@ open Matrix IsLocalRing
 
 namespace New
 
-variable {R n k : Type*} [DecidableEq k] [CommRing R] [Fintype n] [DecidableEq n]
-  (O : Subring R) (X : Matrix n k R) [StarRing R] {J : Matrix n n R}
-
-/-- The n × k matrix X over R has a left inverse over R. -/
-abbrev HasLeftInv : Prop := ∃ L : Matrix k n R, L * X = 1
-
-/-- The submodule of R^n spanned by the columns of the matrix X. -/
-abbrev colSpan [Fintype k] : Submodule R (n → R) := X.mulVecLin.range
-
-/-- The matrix X has entries in the subring O and a left inverse with entries in O. -/
-def IsPrimitiveMatrix : Prop := IsIntMatrix O X ∧ ∃ L : Matrix k n R, IsIntMatrix O L ∧ L * X = 1
+variable {R n : Type*} [CommRing R] [Fintype n] [DecidableEq n] [StarRing R] {J : Matrix n n R}
 
 /-- The involution of a local ring induces an involution of its residue field. -/
 noncomputable instance [IsLocalRing R] : StarRing (ResidueField R) where
@@ -156,7 +147,7 @@ lemma HasLeftInv.exists_dotProduct_mulVec_col_eq_ite (hX : HasLeftInv X) {A : Ma
   refine ⟨a, fun i ↦ ?_⟩
   calc a ⬝ᵥ A *ᵥ X.col i = L j ⬝ᵥ X.col i := by rw [dotProduct_mulVec, ha]
     _ = (L * X) j i := rfl
-    _ = if j = i then 1 else 0 := by rw [hL, one_apply]
+    _ = if j = i then 1 else 0 := by rw [hL, Matrix.one_apply]
 
 /-- A subspace `L` of `n → R` has a basis written as the columns of an `n × d` matrix `x`, where `d`
 is the dimension of `L`: `x` has a left inverse and its column space is `L`. -/
@@ -514,7 +505,8 @@ lemma witt_Ô [HasPrimitiveRoot5040 E] {X Y : Matrix n k (𝔸f E)}
   -- so does its orthonormal frame `T`, and `a * T` is unitary and sends `X` to `Y`.
   obtain ⟨X, hX_inv : HasLeftInv X, rfl⟩ := hX.exists_map_subtype_eq
   obtain ⟨Y, hY_inv : HasLeftInv Y, rfl⟩ := hY.exists_map_subtype_eq
-  have h_gram' : Xᴴ * X = Yᴴ * Y := by simpa [← ext_iff, mul_apply, Subtype.ext_iff] using h_gram
+  have h_gram' : Xᴴ * X = Yᴴ * Y := by
+    simpa [← ext_iff, Matrix.mul_apply, Subtype.ext_iff] using h_gram
   obtain ⟨a, ha_unit, ha_X, ha_Y⟩ :=
     exists_isUnit_mul_eq_and_conjTranspose_mul_eq hX_inv hY_inv h_gram'
   -- the frame `T` of the hermitian unit `aᴴ * a` is `1` modulo `aᴴ * a - 1`, which kills `X`
@@ -661,7 +653,7 @@ lemma eq_one_of_mem_besselU_of_fix (hx' : x' ∈ T.besselU) {B : Matrix 𝔰.Bes
   have h_inl (a : Fin 𝔰.ϱ) (j : 𝔰.BesselIndex) : g (inl a) j = if inl a = j then 1 else 0 := by
     refine h_row (inl a) (fun l hl ↦ ?_) j
     have h_isometry : (gᴴ * T.splitGram * g) (eStar a) l = T.splitGram (eStar a) l :=
-      congrFun₂ x'.property (eStar a) l
+      congrFun₂ (mem_unitaryGroupOf_iff.1 x'.property) (eStar a) l
     obtain b | c | b := l
     case inr.inr => exact absurd rfl (hl b)
     all_goals
@@ -768,7 +760,8 @@ lemma exists_unitary_eq_eichlerMap {J : Matrix n n A} {x u : n → A} {ς : A} (
       mulVec_sub, mulVec_add, mulVec_neg, mulVec_smul]
     module
   exact ⟨⟨⟨e, e', mul_inv, inv_mul⟩,
-    show eᴴ * J * e = J by rw [adjoint, mul_assoc, inv_mul, mul_one]⟩, rfl⟩
+    mem_unitaryGroupOf_iff.2 <| show eᴴ * J * e = J by rw [adjoint, mul_assoc, inv_mul, mul_one]⟩,
+    rfl⟩
 
 variable {𝔰 : Shape} {T : 𝔰.Form A} {γ : T.G}
 

@@ -1,5 +1,7 @@
-import Lib.Adelic.QuotientMeasure.UnfoldingInStages
-import Lib.Weil.DualPair.WeilAction
+module
+
+public import Lib.Adelic.QuotientMeasure.UnfoldingInStages
+public import Lib.Weil.DualPair.WeilAction
 
 /-!
 # Integrals over the Bessel subgroup and the orbits surviving unipotent twists
@@ -35,6 +37,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.Periods.Unfolding` and `Lib.Adelic.Reduction.FiniteVolume` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## The Bessel subgroup, Eichler maps and integrals over [B]
@@ -83,7 +87,7 @@ private lemma exists_matrix_eq_ite_of_sub_one_lowers (w : ι → ℤ) (q : 𝔸 
   -- Only the rows `l` with `w i < w l` enter the sum, since `(n - 1) i l = 0` for the others.
   have h_sum : (∑ l : ι, (n - 1) i l * if h : w i < w l then toAdele (Z l k) else 0) =
       ((n - 1) * Z.map toAdele) i k := by
-    rw [mul_apply]
+    rw [Matrix.mul_apply]
     refine Finset.sum_congr rfl fun l _ ↦ ?_
     by_cases h : w i < w l
     · rw [dite_eq_left h, Matrix.map_apply]
@@ -118,13 +122,13 @@ private lemma exists_unitriangular_mul_map_mem_matrix (w : ι → ℤ) {A : Set 
   split_ifs with h
   · -- On and below the diagonal blocks `(n - 1) * r` vanishes, and `n * r` has the entries of `1`.
     have h_sub_one_mul_eq_zero : ((n - 1) * (r : Matrix ι ι E).map toAdele) i k = 0 := by
-      rw [mul_apply]
+      rw [Matrix.mul_apply]
       refine Finset.sum_eq_zero fun l _ ↦ ?_
       by_cases hl : w i < w l
       · have hlk : l ≠ k := by grind
         rw [Matrix.map_apply, Z_tri l k (h.trans hl.le), one_apply_ne hlk, map_zero, mul_zero]
       · rw [hn i l hl, zero_mul]
-    simp [h_sub_one_mul_eq_zero, apply_ite, one_apply]
+    simp [h_sub_one_mul_eq_zero, apply_ite, Matrix.one_apply]
   · exact Set.mem_insert_of_mem _ (Set.mem_insert_of_mem _ (hq _))
 
 open scoped Pointwise in
@@ -184,7 +188,7 @@ lemma isCocompact_ratBessel : (Y.ratBessel.subgroupOf Y.besselGroup).IsCocompact
     have β_ik : ((β : GL ι E) : Matrix ι ι E) i k = (1 : Matrix ι ι E) i k :=
       mem_agreeWithOneOn.mp β_uni i k (neg_le_neg h_grade_le)
     rw [h_matrix, Matrix.map_apply, β_ik]
-    simp [one_apply, apply_ite]
+    simp [Matrix.one_apply, apply_ite]
   have β_rat : V.ratEmbed β ∈ Y.ratBessel := Subgroup.mem_inf.mpr ⟨⟨β, rfl⟩, β_bessel⟩
   let βB : Y.besselGroup := ⟨V.ratEmbed β, β_bessel⟩
   have βγ_rat : βB * γ ∈ Y.ratBessel.subgroupOf Y.besselGroup :=
@@ -450,7 +454,7 @@ lemma integral_besselMeasure_eq_of_mean {q : Type*} [Fintype q]
     .trans ?_ (push M M_cont.measurable M_inv)⟩
   have M_comp_pr_inv : (Y.ratBessel.subgroupOf Y.besselGroup).FixesLeft (fun r ↦ M (pr r)) := by
     intro γ hγ r
-    show M (pr (γ * r)) = M (pr r)
+    change M (pr (γ * r)) = M (pr r)
     rw [map_mul, M_inv _ (pr_rat γ hγ)]
   rw [← sub_eq_zero, ← integral_sub (integrable_of_isCocompact Y.isCocompact_ratBessel φ_cont φ_inv)
     (integrable_of_isCocompact Y.isCocompact_ratBessel (by fun_prop) M_comp_pr_inv)]
@@ -465,7 +469,7 @@ lemma integral_besselMeasure_eq_of_mean {q : Type*} [Fintype q]
       (mem_unip _).mp (unip_part r)
     simp only [j₀, map_mul, map_inv, pr_u, pr_unip, inv_one, mul_one]
   have j_mem (r : Y.besselGroup) (b : q × X → 𝔸 E) : j₀ r b ∈ S := by
-    show pr (j₀ r b) ∈ (stdSpace E X).Γ
+    change pr (j₀ r b) ∈ (stdSpace E X).Γ
     rw [pr_j₀ r b]
     exact one_mem _
   let j (r : Y.besselGroup) (b : q × X → 𝔸 E) : S := ⟨j₀ r b, j_mem r b⟩
@@ -665,7 +669,7 @@ lemma agreesWithStringMap_mul_iff {w : Matrix ι' ι (𝔸 E)} {γ : G E ε} (h�
   -- The entry `(b, a)` of `(δ - 1) * (w * γ)` is this entry times a unit (`col`, using `ih`), and
   -- it vanishes because `δ * (w * γ)` and `w * γ` both agree with `stringMap` there.
   rw [← unit.mul_left_eq_zero, ← col agrees _ h_row, ← Matrix.mul_apply', Matrix.sub_mul]
-  show (V'.ratCoordMatrix δ * (w * V.ratCoordMatrix γ) -
+  change (V'.ratCoordMatrix δ * (w * V.ratCoordMatrix γ) -
       (1 : Matrix ι' ι' (𝔸 E)) * (w * V.ratCoordMatrix γ)) b a = 0
   simp (disch := grind) [hδ b a, agrees b a]
 
@@ -727,7 +731,7 @@ private lemma hasLeftInv_submatrix_of_survives {x : Matrix ι' ι E}
   refine .of_ker_le_bot fun u hu ↦ funext (int_weight_induction (fun a : A ↦ Y.gradeOf a) ?_)
   -- Indices of positive weight lie on the string; let `a` be the last one there with `u a ≠ 0`.
   simp [A, reindex_equiv Y.indexEquiv]
-  show ∀ (b : Fin s) (hb : 2 * ((b : ℕ) : ℤ) < (s : ℤ) - 1),
+  change ∀ (b : Fin s) (hb : 2 * ((b : ℕ) : ℤ) < (s : ℤ) - 1),
     (∀ (b' : Fin s) (hb' : 2 * ((b' : ℕ) : ℤ) < (s : ℤ) - 1), b < b' →
       u ⟨Y.indexEquiv (.inr b'), _⟩ = 0) → u ⟨Y.indexEquiv (.inr b), _⟩ = 0
   by_contra! ⟨a, a_pos, ih, u_ne⟩
@@ -807,7 +811,7 @@ lemma exists_agreesWithStringMap (w : Matrix ι' ι (𝔸 E)) (hw : w ∈ ratMat
       -- Row `k` of `V.J * M` is a multiple of the row of `M` dual to `k`.
       simpa [Y.gram_eq, map_gradedGram_mul_apply] using
         congrArg (fun z ↦ V.J.map toAdele k (Y.stringReversal k) * z) h_adj
-    simpa [← hT₀, mul_apply, incl] using h_gram_entry.symm
+    simpa [← hT₀, Matrix.mul_apply, incl] using h_gram_entry.symm
   -- `T₀` survives trivially, as the two phases are the same.
   have hT₀_survives : Y.Survives Y' 0 (T₀.map toAdele) := fun u _ _ ↦ by rw [hT₀]
   obtain ⟨g, hg⟩ : ∃ g : U V'.J,
@@ -818,7 +822,7 @@ lemma exists_agreesWithStringMap (w : Matrix ι' ι (𝔸 E)) (hw : w ∈ ratMat
   have ha_mem : a ∈ A := by simpa [A] using a_pos
   have h_entry : toAdele (((g : Matrix ι' ι' E) * w.submatrix id incl) b ⟨a, ha_mem⟩) =
       toAdele (T₀.submatrix id incl b ⟨a, ha_mem⟩) := by rw [hg]
-  simpa [mul_apply, ratCoordMatrix, ratEmbed, ← hT₀, incl, U.map] using h_entry
+  simpa [Matrix.mul_apply, ratCoordMatrix, ratEmbed, ← hT₀, incl, U.map] using h_entry
 
 end New.Grading
 

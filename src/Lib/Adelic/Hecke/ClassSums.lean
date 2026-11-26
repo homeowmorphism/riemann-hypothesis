@@ -1,5 +1,7 @@
-import Lib.Adelic.Hecke.Basic
-import Lib.Adelic.QuotientMeasure.Basic
+module
+
+public import Lib.Adelic.Hecke.Basic
+public import Lib.Adelic.QuotientMeasure.Basic
 
 /-!
 # Class sums as integrals over Γ\G, orbit unfolding and means over compact subgroups
@@ -40,6 +42,8 @@ measure. Source: G. Shimura, Introduction to the Arithmetic Theory of Automorphi
 (1971), ch. 3; B. Gross, Algebraic modular forms, Israel J. Math. 113 (1999) 61-93; M. Greenberg and
 J. Voight, Lattice methods for algebraic modular forms on classical groups, arXiv 1209.2460.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -150,11 +154,7 @@ lemma card_classAut_out (g : G) :
     Nat.card (classAut Γ K g) = Nat.card (classAut Γ K (DoubleCoset.mk Γ K g).out) := by
   -- The representative is some `γ * g * k`, and conjugation by `γ` matches the two stabilisers.
   obtain ⟨γ, hγ, k, hk, h_out⟩ := mk_out_eq_mul Γ K g
-  have h_mem (a : G) : a ∈ classAut Γ K g ↔ conj γ a ∈ classAut Γ K (mk Γ K g).out := by
-    have h_right : g⁻¹ * (a * (g * k)) ∈ K ↔ g⁻¹ * (a * g) ∈ K := by
-      simp [← mul_assoc, hk, mul_mem_cancel_right]
-    simp [h_out, hγ, hk, h_right, mul_assoc, mul_mem_cancel_left, mul_mem_cancel_right]
-  exact Nat.card_congr ((conj γ).subtypeEquiv h_mem)
+  rw [h_out, card_classAut_mul_mul hγ hk]
 
 /-- The integral over `Γ \ G` of a complex function commutes with multiplication by a constant. -/
 @[simp] lemma classIntegral_const_mul (β : ℂ) (f : G → ℂ) :

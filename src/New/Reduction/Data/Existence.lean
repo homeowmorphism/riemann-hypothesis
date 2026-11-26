@@ -1,5 +1,7 @@
-import Lib.Analytic.Primes
-import New.Reduction.Data.AdmissibleData
+module
+
+public import Lib.Analytic.Primes
+public import New.Reduction.Data.AdmissibleData
 
 /-!
 # Admissible data exist at every large x
@@ -37,6 +39,8 @@ numbering). Form here: all weights up to a given bound are avoided at once, modu
 integer, with a fixed number of digits and the explicit count of points on a sphere. This concerns
 `exists_three_term_free`.
 -/
+
+@[expose] public section
 
 /-!
 ## Existence of admissible data at every large integer x
@@ -98,7 +102,8 @@ lemma exists_three_term_free {n H L o : ℕ} (hL : 0 < L) (ho : (L * H) ^ n ≤ 
   have h_digit (v : Fin n → ℕ) (hv : v ∈ sphere n H k) (l : Fin n) : v l < L * H :=
     ((h_sphere.1 hv).1 l).trans_le (Nat.le_mul_of_pos_left H hL)
   refine ⟨(sphere n H k).image (map (L * H)), forall_mem_image.2 fun v hv ↦ h_lt v (h_digit v hv),
-    by simpa [card_image_of_injOn (map_injOn.mono h_digit)] using hk, ?_⟩
+    by simpa [card_image_of_injOn (map_injOn.mono (s₁ := (sphere n H k : Set (Fin n → ℕ)))
+      fun v hv ↦ h_digit v (Finset.mem_coe.1 hv))] using hk, ?_⟩
   simp only [forall_mem_image, h_sphere]
   rintro u ⟨hu, hu_sq⟩ v ⟨hv, hv_sq⟩ w ⟨hw, hw_sq⟩ α α' hα hα' h_sum h_cong
   -- both sides of the congruence have digits below `L * H`, so they are equal digit by digit
@@ -128,7 +133,7 @@ lemma Parameters.exists_orderOf_placeClass_eq (P : Parameters) (s : ℕ) :
   set a : ℕ := 3 * l₀ s * u with ha
   have ha_odd : Odd a := by simp [ha, l₀, Nat.odd_mul, Nat.odd_pow_iff, hu, Nat.odd_iff.2]
   have h_order : orderOf (1 + 2 ^ v * (a : ℤ) : ZMod (2 ^ (s + v))) = 2 ^ s :=
-    ZMod.orderOf_one_add_mul_prime_pow Nat.prime_two v (by omega) (by omega) a
+    ZMod.orderOf_one_add_mul_prime_pow Nat.prime_two v (by omega) a
       (mod_cast ha_odd.not_two_dvd_nat) s
   refine ⟨v, ⟨a, by grind [towerDeg_eq]⟩, ?_⟩
   rw [← orderOf_units, P.placeClass_placeOfInt (by simp [isCoprime_one_left]), ← h_order, hq₀, ha]
@@ -326,8 +331,8 @@ lemma Parameters.exists_prime_pair_norm (P : Parameters) (s : ℕ) {W L : ℝ} (
   have h_level (i : Fin (classNumber P.K + 1)) : P.IsPrincipalLevelPrime s L (p i) := by
     have hp_pos : (0 : ℝ) < p i := mod_cast (hp i).pos
     refine ⟨hp i, h_mod i, ?_⟩
-    simp only [Set.mem_Icc, ← exp_nat_mul, ← le_log_iff_exp_le hp_pos, ← log_le_iff_le_exp hp_pos,
-      Nat.cast_ofNat]
+    simp only [Set.mem_Icc, ← exp_natCast_mul, ← le_log_iff_exp_le hp_pos,
+      ← log_le_iff_le_exp hp_pos, Nat.cast_ofNat]
     exact ⟨by linarith [h_shift i, (h_log i).1], by linarith [h_shift i, (h_log i).2]⟩
   have h_inj : p.Injective := .of_lt_imp_ne fun i j (hij : i.val + 1 ≤ j) h_eq ↦ by
     rify at hij
@@ -388,9 +393,9 @@ lemma exists_isLeast_two_pow_three_pow {y : ℝ} (hy : 2 ≤ y) :
       (∃ e : ℕ, r = 3 ^ (e + 1)) ∧
       s ≤ 32 * y := by
   obtain ⟨a, hm, hm_pred_lt : ((2 : ℕ) : ℝ) ^ a < exp (y / 2)⟩ :=
-    exists_isLeast_pow (z := exp (y / 2)) one_lt_two (by bound)
+    exists_isLeast_pow (z := exp (y / 2)) one_lt_two (Real.one_lt_exp_iff.2 (by linarith))
   obtain ⟨c, hr, hr_pred_lt : ((3 : ℕ) : ℝ) ^ c < exp (5 * y)⟩ :=
-    exists_isLeast_pow (q := 3) (z := exp (5 * y)) (by simp) (by bound)
+    exists_isLeast_pow (q := 3) (z := exp (5 * y)) (by simp) (Real.one_lt_exp_iff.2 (by linarith))
   refine ⟨2 ^ (a + 1), 3 ^ (c + 1), (a + 1) * 22, hm, hr, by simpa [pow_succ'] using hm_pred_lt.le,
     by simpa [pow_succ'] using hr_pred_lt.le, ⟨a, rfl, rfl⟩, ⟨c, rfl⟩, ?_⟩
   -- `a log 2 < y / 2` and `2 ≤ y`
@@ -416,7 +421,7 @@ lemma mul_rank_lt_two_pow {y : ℝ} {m r s : ℕ} (hy : 0 < y) (h_large : 1e6 * 
     _ < 1e6 * y * exp (5 * y) ^ 2 := by nlinarith [mul_pos hy (pow_pos (exp_pos (5 * y)) 2)]
     _ ≤ exp y * exp (5 * y) ^ 2 := by gcongr
     _ = exp (y / 2) ^ 22 := by
-      rw [← exp_nat_mul, ← exp_nat_mul, ← exp_add]
+      rw [← exp_natCast_mul, ← exp_natCast_mul, ← exp_add]
       ring_nf
     _ ≤ m ^ 22 := by gcongr
 
@@ -459,7 +464,7 @@ lemma pow_mul_exp_le_exp_pow_six {n : ℕ} {W : ℝ} (hW : 1 ≤ W) (hn : n + 1 
   calc W ^ n * exp W ≤ exp W ^ n * exp W := by
         gcongr
         linarith [add_one_le_exp W]
-    _ = exp ((n + 1) * W) := by rw [← exp_nat_mul, ← exp_add, add_one_mul]
+    _ = exp ((n + 1) * W) := by rw [← exp_natCast_mul, ← exp_add, add_one_mul]
     _ ≤ exp (W ^ 6) := by grw [hn, ← sq, pow_le_pow_right₀ hW (by norm_num : 2 ≤ 6)]
 
 /-- The scale `b`, the least multiple of `q x₁` above `exp (W ^ 6)`, where `x₁ = ⌊exp W⌋` and
@@ -537,7 +542,7 @@ lemma ite_mul_div_mem_Icc {x x₁ b : ℕ} (hx : 1 ≤ x) (hx₁ : x ≤ x₁) (
     Nat.div_le_of_le_mul (Nat.mul_le_mul_right b hx₁)⟩]
 
 lemma exp_five_mul_log {x : ℝ} (hx : 0 < x) : exp (5 * log x) = x ^ 5 := by
-  simpa [exp_log hx] using exp_nat_mul (log x) 5
+  simpa [exp_log hx] using exp_natCast_mul 5 (log x)
 
 lemma rpow_div_six_pow_six (x : ℕ) (ε : ℝ) : ((x : ℝ) ^ (ε / 6)) ^ 6 = (x : ℝ) ^ ε := by
   simp [← rpow_mul_natCast x.cast_nonneg]
@@ -895,11 +900,11 @@ theorem eventually_exists_data (P : Parameters) {ε : ℝ} (hε : 0 < ε) (hε_l
   have h_four : 4 ∣ P.q₀ * P.d := Dvd.dvd.mul_right (.trans (by norm_num) P.dvd_q₀) P.d
   have hW : Tendsto (fun x : ℕ ↦ (x : ℝ) ^ (ε / 6)) atTop atTop :=
     (tendsto_rpow_atTop (by positivity)).comp tendsto_natCast_atTop_atTop
-  filter_upwards [h_scale, hW.eventually (exists_prime_modEq_one_log_mem _ (n + 7) h_four),
-    eventually_exists_data_of_isAdmissibleData P hε hε_lt] with x hx h_window h_data
+  filter_upwards [h_scale, hW.eventually (exists_prime_modEq_one_log_mem _ (n + 7) h_four)]
+    with x hx h_window
   -- admissible data exist, and they are the fields of the data `D`
   obtain ⟨m, r, s, b, T, g, α, N, β, h_adm⟩ := hx.exists_isAdmissibleData h_window
-  obtain ⟨D, h_fields, h_logX₁, h_logB⟩ := h_data m r s b T g α N β h_adm
+  obtain ⟨D, h_fields, h_logX₁, h_logB⟩ := h_adm.exists_hasFields hx
   obtain rfl : D.m = m := h_fields.m_eq
   obtain rfl : D.r = r := h_fields.r_eq
   obtain rfl : D.natB = b := h_fields.natB_eq
@@ -907,6 +912,6 @@ theorem eventually_exists_data (P : Parameters) {ε : ℝ} (hε : 0 < ε) (hε_l
   have h_natB : IsLeast {b : ℕ | D.q₁ * D.natX₁ ∣ b ∧ exp ((x : ℝ) ^ ε) < b} D.natB := by
     simpa only [h_fields.natX₁_eq, rpow_div_six_pow_six] using h_adm.isLeast_b
   exact ⟨D, h_fields.natX_eq, h_fields.natX₁_eq, h_natB, h_adm.isLeast_m, h_adm.isLeast_r, h_logX₁,
-    h_logB⟩
+    by simpa only [rpow_div_six_pow_six] using h_logB⟩
 
 end New

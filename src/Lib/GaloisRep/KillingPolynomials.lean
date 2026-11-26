@@ -1,4 +1,6 @@
-import Lib.GaloisRep.Main.Defs
+module
+
+public import Lib.GaloisRep.Main.Defs
 
 /-!
 # Free cocharacter weights force rank n and identify killing polynomials
@@ -45,6 +47,8 @@ Fayad–Nekovář 2019; Harris–Taylor 2001, VII.1.8.
 
 See also `Lib.GaloisRep.Main.OddRank`.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -122,17 +126,17 @@ private lemma powMinor_diagonal_X_mul_eq_zero {c : N → Fin n} (he : HasNoSmall
     induction j with
     | zero => simp [← totalDegree_zero_iff_isHomogeneous, Matrix.one_apply, apply_ite]
     | succ j ih =>
-      simp_all [y, pow_add, mul_apply, diagonal, mul_comm (X _), isHomogeneous_C_mul_X,
+      simp_all [y, pow_add, Matrix.mul_apply, diagonal, mul_comm (X _), isHomogeneous_C_mul_X,
         IsHomogeneous.mul, IsHomogeneous.sum]
   -- The substitution `X i ↦ T (e i)` sends the minor to zero.
   let ψ : MvPolynomial (Fin n) k →ₐ[k] k[T;T⁻¹] :=
     AddMonoidAlgebra.mapDomainAlgHom k k (Finsupp.weight e)
   have hψ_X (i : Fin n) : ψ (X i) = T (e i) := by
-    simp [ψ, MvPolynomial.X, ← single_eq_monomial, Finsupp.weight_single]
+    simp [ψ, MvPolynomial.X, ← MvPolynomial.single_eq_monomial, Finsupp.weight_single]
   have h_subst : ψ.mapMatrix y =
       diagonal (T ∘ e ∘ c) * (x : Matrix N N k).map LaurentPolynomial.C := by
     ext i j
-    simp [y, mul_apply, diagonal_apply, hψ_X, LaurentPolynomial.algebraMap_apply]
+    simp [y, Matrix.mul_apply, diagonal_apply, hψ_X, LaurentPolynomial.algebraMap_apply]
   have h_zero : ψ (powMinor y m a) = 0 := by rw [map_powMinor, h_subst, h_vanish a]
   -- The monomials of the minor have one degree `≤ (n + 1) ^ 2`, so by freeness the substitution
   -- keeps them apart.
@@ -187,7 +191,7 @@ lemma HasNoSmallRelations.inv_scalar_on_blocks {c : N → Fin n} (he : HasNoSmal
   have h_total : ((optionEquivLeft k (Fin n)).symm y.charpoly).totalDegree ≤ card N := by
     simp [charpoly, det_apply, y, charmatrix, diagonal_apply, apply_ite]
     -- In the Leibniz formula each of the `card N` factors has total degree at most one.
-    show MvPolynomial.totalDegree (∑ σ : Equiv.Perm N, Equiv.Perm.sign σ • ∏ i : N,
+    change MvPolynomial.totalDegree (∑ σ : Equiv.Perm N, Equiv.Perm.sign σ • ∏ i : N,
         ((if σ i = i then MvPolynomial.X none else 0) -
           MvPolynomial.X (some (c (σ i))) * MvPolynomial.C ((x : Matrix N N k) (σ i) i))) ≤ card N
     grw (transparency := .default) [totalDegree_finsetSum, totalDegree_smul_le,
@@ -326,13 +330,10 @@ private lemma exists_eq_of_powMinor_diagonal_eq_zero (he_inj : e.Injective) {κ 
   have hκ_eq : κ (a i) = κ (a i') := by
     simpa [T, AddMonoidAlgebra.single_inj, -single_eq_C_mul_T] using h_T_eq
   -- The equal weights are at `j` and some `l i`, or at two `l i`, which `e` injective rules out.
-  cases i using Fin.cases <;> cases i' using Fin.cases
-  case zero.zero => exact absurd rfl h_ne
-  case zero.succ i' => exact ⟨i', by simpa [a, hl] using hκ_eq.symm⟩
-  case succ.zero i => exact ⟨i, by simpa [a, hl] using hκ_eq⟩
-  case succ.succ i i' =>
-    have h_e_eq : e i = e i' := by simpa [a, hl] using hκ_eq
-    exact absurd (congrArg Fin.succ (he_inj h_e_eq)) h_ne
+  have h_not_inj : ¬Injective (cons (κ j) e : Fin (n + 1) → ℤ) := by
+    rw [← show κ ∘ l = e from funext hl, ← comp_cons]
+    exact fun h_inj ↦ h_ne (h_inj hκ_eq)
+  simpa [cons_injective_iff, he_inj] using h_not_inj
 
 /-- Let `Q` be an invertible matrix over `k`, let `φ` send a matrix `M` over `K` to `Q * M * Q⁻¹`
 over `k`, and let the `K`-subspace `V` contain every diagonal matrix. Then the matrices `φ x`,
@@ -349,14 +350,14 @@ private lemma not_forall_conj_entries_of_diagonal_mem (Q : GL N k)
   have h_unit (t : N) : Q a t * (Q : Matrix N N k)⁻¹ t a = 0 := by
     obtain ⟨h_off, h_diag_eq⟩ := h_block (diagonal (Pi.single t 1)) (h_diag (Pi.single t 1))
     have h_off' : (Q : Matrix N N k) a t = 0 ∨ (Q : Matrix N N k)⁻¹ t b = 0 := by
-      simpa [hφ, mul_apply, diagonal, apply_ite, Pi.single_apply] using h_off
+      simpa [hφ, Matrix.mul_apply, diagonal, apply_ite, Pi.single_apply] using h_off
     have h_diag' : (Q : Matrix N N k) a t * (Q : Matrix N N k)⁻¹ t a =
         (Q : Matrix N N k) b t * (Q : Matrix N N k)⁻¹ t b := by
-      simpa [hφ, mul_apply, diagonal, apply_ite, Pi.single_apply] using h_diag_eq
+      simpa [hφ, Matrix.mul_apply, diagonal, apply_ite, Pi.single_apply] using h_diag_eq
     rcases h_off' with h_Q | h_Qinv
     · rw [h_Q, zero_mul]
     · rw [h_diag', h_Qinv, mul_zero]
-  simpa [mul_apply, h_unit] using congrFun₂ Q.val_inv a a
+  simpa [Matrix.mul_apply, h_unit] using congrFun₂ Q.val_inv a a
 
 /-- Let `E` be a number field inside `Ω` (`EmbeddedNumberField E`), and let `p` be a property of the
 elements of `Gal(Ω/E)`. If every nonempty open set `V` contains a nonempty open set on which `p`

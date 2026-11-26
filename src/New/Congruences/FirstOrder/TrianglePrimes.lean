@@ -1,6 +1,8 @@
-import Lib.Cyclotomic.OddSha
-import Lib.GaloisRep.TaylorWiles
-import New.Congruences.FirstOrder.KummerMaps
+module
+
+public import Lib.Cyclotomic.OddSha
+public import Lib.GaloisRep.TaylorWiles
+public import New.Congruences.FirstOrder.KummerMaps
 
 /-!
 # Taylor–Wiles places in a triangle for the even classes, with prescribed Frobenii
@@ -67,6 +69,8 @@ algebras, 1995; Darmon–Diamond–Taylor, Fermat's Last Theorem (2.19), 1995; D
 reducible representations of rank 2, 2026.
 -/
 
+@[expose] public section
+
 open New Patching Function Finset Fintype Filter PadicInt WellFoundedLT OddPart
 
 /-- Let `u` be a unit of `ℤ_ℓ` such that every `u ^ a - 1` with `0 < a < t` divides `ℓ ^ h`, and
@@ -104,7 +108,8 @@ lemma New.Selmer.linearIndependent_of_notMem_span_Iio {F V J : Type} [Field F] [
   | empty => simp
   | insert j s h_lt ih =>
     rw [coe_insert]
-    exact ih.insert fun h ↦ hv j (Submodule.span_mono (Set.image_mono h_lt) h)
+    exact ih.insert fun h ↦ hv j (Submodule.span_mono
+      (Set.image_mono (s := (s : Set J)) (t := Set.Iio j) fun x hx ↦ h_lt x hx) h)
 
 /-- Let `ν > 0`, and let the maps `ψ i` from a group to `ℤ/ℓ^ν` send products to sums. If their
 reductions modulo `ℓ` are linearly independent, then together they take every family of values (by

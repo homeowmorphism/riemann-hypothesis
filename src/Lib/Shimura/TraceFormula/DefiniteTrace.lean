@@ -1,6 +1,8 @@
-import Lib.Adelic.Reduction.FiniteVolume
-import Lib.Shimura.AbelianScheme.Basic
-import Lib.Shimura.Transfer.MarkedPairs
+module
+
+public import Lib.Adelic.Reduction.FiniteVolume
+public import Lib.Shimura.AbelianScheme.Basic
+public import Lib.Shimura.Transfer.MarkedPairs
 
 /-!
 # Trace formula for algebraic forms, finiteness of signed frame classes, the definite side
@@ -43,6 +45,8 @@ Notions from other files:
 Known; see `Lib.Shimura.TraceFormula.MarkedDefiniteSums` and
 `Lib.Shimura.Uniformisation.AppellHumbert` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -294,7 +298,7 @@ lemma New.Variety.finite_isSignedFrame_classes {E n : Type} [Field E] [CMBase E]
     (Z.map (Φ v)).isUnit.posDef_star_left_conjugate_iff.mpr h_pos
   obtain rfl : s = ∅ := by
     refine Finset.eq_empty_of_forall_notMem fun i hi ↦ (h_conj.diag_pos (i := i)).ne' ?_
-    simpa [mul_apply] using congrArg (Φ v) (hZ.isotropic i hi i hi)
+    simpa [Matrix.mul_apply] using congrArg (Φ v) (hZ.isotropic i hi i hi)
   -- With the dual basis `Y`, `y = Y⁻¹ x` lies in `Cf` and is a frame for the form `β ∈ F`, and so
   -- is the representative `r = rep β y` of its coset.
   let Y : GL n E := formDual J Z
@@ -390,7 +394,10 @@ lemma finite_definiteClass (hN : IsNeat n 𝔑) : Finite (DefiniteClass n 𝔑) 
   have h_classes_finite : (DoubleCoset.mk toFinGL.range (levelGU n 𝔑) ''
       {x : GL n (𝔸f E) | ∃ ℓ : Matrix n n ℂ, IsSignedFrame x ℓ}).Finite :=
     finite_isSignedFrame_classes (isOpen_congruenceGL_span hN.ne_zero)
-  exact Set.Finite.to_subtype (h_classes_finite.subset fun c hc ↦ ⟨c.out, ⟨1, hc⟩, c.out_eq⟩)
+  have h_fin : {c : DoubleCosets toFinGL.range (levelGU n 𝔑) | IsSignedFrame c.out 1}.Finite :=
+    h_classes_finite.subset fun c hc ↦ ⟨c.out, ⟨1, hc⟩, c.out_eq⟩
+  have := h_fin.to_subtype
+  exact Finite.of_equiv _ (Equiv.subtypeEquivRight fun _ ↦ Set.mem_ofPred_eq.to_iff)
 
 namespace DefiniteClass
 

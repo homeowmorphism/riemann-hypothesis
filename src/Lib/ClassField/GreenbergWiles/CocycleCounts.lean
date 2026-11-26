@@ -1,4 +1,6 @@
-import Lib.ClassField.GreenbergWiles.SplitPrimeReciprocity
+module
+
+public import Lib.ClassField.GreenbergWiles.SplitPrimeReciprocity
 
 /-!
 # Counts of trivialised Galois cocycles for projective modules and central scalars
@@ -44,6 +46,8 @@ Source: H. Darmon, F. Diamond, R. Taylor, Fermat's Last Theorem (1995; revised 2
 A. Wiles, Ann. of Math. 141 (1995), Prop. 1.6; J. S. Milne, Arithmetic Duality Theorems, I 4.10,
 5.1; L. Washington, Galois cohomology (1997), Thm 2.
 -/
+
+@[expose] public section
 
 /-!
 ## The count for a projective module
@@ -451,20 +455,6 @@ lemma New.IsLargeLevel.SplitPlaces.card_trivialised_of_isHigmanProjective {G K R
     exact ⟨⟨P, hP⟩, Subtype.ext (Prod.ext (funext hPγ) rfl)⟩
   rw [h_range_r, card_top, Nat.card_congr (.subtypeUnivEquiv h_torsion)]
 
-/-- Under the hypotheses of `card_trivialised_of_isHigmanProjective`, there are between one and
-`#V ^ (#ι + 1)` trivialised cocycles. -/
-lemma New.IsLargeLevel.SplitPlaces.hasFewCocycles_of_isHigmanProjective {G K R ι : Type} [Group G]
-    [TopologicalSpace G] [Field K] [EmbeddedNumberField K] [MulSemiringAction G Ω]
-    [IsProGalois G K Ω] [CommRing R] {l N : ℕ} [Fact l.Prime] [NeZero N] {V : DiscreteModule R G}
-    {I : Set G} {U : OpenNormalSubgroup G} (s : SplitPlaces l N I U ι) [Fintype ι] {z : G} {n : ℕ}
-    (hV_fin : V.FiniteKilledFixedInj l U z n)
-    (hV_proj : V.IsHigmanProjective U.toOpenSubgroup.toSubgroup)
-    (h_fix : ∀ r : DiscreteUnits Ω, l • r ∈ fixedSUnits N U →
-      (∀ i : ι, unitsRep (s.φ i) r = r) →
-      unitsRep z r - n • r ∈ (unitsModule U.toOpenSubgroup.toSubgroup).H0) :
-    V.HasFewCocycles (PlaceAboveLevel N) I (Fintype.card ι + 1) :=
-  (s.card_trivialised_of_isHigmanProjective hV_fin hV_proj h_fix).left
-
 /-- Under the hypotheses of `card_trivialised_of_isHigmanProjective`, if `K` is totally complex and
 `z` raises the `l`-th roots of unity to the power `n`, there are exactly `#V ^ (#ι + 1)`
 trivialised cocycles. -/
@@ -758,7 +748,7 @@ theorem New.IsLargeLevel.SplitPlaces.hasFewCocycles_of_central {K R ι : Type} [
       (hW.isHigmanProjective_of_coprime hcopP)).1
     -- A power `g ^ l ^ i` lies in `U`, and `t ^ l ^ i = t` in `ZMod l`.
     obtain ⟨i, hi⟩ : ∃ i : ℕ, (g : Gal(Ω/K)) ^ l ^ i ∈ U := hP g hg
-    show cyclotomicCharMod Ω l (g : Gal(Ω/K)) = 1
+    change cyclotomicCharMod Ω l (g : Gal(Ω/K)) = 1
     simpa [← Units.val_eq_one] using S.cyclotomicCharMod_eq_one _ hi
   -- Modules that are projective over `B/U` attain the bound.
   have hproj (F : DiscreteModule R B.1) (hF : F.FiniteKilledFixedInj l U' z' 1)

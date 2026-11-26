@@ -1,4 +1,6 @@
-import Lib.ClassField.Global.ArtinReciprocity
+module
+
+public import Lib.ClassField.Global.ArtinReciprocity
 
 /-!
 # Surjectivity of the Artin map, Hasse's norm theorem and norm groups of cyclic extensions
@@ -30,6 +32,8 @@ Notions from other files:
 Known; see `Lib.ClassField.Global.AlbertBrauerHasseNoether` for sources.
 -/
 
+@[expose] public section
+
 namespace New
 
 open Subgroup QZChar QuotientGroup Set Module Function IsScalarTower Algebra
@@ -51,7 +55,7 @@ lemma isClosed_range_artinMap : IsClosed (artinMap (K := K) Γ).range.carrier :=
   let C : Set (TopologicalAbelianization Γ) := artinMap Γ '' idelesUnitOff (K := K) ∅
   have h_compact : IsCompact C := isCompact_idelesUnitOff_empty.image (by fun_prop)
   have h_range : (artinMap (K := K) Γ).range.carrier = ⋃ q : (𝔸f K)ˣ ⧸ H, artinMap Γ q.out • C := by
-    show range (artinMap (K := K) Γ) = _
+    change range (artinMap (K := K) Γ) = _
     simp [← image_univ, H, C, univ_eq_iUnion_smul H, image_iUnion, image_smul_distrib,
       ← coe_map, Subgroup.map_sup]
   rw [h_range]
@@ -231,7 +235,7 @@ lemma abelianLift_artinMap_eq_one_iff (a : (𝔸f K)ˣ) :
     have h_ker_index : N.index = finrank K L := index_ker_abelianLift_comp_artinMap χ
     omega
   -- Membership in `W`, written out, is the right side.
-  show a ∈ N ↔ _
+  change a ∈ N ↔ _
   rw [← hW_eq]
   simp [W, mem_sup, h_mem_P, eq_comm]
 

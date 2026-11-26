@@ -1,6 +1,8 @@
-import Lib.Adelic.AutomorphicForms.Basic
-import Lib.Adelic.QuotientMeasure.IwasawaUnfolding
-import Lib.DiscreteSeries.Rigidity.KernelFixes
+module
+
+public import Lib.Adelic.AutomorphicForms.Basic
+public import Lib.Adelic.QuotientMeasure.IwasawaUnfolding
+public import Lib.DiscreteSeries.Rigidity.KernelFixes
 
 /-!
 # Convolution over real points, cusp kernels, the Petersson product and Poincaré series
@@ -49,6 +51,8 @@ projected to forms, from the theory of cusp forms. For sources see
 `Lib.Adelic.AutomorphicForms.Cuspidality`.
 -/
 
+@[expose] public section
+
 /-! ## Convolution over the real points; cusp kernels -/
 
 section RealConvolution
@@ -66,8 +70,10 @@ noncomputable def bumpProduct (α : NumberField.InfinitePlace E → DiscreteSeri
     C_c(GInf E s, ℂ) where
   toFun x := ∏ w : NumberField.InfinitePlace E, (α w).val.val (x w)⁻¹
   continuous_toFun := by fun_prop
-  hasCompactSupport' := HasCompactSupport.intro (isCompact_univ_pi fun w ↦ (α w).2.inv) (by
-    grind [prod_eq_zero_iff, image_eq_zero_of_notMem_tsupport, Set.mem_inv])
+  hasCompactSupport' := HasCompactSupport.intro (isCompact_univ_pi fun w ↦ (α w).2.inv)
+    (fun x hx ↦ by
+    obtain ⟨w, hw⟩ := not_forall.1 fun h ↦ hx (Set.mem_univ_pi.2 h)
+    exact prod_eq_zero (mem_univ w) (image_eq_zero_of_notMem_tsupport hw))
 
 /-- For `n` nonempty and `g` in G_∞, the product over the infinite places of the operator norms
 ‖g_w‖ is at least 1 and at least each of its factors. -/
@@ -199,10 +205,10 @@ lemma hasLevel_realConv (K : OpenSubgroup (Gf E n)) (h_level : HasLevel F K) :
 
 /-- The oscillation of an average is bounded by that of the kernel in L¹. Let α be integrable on
 G_∞, F bounded and measurable on G, u a real point, real points sitting in G as x ↦ (x, 1), and
-R(α)F(g) = ∫_{G_∞} α(x)F(gx) dx (`realConv`). If C ≥ 0 and |F(gx)| ≤ C for all real x with
+R(α)F(g) = ∫_{G_∞} α(x)F(gx) dx (`realConv`). If |F(gx)| ≤ C for all real x with
 α(u⁻¹x) ≠ α(x), then |R(α)F(gu) − R(α)F(g)| ≤ ‖α(u⁻¹ ·) − α‖₁ C. -/
 lemma norm_realConv_mul_sub_le (hF : IsBoundedMeasurable F) (hα : Integrable α) (g : G E s)
-    (u : GInf E s) {C : ℝ} (_hC_nonneg : 0 ≤ C)
+    (u : GInf E s) {C : ℝ}
     (hC : ∀ x : GInf E s, α (u⁻¹ * x) ≠ α x → ‖F (g * (x, 1))‖ ≤ C) :
     ‖realConv α F (g * (u, 1)) - realConv α F g‖ ≤
       (∫ x : GInf E s, ‖α (u⁻¹ * x) - α x‖) * C := by
@@ -263,7 +269,7 @@ lemma eventually_norm_realConv_sub_le (K : OpenSubgroup (Gf E n)) (hα : Integra
       = ‖realConv α F (g * (u, 1)) - realConv α F g‖ := by
         rw [h_split, hasLevel_realConv K h_level a ha]
     _ ≤ (∫ x : GInf E s, ‖α (u⁻¹ * x) - α x‖) * ‖C‖ :=
-        norm_realConv_mul_sub_le hF hα g u (norm_nonneg C) fun x hx ↦
+        norm_realConv_mul_sub_le hF hα g u fun x hx ↦
           (hC x hx).trans C.le_norm_self
     _ ≤ ε * ‖C‖ := mul_le_mul_of_nonneg_right (le_of_lt hu) (norm_nonneg C)
 
@@ -289,11 +295,9 @@ theorem realConv_realConv (hF : IsBoundedMeasurable F) (hα : Integrable α) {p 
   ext ⟨g, k⟩
   -- Fubini's theorem and a left translation of the inner variable by `x * a`.
   have h_meas : Measurable fun x : GInf E s ↦ ((g * x, k) : G E s) := by fun_prop
-  have h_conv : ∫ x, α x * ∫ y, p y * F (g * (x * a * y), k) =
-      ∫ y, (∫ x, α x * p ((x * a)⁻¹ * y)) * F (g * y, k) :=
-    integral_smul_integral_eq_integral_conv_smul (fun x : GInf E s ↦ x * a) hα hp
+  have h_conv := integral_smul_integral_eq_integral_conv_smul (fun x : GInf E s ↦ x * a) hα hp
       (hF.comp h_meas) (by fun_prop)
-  simpa [realConv, mul_assoc, Prod.mul_def] using h_conv
+  simpa [realConv, mul_assoc, Prod.mul_def, smul_eq_mul] using h_conv
 
 /-- For a cusp kernel e (an integrable idempotent kernel on G_∞ with decay, `IsCuspKernel`) there is
 a continuous compactly supported α on G_∞ with α ∗ e = e, and so R(α)R(e)F = R(e)F for every bounded
@@ -571,7 +575,7 @@ theorem New.Space.exists_form_eq_tsum_of_fixesLeft (he : IsIdempotentKernel e)
       (y.val : G E s → ℂ) = fun g : G E s ↦ ∑' i : ι, realConv e (W i) g := by
   -- The series is the convolution with `e` of the bounded sum of the `W i`.
   have h_bounded (g : G E s) : ‖∑' i : ι, W i g‖ ≤ M.toReal := by
-    simpa using toReal_mono hM (enorm_tsum_le_tsum_enorm.trans (h_le g))
+    simpa using toReal_mono hM (eNorm_tsum_le_tsum_eNorm.trans (h_le g))
   -- Convolve term by term: the kernel is integrable and the sum of the norms is at most `M`.
   have h_termwise (g : G E s) :
       ∑' i : ι, realConv e (W i) g = realConv e (fun x : G E s ↦ ∑' i : ι, W i x) g := by
@@ -580,7 +584,7 @@ theorem New.Space.exists_form_eq_tsum_of_fixesLeft (he : IsIdempotentKernel e)
     refine (hasSum_integral_of_lintegral_tsum_lt_top ?_).tsum_eq
     calc ∫⁻ x : GInf E s, ∑' i : ι, ‖e x * W i (g * (x, 1))‖ₑ
         ≤ ∫⁻ x : GInf E s, ‖e x‖ₑ * M := by
-          simp only [enorm_mul, ENNReal.tsum_mul_left]
+          simp only [eNorm_mul, ENNReal.tsum_mul_left]
           grw [h_le]
       _ < ⊤ := by
           rw [lintegral_mul_const' _ _ hM]

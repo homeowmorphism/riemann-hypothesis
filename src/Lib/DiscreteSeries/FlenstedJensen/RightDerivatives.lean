@@ -1,6 +1,8 @@
-import Lib.DiscreteSeries.Haar.TotalMass
-import Lib.DiscreteSeries.Rigidity.RepresentationsAndCasimirs
-import Lib.General.Analysis.HolomorphicIntegrals
+module
+
+public import Lib.DiscreteSeries.Haar.TotalMass
+public import Lib.DiscreteSeries.Rigidity.RepresentationsAndCasimirs
+public import Lib.General.Analysis.HolomorphicIntegrals
 
 /-!
 # Right derivatives and bump convolution for smooth functions on U(p,q)
@@ -39,6 +41,8 @@ discrete series (see `Lib.DiscreteSeries.FlenstedJensen.PsiKTypes`), and for two
 Schur orthogonality, and the fact that coefficients of integrable discrete series are cusp forms
 (see `Lib.DiscreteSeries.CuspKernel`).
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -85,7 +89,7 @@ theorem U.continuous_mat : Continuous fun g : U J ↦ (g.val.val : Matrix n n �
 theorem continuous_expU [IsHermitianInvolution J] : Continuous (expU (J := J)) := by
   -- The topology of `U J` is induced from the matrices, where `exp` is continuous.
   let : NormedAlgebra ℚ (Matrix n n ℂ) := .restrictScalars ℚ ℂ _
-  exact continuous_U_iff_matrix.2 (exp_continuous.comp continuous_subtype_val)
+  exact continuous_U_iff_matrix.2 (exp_continuous.comp continuous_subtypeVal)
 
 /-- For `g` in the unitary group `U J` and `Y` in its Lie algebra, the matrix of the curve
 `s ↦ g exp(s Y)` has derivative `g exp(t Y) Y` at `t`. -/
@@ -282,8 +286,10 @@ theorem hasDerivAt_curve (f : SmoothU ε E) {γ : ℝ → USign ε} {t : ℝ} {X
     HasDerivAt (fun s : ℝ ↦ f.val (γ s)) ((rightDeriv ε E X f).val (γ t)) t := by
   obtain ⟨F, rfl⟩ := (restrictU ε E).surjective_rangeRestrict f
   -- The curve stays in the group, so its logarithmic derivative `X` lies in the real Lie algebra.
+  have h_γ : (γ t).val.valᴴ * signMatrix ε * (γ t).val.val = signMatrix ε :=
+    mem_unitaryGroupOf_iff.1 (γ t).2
   have h_conj : Xᴴ * signMatrix ε = -(signMatrix ε * X) := by
-    simpa [logDerivU, hγ.deriv, ← mul_assoc, mem_U.1, (isHermitian (J := signMatrix ε)).eq] using
+    simpa [logDerivU, hγ.deriv, ← mul_assoc, h_γ, (isHermitian (J := signMatrix ε)).eq] using
       conjTranspose_logDerivU hγ.differentiableAt 1
   have h_re : (unitaryLiePart ε X : Matrix n n ℂ) = X := by
     simp [unitaryLiePart, mul_assoc, h_conj, det_ne_zero, ← two_smul ℝ]

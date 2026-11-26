@@ -1,6 +1,8 @@
-import Lib.Weil.DualPair.FiniteAction
-import Lib.Weil.Periods.GradedLattice
-import New.UpperBound.Seesaw.StandardLines
+module
+
+public import Lib.Weil.DualPair.FiniteAction
+public import Lib.Weil.Periods.GradedLattice
+public import New.UpperBound.Seesaw.StandardLines
 
 /-!
 # Bounds for the lattices of points on graded spaces
@@ -34,6 +36,8 @@ Notions from other files:
 
 See `New.UpperBound.Seesaw.SeesawIdentity` for related work.
 -/
+
+@[expose] public section
 
 open Matrix Pointwise Valued
 
@@ -102,7 +106,7 @@ lemma inclXFin_scalarFin_map_evalAt {Y : Grading V N X s} {z : unitary (𝔸f E)
   ext i l
   obtain ⟨i | i, rfl⟩ := Y.indexEquiv.surjective i <;>
     obtain ⟨l | l, rfl⟩ := Y.indexEquiv.surjective l <;>
-    simp [scalarFin, one_apply, diagonal_apply, apply_ite, hz]
+    simp [scalarFin, Matrix.one_apply, diagonal_apply, apply_ite, hz]
 
 /-- Let `x` be a point of the finite adelic unitary group `Gf E ι` whose lattice, spanned by the
 columns of `V.xFin * x`, splits along `X` at a place `w ≠ w̄`: there its projection to `X^⊥` lies in

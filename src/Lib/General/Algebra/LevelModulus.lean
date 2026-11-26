@@ -1,7 +1,9 @@
-import Lib.Adelic.AutomorphicForms.PAdicGauge
-import Lib.General.LinearAlgebra.BlockEmbeddings
-import Lib.Weil.DualPair.KernelDecay
-import Lib.Weil.DualPair.KernelLaws
+module
+
+public import Lib.Adelic.AutomorphicForms.PAdicGauge
+public import Lib.General.LinearAlgebra.BlockEmbeddings
+public import Lib.Weil.DualPair.KernelDecay
+public import Lib.Weil.DualPair.KernelLaws
 
 /-!
 # Level moduli, residue data as Schwartz–Bruhat functions, and descent in positive degree
@@ -37,6 +39,8 @@ Notions from other files:
 
 Known; see `Lib.Weil.MixedModel.ZeroTerm` for sources.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -338,7 +342,7 @@ lemma New.GaloisRep.aeval_prod_eq_zero_of_mul_pow {K Z : Type*} {n : ℕ} [Field
   let y : PiTensorProduct K fun _ : Fin n ↦ R := tprodMonoidHom K (Pi.constRingHom (Fin n) R ξ)
   have hy : IsUnit y := (hX.map (Pi.constRingHom (Fin n) R)).map (tprodMonoidHom K)
   obtain ⟨p, hp0, hp⟩ : ∃ p : K[X], p.coeff 0 ≠ 0 ∧ aeval y p = 0 :=
-    (IsAlgebraic.of_finite K y).exists_nonzero_coeff_and_aeval_eq_zero hy.mem_nonZeroDivisors
+    (IsAlgebraic.of_finite K y).exists_coeff_ne_zero_and_aeval_eq_zero hy.mem_nonZeroDivisors
   -- `ev i` sends `X` to `(T, a i)`; it is well defined on `R` as `q(T) = 0` and `q(a i) = 0`.
   have h_vanish (i : Fin n) (r : K[X]) (hr : r ∈ span {q}) : aeval (T, a i) r = 0 :=
     aeval_eq_zero_of_dvd_aeval_eq_zero (mem_span_singleton.1 hr) <| by

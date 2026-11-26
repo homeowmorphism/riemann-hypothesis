@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.Bessel.UnipotentHaarMeasure
-import Lib.Weil.Periods.Grading
+module
+
+public import Lib.DiscreteSeries.Bessel.UnipotentHaarMeasure
+public import Lib.Weil.Periods.Grading
 
 /-!
 # The group of the Bessel period at a real place
@@ -16,6 +18,8 @@ Here a shape `𝔰` gives the number of hyperbolic planes and the index set `κ`
 
 Known; see `Lib.DiscreteSeries.Bessel.UnipotentHaarMeasure` for sources.
 -/
+
+@[expose] public section
 
 open Matrix MeasureTheory Subgroup
 

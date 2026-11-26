@@ -1,5 +1,7 @@
-import Lib.General.Algebra.BlockFittingBound
-import New.Congruences.LocalLoss.Basic
+module
+
+public import Lib.General.Algebra.BlockFittingBound
+public import New.Congruences.LocalLoss.Basic
 
 /-!
 # Modules of functions, Fitting ideals and trace ideals for Ribet's method
@@ -29,6 +31,8 @@ Notions from other files:
 * `New.Selmer.ribetCocyclesIn u ρ B`: the cocycles `G → B^d` for `ρ` that obey the linear relations
   among the families `(u x g - 1)_x`.
 -/
+
+@[expose] public section
 
 namespace New.Selmer
 
@@ -381,69 +385,11 @@ lemma exists_rows_det_eq_pow_mul_det {Λ R E ι₀ ι : Type} [CommRing Λ] [Rin
   -- On `χ e` the matrix is block triangular, with `1` and `μ e • B e` on the diagonal.
   have h_blocks : M.map (χ e) = fromBlocks 1 ((M.map (χ e)).toBlocks₁₂) 0 (μ e • B e) := by
     ext (i | l) (j | j)
-    · simp [h_first, one_apply, eq_comm (a := i)]
+    · simp [h_first, Matrix.one_apply, eq_comm (a := i)]
     · rfl
     · simp [h_last, hw_zero]
     · simp [h_last, hw_eq]
   rw [h_blocks, det_fromBlocks_zero₂₁, det_one, one_mul, det_smul]
-
-/-- Let `R` be a `Λ`-algebra with characters `χ e : R →ₐ[Λ] Λ`, of kernels `𝔨 e`, let `π e` have
-`χ e (π e) = μ e` and `χ e' (π e) = 0` for `e' ≠ e`, and let `y` span a left `R`-module `C`. If the
-`y (inr i)` generate `C` modulo `𝔨 e • C` for every `e`, and each row of `B e` is a relation among
-them modulo `𝔨 e • C`, then there is a square matrix `M` over `R`, whose rows are relations among
-the `y k`, such that `det (χ e M) = μ e ^ #ι det (B e)` for all `e`. -/
-lemma exists_relations_det_eq_pow_mul_det {Λ R C E ι₀ ι : Type} [CommRing Λ] [Ring R]
-    [Algebra Λ R] [AddCommGroup C] [Module R C] [Fintype E] [DecidableEq E] [Fintype ι₀]
-    [DecidableEq ι₀] [Fintype ι] [DecidableEq ι] (χ : E → R →ₐ[Λ] Λ) {π : E → R} {μ : E → Λ}
-    (hπ : ∀ e e' : E, χ e' (π e) = if e' = e then μ e else 0) {y : ι₀ ⊕ ι → C}
-    (hy : Submodule.span R (Set.range y) = ⊤)
-    (h_gen : ∀ e : E, Submodule.span R (Set.range (y ∘ Sum.inr)) ⊔ RingHom.ker (χ e) • ⊤ = ⊤)
-    (B : E → Matrix ι ι Λ)
-    (hB : ∀ (e : E) (l : ι), ∑ i : ι, algebraMap Λ R (B e l i) • y (.inr i) ∈
-      RingHom.ker (χ e) • (⊤ : Submodule R C)) :
-    ∃ M : Matrix (ι₀ ⊕ ι) (ι₀ ⊕ ι) R,
-      (∀ l : ι₀ ⊕ ι, ∑ k : ι₀ ⊕ ι, M l k • y k = 0) ∧
-      ∀ e : E, (M.map (χ e)).det = μ e ^ Fintype.card ι * (B e).det := by
-  -- The relations are the kernel of `f ↦ ∑ f k • y k`; an element of `𝔨 e • C` is such a sum
-  -- with all coefficients in `𝔨 e`, as `y` spans `C`.
-  let N : Submodule R (ι₀ ⊕ ι → R) := LinearMap.ker (Fintype.linearCombination R y)
-  have mem_N (w : ι₀ ⊕ ι → R) : w ∈ N ↔ ∑ k, w k • y k = 0 := by
-    simp [N, Fintype.linearCombination_apply]
-  have h_ker (e : E) {m : C} (hm : m ∈ RingHom.ker (χ e) • (⊤ : Submodule R C)) :
-      ∃ κ : ι₀ ⊕ ι → R, (∀ k, χ e (κ k) = 0) ∧ ∑ k, κ k • y k = m := by
-    rw [← hy] at hm
-    refine Submodule.smul_induction_on (p := fun m ↦ ∃ κ : ι₀ ⊕ ι → R,
-      (∀ k, χ e (κ k) = 0) ∧ ∑ k, κ k • y k = m) hm (fun a ha c hc ↦ ?_) fun m₁ m₂ h₁ h₂ ↦ ?_
-    · obtain ⟨f, rfl⟩ := (Submodule.mem_span_range_iff_exists_fun R).1 hc
-      refine ⟨fun k ↦ a * f k, fun k ↦ ?_, by simp [Finset.smul_sum, mul_smul]⟩
-      rw [map_mul, RingHom.mem_ker.1 ha, zero_mul]
-    · obtain ⟨κ₁, hκ₁, rfl⟩ := h₁
-      obtain ⟨κ₂, hκ₂, rfl⟩ := h₂
-      exact ⟨κ₁ + κ₂, fun k ↦ by simp [hκ₁, hκ₂], by simp [add_smul, Finset.sum_add_distrib]⟩
-  suffices h_rows : ∃ M : Matrix (ι₀ ⊕ ι) (ι₀ ⊕ ι) R, (∀ l, M l ∈ N) ∧
-      ∀ e : E, (M.map (χ e)).det = μ e ^ Fintype.card ι * (B e).det by
-    simpa only [mem_N] using h_rows
-  refine exists_rows_det_eq_pow_mul_det χ hπ N (fun e i ↦ ?_) B fun e l ↦ ?_
-  · -- `y (inl i)` is a combination of the `y (inr i')` plus an element of `𝔨 e • C`.
-    have h_top : y (.inl i) ∈ Submodule.span R (Set.range (y ∘ Sum.inr)) ⊔
-        RingHom.ker (χ e) • (⊤ : Submodule R C) := by
-      rw [h_gen e]
-      exact Submodule.mem_top
-    obtain ⟨a, ha, m, hm, h_sum⟩ := Submodule.mem_sup.1 h_top
-    obtain ⟨f, rfl⟩ := (Submodule.mem_span_range_iff_exists_fun R).1 ha
-    obtain ⟨κ, hκ, rfl⟩ := h_ker e hm
-    refine ⟨Pi.single (.inl i) 1 - Sum.elim (fun _ ↦ 0) f - κ, (mem_N _).2 ?_, fun j ↦ ?_⟩
-    · simp only [Pi.sub_apply, sub_smul, Finset.sum_sub_distrib, Fintype.sum_sum_type,
-        Sum.elim_inl, Sum.elim_inr, zero_smul, Finset.sum_const_zero, zero_add,
-        Function.comp_apply] at h_sum ⊢
-      simp [Pi.single_apply, ← h_sum]
-    · simp [hκ, Pi.single_apply, eq_comm]
-  · obtain ⟨κ, hκ, h_sum⟩ := h_ker e (hB e l)
-    refine ⟨Sum.elim (fun _ ↦ 0) (fun i ↦ algebraMap Λ R (B e l i)) - κ, (mem_N _).2 ?_, fun j ↦ ?_,
-      fun i ↦ ?_⟩
-    · simp [sub_smul, Finset.sum_sub_distrib, Fintype.sum_sum_type, h_sum]
-    · simp [hκ]
-    · simp [hκ]
 
 /-- If each of finitely many `ψ x` kills an element on which all characters `η e` are `1`, then one
 such element is killed by all `ψ x`. -/
@@ -502,7 +448,7 @@ lemma exists_sum_mul_det_of_mem_fittingIdeal_map {R ι M : Type} [CommRing R] [F
 /-- The ideal spanned by the monomials that do not divide `∏ X j`. -/
 noncomputable abbrev nonDivisorIdeal (O J : Type) [CommRing O] [Fintype J] :
     Ideal (MvPolynomial J O) :=
-  restrictSupportIdeal O (Set.Iic (∑ j : J, Finsupp.single j 1))ᶜ (isLowerSet_Iic _).compl
+  restrictSupportIdeal O (Set.Iic (∑ j : J, Finsupp.single j 1))ᶜ (IsLowerSet.Iic _).compl
 
 /-- A polynomial lies in `nonDivisorIdeal O J` if and only if none of its monomials divides
 `∏ X j`. -/
@@ -754,7 +700,7 @@ lemma exists_row_apply_eq_zero {Λ A W S₀ S : Type} [CommRing Λ] [Ring A] [Al
   refine ⟨w - ∑ i : S₀, w (inr (inl i)) • ν i,
     sub_mem hw (sum_mem fun i _ ↦ N.smul_mem _ (hν i)), fun i ↦ ?_, funext fun j ↦ ?_⟩
   · simp [hν_eq]
-  · simp [vecMul_eq_sum, one_apply, sub_eq_neg_add]
+  · simp [vecMul_eq_sum, Matrix.one_apply, sub_eq_neg_add]
 
 end SmallLemmas
 

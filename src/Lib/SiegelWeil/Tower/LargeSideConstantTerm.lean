@@ -1,6 +1,8 @@
-import Lib.SiegelWeil.Tower.ConstantTerm
-import Lib.SiegelWeil.Tower.FiniteTateIntegral
-import Lib.SiegelWeil.Tower.LineGaussSums
+module
+
+public import Lib.SiegelWeil.Tower.ConstantTerm
+public import Lib.SiegelWeil.Tower.FiniteTateIntegral
+public import Lib.SiegelWeil.Tower.LineGaussSums
 
 /-!
 # Removing a plane: the constant term on the side of the large space
@@ -49,6 +51,8 @@ times a factor whose size is given by a Hecke L-value. Source: S. Rallis, On the
 conjecture, Compositio Math. 51 (1984), Thm I.1.1; for the unitary case, C. Wu, Irreducibility of
 theta lifting for unitary groups, J. Number Theory 133 (2013), Prop. 3.1.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -183,7 +187,7 @@ theorem integrable_theta_cone [IsBaseAdapted X]
     pairTheta W V ψ ψ (localDatum W V w (stdRowDatum σ 𝔠.semilocalChar y) 𝔠.readsAt) (g, h)
   obtain ⟨Q, D, hD, h_decay⟩ : ∃ (Q : ℕ) (D : ℝ), 0 ≤ D ∧ ∀ (h : G E t) (w : PairFock E s t),
       Fock.fockMoment Q w ≠ ⊤ → ‖kernel h w‖ ≤ D * (Fock.fockMoment Q w).toReal := by
-    have h_std : stdRowDatum σ 𝔠.semilocalChar y ∈ schwartzBruhat fun x ↦ HasLeftInv x.transpose :=
+    have h_std : stdRowDatum σ 𝔠.semilocalChar y ∈ schwartzBruhat {x | HasLeftInv x.transpose} :=
       stdRowDatum_mem σ 𝔠.semilocalChar (s := y)
     have ⟨_, _, h_support⟩ := h_std
     obtain ⟨B, Q, C, h_decay⟩ := pairTheta_decay_of_onto W V ψ ψ _ 𝔠.readsAt.disjoint_star
@@ -198,8 +202,8 @@ theorem integrable_theta_cone [IsBaseAdapted X]
   have h_bound (h : G E t) (q : maxCompact E t' × (InfinitePlace E → ℂ)ˣ) :
       ‖kernel h (coneIntegrand A X μ β x v q)‖ ≤ D * ‖φ q‖ :=
     calc _ ≤ D * (Fock.fockMoment Q (coneIntegrand A X μ β x v q)).toReal :=
-        h_decay _ _ ((hφ q).trans_lt enorm_lt_top).ne
-      _ ≤ _ := by grw [ENNReal.toReal_mono enorm_ne_top (hφ q), toReal_enorm]
+        h_decay _ _ ((hφ q).trans_lt eNorm_lt_top).ne
+      _ ≤ _ := by grw [ENNReal.toReal_mono eNorm_ne_top (hφ q), toReal_eNorm]
   have h_cont : Continuous (Function.uncurry kernel) := by
     simp only [kernel, pairTheta]
     fun_prop
@@ -265,7 +269,6 @@ theorem theta_lineTerm_levi (hn : 2 ∣ card n) {u : (𝔸 E)ˣ} (hu : u = 1 ∨
           rpow_mul_natCast ideleAbs_pos.le]
   have h_factor : (ideleAbs a ^ (card r + 1) : ℝ) * c =
       ν.baseChange.val (a * u) * (ideleAbs (a * u) ^ e : ℝ) := by
-    have h_ne : (√(ideleAbs (a * u)) : ℂ) ≠ 0 := ofReal_ne_zero.2 (sqrt_pos.2 ideleAbs_pos).ne'
     rw [← mul_div_assoc, ← ofReal_pow, ← ofReal_mul, h_module]
     simp [circleChar_inv_apply, field]
   rw [h_move, ← mul_assoc, h_factor, mul_right_comm]

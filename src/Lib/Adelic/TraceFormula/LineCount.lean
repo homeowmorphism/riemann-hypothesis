@@ -1,4 +1,6 @@
-import Lib.General.Groups.BesselGroups
+module
+
+public import Lib.General.Groups.BesselGroups
 
 /-!
 # Lines and hyperplanes over a field
@@ -18,6 +20,8 @@ Notions from other files:
 
 Standard linear algebra.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -73,7 +77,7 @@ lemma inv_mul_mem_parabolic_ne :
     g⁻¹ * h ∈ parabolic (· ≠ i) ↔
       ∃ c : F, (h : Matrix n n F).col i = c • (g : Matrix n n F).col i := by
   have h_col (j : n) : (g⁻¹ * h) j i = ((g⁻¹ : GL n F) *ᵥ (h : Matrix n n F).col i) j := by
-    simp [mul_apply, mulVec, dotProduct]
+    simp [Matrix.mul_apply, mulVec, dotProduct]
   simp only [mem_parabolic_ne, h_col, ← exists_eq_smul_single_iff]
   refine exists_congr fun c ↦ ?_
   rw [← mulVec_single_one (g : Matrix n n F), ← mulVec_smul]
@@ -86,7 +90,7 @@ lemma mul_inv_mem_parabolic_eq :
     h * g⁻¹ ∈ parabolic (· = i) ↔
       ∃ c : F, (h : Matrix n n F).row i = c • (g : Matrix n n F).row i := by
   have h_row (j : n) : (h * g⁻¹) i j = ((h : Matrix n n F).row i ᵥ* (g⁻¹ : GL n F)) j := by
-    simp [mul_apply, vecMul, dotProduct]
+    simp [Matrix.mul_apply, vecMul, dotProduct]
   simp only [mem_parabolic_eq, h_row, ← exists_eq_smul_single_iff]
   refine exists_congr fun c ↦ ?_
   rw [← single_one_vecMul i (g : Matrix n n F), ← smul_vecMul]
@@ -266,21 +270,22 @@ structure KeepsLine (i : n) (M : Matrix n n F) : Prop where
 the other indices is invertible, then the diagonal entry at `i` of `M * N` is the product of those
 of `M` and `N`. -/
 lemma KeepsLine.mul_apply_self (hN : KeepsLine i N) : (M * N) i i = M i i * N i i := by
-  rw [mul_apply]
+  rw [Matrix.mul_apply]
   exact Fintype.sum_eq_single i fun j hj ↦ mul_eq_zero_of_right _ (hN.col_eq_zero j hj)
 
 /-- If `M` and `N` satisfy `KeepsLine i` (their column `i` vanishes off the diagonal and their
 block on the other indices is invertible), then so does `M * N`. -/
 lemma KeepsLine.mul (hM : KeepsLine i M) (hN : KeepsLine i N) : KeepsLine i (M * N) where
   col_eq_zero j hj := by
-    rw [mul_apply, Fintype.sum_eq_single i fun l hl ↦ mul_eq_zero_of_right _ (hN.col_eq_zero l hl),
+    rw [Matrix.mul_apply,
+      Fintype.sum_eq_single i fun l hl ↦ mul_eq_zero_of_right _ (hN.col_eq_zero l hl),
       hM.col_eq_zero j hj, zero_mul]
   block_det_ne_zero := by
     have h_block : (M * N).toSquareBlockProp (· ≠ i) =
         M.toSquareBlockProp (· ≠ i) * N.toSquareBlockProp (· ≠ i) := by
       ext a b
       have h_corner : M a i * N i b = 0 := mul_eq_zero_of_left (hM.col_eq_zero a a.2) _
-      simp only [toSquareBlockProp_def, mul_apply, of_apply]
+      simp only [toSquareBlockProp_def, Matrix.mul_apply, of_apply]
       rw [← sum_subtype (univ.erase i) (by simp) fun l : n ↦ M a l * N l b,
         sum_erase univ (f := fun l : n ↦ M a l * N l b) h_corner]
     rw [h_block, det_mul]

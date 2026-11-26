@@ -1,4 +1,6 @@
-import Lib.ClassField.GreenbergWiles.SelmerLevels
+module
+
+public import Lib.ClassField.GreenbergWiles.SelmerLevels
 
 /-!
 # Trivialised cocycles and power residue relations at split primes
@@ -40,6 +42,8 @@ Notions from other files:
 
 Known; see `Lib.ClassField.GreenbergWiles.CocycleCounts` for sources.
 -/
+
+@[expose] public section
 
 /-! ## Cocycles trivialised at places and corestriction -/
 
@@ -84,7 +88,7 @@ def map (u : A.Hom B) : A.trivialisedCocycles X I →+ B.trivialisedCocycles X I
   AddMonoidHom.mk'
     (fun p ↦ ⟨p.1.map (Function.comp u) (Function.comp u), by
       obtain ⟨⟨f, z⟩, h_cont, h_triv, h_zero⟩ := p
-      refine ⟨by fun_prop, fun g x ↦ ?_, fun g hg ↦ ?_⟩
+      refine ⟨by dsimp only [Prod.map_snd]; fun_prop, fun g x ↦ ?_, fun g hg ↦ ?_⟩
       · simpa [u.isIntertwining] using congrArg u (h_triv g x)
       · simpa using congrArg u (h_zero g hg)⟩)
     (by simp)
@@ -133,7 +137,7 @@ lemma snd_mem_Z1 [Nonempty X] {p : (X → V) × (G → V)} (hp : p ∈ V.trivial
   obtain ⟨h_cont, h_triv, -⟩ :
       Continuous z ∧ (∀ (g : G) (x : X), V.ρ g (f x) = f (g • x) + z g) ∧ ∀ g ∈ I, z g = 0 :=
     mem_trivialisedCocycles.mp hp
-  show Continuous z ∧ ∀ g k : G, z (g * k) = z g + V.ρ g (z k)
+  change Continuous z ∧ ∀ g k : G, z (g * k) = z g + V.ρ g (z k)
   refine ⟨h_cont, fun g k ↦ ?_⟩
   -- Compute the action of `g * k` on the trivialisation at any point `y` in two ways.
   obtain ⟨y⟩ : Nonempty X := inferInstance
@@ -327,7 +331,7 @@ lemma IsTameGeneratorFor.exists_apply_eq_nsmul (h : IsPlaceOver A v) (hm : ↑m 
     simpa [← hγy, ← IsPrimitiveRoot.coe_units_iff] using isPrimitiveRoot_rootPowHom_one Ω m
   -- So, by the tame theorem, every value of `F` is a power of its value at `γ`.
   obtain ⟨-, tame⟩ := h_local.tame_inertia (h_unif hπ) (h.valuation_natCast_eq_one_iff.2 hm)
-    (congrArg Units.val hy) F (hf _).preimage_val.preimage_val fun g ↦ char_nsmul_eq_zero m (f g)
+    (congrArg Units.val hy) F (hf {0}).preimage_val.preimage_val fun g ↦ char_nsmul_eq_zero m (f g)
   have h_pow : ∀ g : inertiaGroup (decompGroup G A) A, ∃ c : ℕ, F g = F γ' ^ c :=
     (tame γ').left h_prim
   exact h_pow ⟨⟨τ, hτ.1⟩, hτ⟩
@@ -637,11 +641,6 @@ private lemma IsLargeLevel.SplitPlaces.sum_symbol_smul_snd_generators_eq_zero {�
     exact s.decompGroup_le (s.isPlaceOver i) hγ_dec
   let γ' (θ : ι × G ⧸ Q) : Q :=
     ⟨θ.snd.out⁻¹ * γ θ.fst * θ.snd.out⁻¹⁻¹, U.isNormal'.conj_mem _ (hγ_mem θ.fst) _⟩
-  have κ_φ (x : ↥(unitsModule Q).H0) (hx : x.val ∈ sUnits N) (θ : ι × G ⧸ Q) :
-      (κ x).val (S.φ θ) =
-        cyclotomicCharMod Ω m θ.snd.out⁻¹ * b (fixedSUnitsRep N U θ.snd.out ⟨_, hx, x.prop⟩)
-          θ.fst :=
-    kummer_frob_liftToFixedField s hκ hb x hx θ
   obtain ⟨z_cts, z_mul⟩ : P.snd ∈ Z1 V.ρ := snd_mem_Z1 hP
   obtain ⟨-, -, hP_zero⟩ := mem_trivialisedCocycles.mp hP
   obtain ⟨y, y_unit, y_fix⟩ := y
@@ -675,8 +674,9 @@ private lemma IsLargeLevel.SplitPlaces.sum_symbol_smul_snd_generators_eq_zero {�
       l (V.ρ θ.snd.out⁻¹ (P.snd (γ θ.fst))) = 0 by
     simpa [ZMod.map_smul] using congrArg (ofZMod m) h_goal
   apply ofZMod_injective (n := m)
-  -- By `l_γ` and `κ_φ` both sums have the terms `cyclotomicCharMod g⁻¹ * b (g y) i * ord x`.
-  simpa [← map_zsmul, χ, ZMod.map_smul, l_γ, κ_φ ⟨y, y_fix⟩ y_unit, mul_comm (b _ _),
+  -- By `l_γ` and the Kummer formula at Frobenius both sums have the terms `cyclotomicCharMod g⁻¹ * b (g y) i * ord x`.
+  simpa [S, ← map_zsmul, χ, ZMod.map_smul, l_γ, kummer_frob_liftToFixedField s hκ hb ⟨y, y_fix⟩ y_unit,
+    mul_comm (b _ _),
     mul_left_comm (Int.cast _), mul_assoc] using h_sum
 
 variable [NeZero N]
@@ -799,11 +799,6 @@ private lemma IsLargeLevel.SplitPlaces.exists_mem_trivialisedCocycles_of_sum_sym
   let Q : Subgroup G := U.toOpenSubgroup.toSubgroup
   let F : IntermediateField K Ω := fixedFieldOf Q
   let S := liftToFixedField s
-  have κ_φ (x : ↥(unitsModule Q).H0) (hx : x.val ∈ sUnits N) (θ : ι × G ⧸ Q) :
-      (κ x).val (S.φ θ) =
-        cyclotomicCharMod Ω m θ.snd.out⁻¹ * b (fixedSUnitsRep N U θ.snd.out ⟨_, hx, x.prop⟩)
-          θ.fst :=
-    kummer_frob_liftToFixedField s hκ hb x hx θ
   choose ξ hξ_val hξ_art using fun θ : ι × G ⧸ Q ↦
     (S.isPlaceOver θ).exists_localArtin_eq_of_isFrob (Γ := Q) (g := (S.φ θ)⁻¹)
       (by simpa only [inv_inv] using (S.isFrob θ).left)
@@ -811,9 +806,11 @@ private lemma IsLargeLevel.SplitPlaces.exists_mem_trivialisedCocycles_of_sum_sym
   let α : (𝔸f F)ˣ := ∏ θ, locIdele (S.v θ) (ξ θ) ^ e θ
   have hα (u : Set.unit {u : FinPlace F | ↑N ∈ u.asIdeal} F) :
       abelianLift (ofZModCocycle m (κ (ofBase Q Ω (.ofMul u.val)))) (artinMap Q α) = 1 := by
-    simp [α, e, (S.isPlaceOver _).artinAt_eq_of_localArtin_eq (hξ_art _), ← toAdd_eq_zero,
+    simp [S, α, e, (S.isPlaceOver _).artinAt_eq_of_localArtin_eq (hξ_art _), ← toAdd_eq_zero,
       ← map_nsmul, ← map_sum,
-      mul_comm (f _), mul_assoc, κ_φ (ofBase Q Ω (.ofMul u.val)) (ofBase_mem_sUnits.mpr u.prop), hf]
+      mul_comm (f _), mul_assoc,
+      kummer_frob_liftToFixedField s hκ hb (ofBase Q Ω (.ofMul u.val)) (ofBase_mem_sUnits.mpr u.prop),
+      hf]
   obtain ⟨_, ⟨x, rfl⟩, β, ⟨h_pow, h_unit⟩, hβ⟩ := mem_sup.mp (h_idele α hα)
   obtain rfl : β = α / principalIdele x := eq_div_of_mul_eq'' hβ
   -- Off `N`, `x` has the valuations of `α`.

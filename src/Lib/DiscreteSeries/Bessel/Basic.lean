@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.Bruhat.FloorMeasures
-import Lib.DiscreteSeries.Haar.CayleyChart
+module
+
+public import Lib.DiscreteSeries.Bruhat.FloorMeasures
+public import Lib.DiscreteSeries.Haar.CayleyChart
 
 /-!
 # The real unitary group G₁, unipotent coordinates and Bessel functions
@@ -43,6 +45,8 @@ Known; see `Lib.DiscreteSeries.Bruhat.FloorGroups`, `Lib.DiscreteSeries.Bessel.U
 and `Lib.DiscreteSeries.Bruhat.ComplexPlace` for sources.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-!
@@ -71,7 +75,8 @@ noncomputable def toBesselH (𝔰 : Shape) (N : A) : U (1 : Matrix 𝔰.κ 𝔰.
           map_mul' := by simp [fromBlocks_multiply] }).comp
       (U 1).subtype).codRestrict (𝔰.middleGram N).G
     -- `↓` unfolds membership in the unitary group before the group itself is simplified.
-    (by simp [↓mem_U, middleGram, fromBlocks_conjTranspose, splitGram, fromBlocks_multiply,
+    (by simp [↓mem_unitaryGroupOf_iff, star_eq_conjTranspose, middleGram, fromBlocks_conjTranspose,
+        splitGram, fromBlocks_multiply,
       fromBlocks_mul_fromRows, fromCols_mul_fromBlocks])
 
 @[simp]
@@ -93,7 +98,7 @@ lemma exists_eq_toBesselH {h : (𝔰.middleGram N).G} (hh : h ∈ besselH) (hN :
   -- to `z` (of norm `-N`, a unit) and orthonormal.
   let m : Matrix 𝔰.κ 𝔰.κ A := h.val.val.submatrix 𝔰.indexX₀ 𝔰.indexX₀
   have h_form : h.val.valᴴ * (𝔰.middleGram N).splitGram * h.val.val =
-      (𝔰.middleGram N).splitGram := mem_U.1 h.property
+      (𝔰.middleGram N).splitGram := mem_unitaryGroupOf_iff.1 h.property
   have h_row (a : 𝔰.κ) : h.val.val 𝔰.z (𝔰.indexX₀ a) = 0 := hN.mul_right_eq_zero.1 <| by
     simpa [apply_eq_one_apply_of_mem_floorGroup hh, middleGram, splitGram, Matrix.mul_apply,
       Matrix.one_apply]
@@ -104,7 +109,7 @@ lemma exists_eq_toBesselH {h : (𝔰.middleGram N).G} (hh : h ∈ besselH) (hN :
       Matrix.mul_apply, Matrix.one_apply]
       using congr_fun₂ h_form (𝔰.indexX₀ a) (𝔰.indexX₀ b)
   use U.of (by simp) m h_unitary
-  ext : 2
+  refine Subtype.ext (Units.ext ?_)
   simp [m, apply_eq_one_apply_of_mem_floorGroup hh, h_row, ← ext_iff, Matrix.one_apply]
 
 /-- Assume that A has a chosen element of trace one, that the form `(𝔰.middleGram N).splitGram` (ϱ
@@ -198,13 +203,13 @@ lemma exists_mem_besselU_frameMatrix_eq {A : Type} [CommRing A] [StarRing A] [Tr
         ext i c
         grind [of_apply, Fin.le_def]
       exact ⟨1, one_mem _, by
-        simp [h_top, frameMatrix, ← ext_iff, one_apply, besselFrame_injective.eq_iff]⟩
+        simp [h_top, frameMatrix, ← ext_iff, Matrix.one_apply, besselFrame_injective.eq_iff]⟩
     | of_succ k hk ih =>
       obtain ⟨u, hu, hu_frame⟩ := ih
       let a : Fin 𝔰.ϱ := ⟨k, hk⟩
       obtain ⟨x, hx, hx_frame⟩ := exists_mem_besselU_frameMatrix_eq_one_add_row hN a
         (M a.castSucc - Pi.single a.castSucc 1) fun c hc ↦ by
-          simp [hM_unitri _ c hc, one_apply, Pi.single_apply, eq_comm]
+          simp [hM_unitri _ c hc, Matrix.one_apply, Pi.single_apply, eq_comm]
       exact ⟨u * x, mul_mem hu hx, by rw [frameMatrix_mul hx, hu_frame, hx_frame, ← h_split a]⟩
   simpa [truncated, ← Matrix.ext_iff] using h_all 0 (Nat.zero_le _)
 
@@ -284,6 +289,12 @@ abbrev realFrameGram (y : 𝔰.G₁) : Matrix (Fin (𝔰.ϱ + 1)) (Fin (𝔰.ϱ 
 
 namespace RealPlace
 
+/-- For `γ ∈ G₁`, the matrix `Z(γ) = realFrameGram γ` equals `Fᴴ J₁ γ F`, with `F = 𝔰.frameCols` the
+frame (e₁, …, e_ϱ, z) and `J₁ = 𝔰.J₁`. -/
+lemma realFrameGram_eq_conjTranspose_mul (γ : 𝔰.G₁) :
+    realFrameGram γ = 𝔰.frameColsᴴ * 𝔰.J₁ * (γ.val.val * 𝔰.frameCols) := by
+  simp [← Matrix.ext_iff, inclMatrix, Shape.Form.frameGram, Matrix.mul_apply, Matrix.one_apply]
+
 /-- Coordinates on matrices, as a continuous `ℝ`-linear map. For a set `p` of positions `(a, i)`,
 a matrix `M` goes to its complex entries in row `e_a` and column `i` for `(a, i)` in `p`,
 together with the imaginary parts of its entries in row `e_a` and column `e*_a`. -/
@@ -337,7 +348,7 @@ lemma continuous_unitriangularMatrix :
 /-- The Gram matrix `New.Shape.J₁` is a hermitian involution. -/
 instance isHermitianInvolution_J₁ : IsHermitianInvolution 𝔰.J₁ where
   isHermitian := ext <| by simp [eq_comm, splitGram, middleGram, Matrix.one_apply]
-  mul_self := ext <| by simp [eq_comm, splitGram, middleGram, mul_apply, Matrix.one_apply]
+  mul_self := ext <| by simp [eq_comm, splitGram, middleGram, Matrix.mul_apply, Matrix.one_apply]
 
 /-- The Gram matrix `New.Shape.J₁` is hermitian and invertible. -/
 instance : Floors.IsHermitianUnit 𝔰.J₁ where
@@ -473,7 +484,7 @@ attribute [simps (attr := local simp) (rhsMd := .default) -isSimp coe_val, irred
 complement. -/
 theorem coe_embedH (h : U (1 : Matrix 𝔰.κ 𝔰.κ ℂ)) :
     (embedH h).val.val = actOnCols 𝔰.definiteCols h.val.val := by
-  simp [actOnCols, val_toBesselH_apply_coe, inclMatrix, ← ext_iff, Matrix.one_apply, mul_apply]
+  simp [actOnCols, val_toBesselH_apply_coe, inclMatrix, ← ext_iff, Matrix.one_apply, Matrix.mul_apply]
 
 /-- Each explicit isometry `unipotentOf q` lies in 𝖴⁰ = `besselU0`: it is block upper unitriangular
 for the levels `New.BesselIndex.level` and fixes the frame e_0, …, e_{ϱ-1}, z. -/

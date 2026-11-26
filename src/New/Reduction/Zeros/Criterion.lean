@@ -1,6 +1,8 @@
-import Lib.Analytic.Landau
-import Lib.Analytic.QuadraticTwist
-import New.Reduction.Zeros.PrimeError
+module
+
+public import Lib.Analytic.Landau
+public import Lib.Analytic.QuadraticTwist
+public import New.Reduction.Zeros.PrimeError
 
 /-!
 # The one-sided criterion for a zero-free half-plane
@@ -25,6 +27,8 @@ of the `L(s, ψ)`. In the literature: a one-sided bound for a weighted sum over 
 Chebyshev's conjecture, arXiv 2411.07436, 2024; Montgomery–Vaughan, Multiplicative Number Theory I,
 §15.1–15.2, 2007; Landau, Über einen Satz von Tschebyschef, 1905.
 -/
+
+@[expose] public section
 
 open Complex Filter Nat Real Set MeasureTheory Topology
 
@@ -83,10 +87,4 @@ theorem New.LFunction_ne_zero_of_primeRemainder_le {q₀ : ℕ} [NeZero q₀] (h
     simpa [hρ_ne_zero, sub_ne_zero.2 hρ_ne.symm, NeZero.ne] using h_landau
   have h_entire : entireL ψ ρ ≠ 0 := (analyticOrderNatAt_entireL_eq_zero_iff ψ ρ).1
     (Finset.sum_eq_zero_iff.1 h_count ψ (Finset.mem_univ ψ))
-  -- Away from `s = 1`, `entireL ψ` is `L(s, ψ)` or `(s - 1) L(s, ψ)`.
-  rw [entireL] at h_entire
-  split_ifs at h_entire with hψ
-  · subst hψ
-    rw [DirichletCharacter.LFunctionTrivChar₁, Function.update_of_ne hρ_ne] at h_entire
-    exact right_ne_zero_of_mul h_entire
-  · exact h_entire
+  exact (entireL_ne_zero_iff ψ hρ_ne).1 h_entire

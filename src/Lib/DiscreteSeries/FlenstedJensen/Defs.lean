@@ -1,4 +1,6 @@
-import Lib.DiscreteSeries.Haar.CayleyChart
+module
+
+public import Lib.DiscreteSeries.Haar.CayleyChart
 
 /-!
 # Harish-Chandra parameters, c_λ, deg_λ, e_λ and holomorphic discrete series
@@ -47,6 +49,8 @@ The definitions are part of three known results, each treated in another file:
   `Lib.DiscreteSeries.Holomorphic.HighestVectorExtension`.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-!
@@ -83,7 +87,8 @@ def expU {J : Matrix n n ℂ} (X : unitaryLie J) : U J where
     have h_semiconj : SemiconjBy J X.1 (-X.1ᴴ) :=
       (eq_neg_of_add_eq_zero_right X.2).trans (neg_mul X.1ᴴ J).symm
     -- `using!`: the two sides differ in the topology instance under which `exp` is taken.
-    simpa [U, ← exp_conjTranspose] using! h_semiconj.exp_neg_mul_mul_exp_eq_self
+    simpa [mem_unitaryGroupOf_iff, star_eq_conjTranspose, ← exp_conjTranspose] using!
+      h_semiconj.exp_neg_mul_mul_exp_eq_self
 
 /-! ### Parameters and weights -/
 
@@ -117,7 +122,8 @@ matrices. -/
 def maxCompactU : Subgroup (U (signMatrix ε)) := (U 1).subgroupOf (U (signMatrix ε))
 
 instance : CompactSpace (maxCompactU ε) :=
-  ((isClosed_U _).isClosedEmbedding_subtypeVal.restrictPreimage _).compactSpace (Y := U 1)
+  ((isClosed_unitaryGroupOf _).isClosedEmbedding_subtypeVal.restrictPreimage _).compactSpace
+    (Y := U 1)
 
 /-- The Haar measure of total mass one on the compact group K=U(diag ε)∩U(n). -/
 def haarK : Measure (maxCompactU ε) := Measure.haarMeasure ⊤
@@ -426,7 +432,8 @@ def holMinorsPi (h : Φ → USign ε) : ℂ := ∏ τ : Φ, holMinors ε (u τ) 
 of U(diag ε). -/
 def diagTorus (t : n → Circle) : USign ε :=
   ⟨IsUnit.unit (a := diagonal fun i ↦ t i) (by simp [Pi.isUnit_iff]),
-    by simp [U, signMatrix, field, ← Circle.coe_inv_eq_conj]⟩
+    by simp [mem_unitaryGroupOf_iff, star_eq_conjTranspose, signMatrix, field,
+       ← Circle.coe_inv_eq_conj]⟩
 
 end New
 

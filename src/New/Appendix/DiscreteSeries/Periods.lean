@@ -1,6 +1,8 @@
-import Lib.General.LinearAlgebra.BlockEmbeddings
-import New.Appendix.DiscreteSeries.GaussianShape
-import New.Appendix.DiscreteSeries.Localization
+module
+
+public import Lib.General.LinearAlgebra.BlockEmbeddings
+public import New.Appendix.DiscreteSeries.GaussianShape
+public import New.Appendix.DiscreteSeries.Localization
 
 /-!
 # Lower bounds for periods by Laplace's method
@@ -54,6 +56,8 @@ Related work: Nelson–Venkatesh, The orbit method and analysis of automorphic f
 the Gan–Gross–Prasad conjecture for U(p,q), 2017; B. Sun, Matrix coefficients of cohomologically
 induced representations, 2007.
 -/
+
+@[expose] public section
 
 section LaplaceMethod
 
@@ -202,7 +206,7 @@ lemma norm_sum_sub_one (g : USign ε × USign η) :
       max ‖(g.1 : Matrix n n ℂ) - 1‖ ‖(g.2 : Matrix m m ℂ) - 1‖ := by
   rw [← norm_fromBlocks_zero_zero, coe_sum_eq_fromBlocks]
   congr 1
-  ext (a | a) (b | b) <;> simp [one_apply]
+  ext (a | a) (b | b) <;> simp [Matrix.one_apply]
 
 end Modulus
 
@@ -402,7 +406,7 @@ lemma IsLaplaceDatum.norm_laplaceIntegrand_le_two_mul_re_add_mul_pow
   have h_gap : 18 * N ≤ h := eighteen_mul_le_of_mul_pow_three_le
     (Nat.one_le_pow _ _ (Nat.add_pos_left card_pos _)) hβ (by rwa [hN_cast])
   have h_err : rexp (-100 * ((card n + card m : ℝ) ^ 2 * β.log)) = (β⁻¹ ^ (50 * N)) ^ 2 := by
-    rw [← hN_cast, ← pow_mul, ← exp_log (inv_pos.2 hβ_pos), ← Real.exp_nat_mul, Real.log_inv]
+    rw [← hN_cast, ← pow_mul, ← exp_log (inv_pos.2 hβ_pos), ← Real.exp_natCast_mul, Real.log_inv]
     push_cast
     ring_nf
   have h_cone : ‖l.laplaceIntegrand k j φ s‖ ≤
@@ -456,12 +460,6 @@ lemma measureReal_div_four_le {α : Type} [MeasurableSpace α] (ν : Measure α)
           integral_const_mul, show ∫ s, (f s).re ∂ν = (∫ s, f s ∂ν).re from integral_re hf]
     _ ≤ 2 * ‖∫ s, f s ∂ν‖ + c * ∫ s, G s ∂ν := by linarith [re_le_norm (∫ s, f s ∂ν)]
 
-/-- If a square matrix `A` has `‖A - 1‖ ≤ 1` in the operator norm and `r ≥ 1`, then
-`‖A‖ ≤ r + 1`. -/
-lemma norm_le_add_one_of_norm_sub_one_le {ι : Type} [Fintype ι] [DecidableEq ι] [Nonempty ι]
-    {A : Matrix ι ι ℂ} {r : ℝ} (hr : 1 ≤ r) (hA : ‖A - 1‖ ≤ 1) : ‖A‖ ≤ r + 1 :=
-  (norm_le_insert' A 1).trans (add_le_add (norm_one.trans_le hr) hA)
-
 variable [MeasurableSpace S] [MeasurableMul S] (ν : Measure S) [ν.IsMulRightInvariant]
 
 /-- The covering bound for two radii, for a right invariant measure `ν` on `S` and the `L²` operator
@@ -471,7 +469,6 @@ lemma measure_large_ball_le_pow_mul_small_ball {ι : Type} [Fintype ι] [Decidab
     {ζ : ι → ℤˣ} (J : S →* USign ζ) (hβ : 10 ^ 12 ≤ β) :
     ν {s : S | ‖(J s : Matrix ι ι ℂ)‖ ≤ β + 1} ≤ ENNReal.ofReal (β ^ (16 * card ι ^ 2)) *
       ν {s : S | ‖(J s : Matrix ι ι ℂ) - 1‖ ≤ (200 * β ^ 5)⁻¹} := by
-  have hβ16 : 16 ≤ β := le_trans (by norm_num) hβ
   have h_radii : 3 * (200 * β ^ 5) * (β + 1) ^ 2 ≤ β ^ 8 := by
     field_simp
     nlinarith
@@ -537,7 +534,8 @@ theorem IsLaplaceDatum.laplace_method [TopologicalSpace S] [BorelSpace S]
     refine (measureReal_div_four_le ν hθ_int hG_int (fun s ↦ (h_decay_cone s).2) fun s hs ↦
       h_datum.one_div_four_le_norm_laplaceIntegrand hl hk hl_le hk_le hβ_le hs).trans ?_
     grw [hG_le, measureReal_mono (s₁ := UnitBall) (s₂ := Large)
-      (fun s hs ↦ norm_le_add_one_of_norm_sub_one_le (by linarith) hs) h_large_fin]
+      (fun s hs ↦ (norm_le_norm_add_norm_sub' _ 1).trans (by
+        simpa only [norm_one] using add_le_add (show 1 ≤ β by linarith) hs)) h_large_fin]
   refine ⟨hθ_int, (measure_mono fun s hs ↦ ?_).trans <|
     (ENNReal.le_ofReal_iff_toReal_le h_large_fin (by positivity)).2 <|
       le_pow_mul_of_le hβ16 hN_pos measureReal_nonneg (norm_nonneg _) h_cover_real h_int⟩

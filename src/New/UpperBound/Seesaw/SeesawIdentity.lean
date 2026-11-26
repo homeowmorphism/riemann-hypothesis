@@ -1,8 +1,10 @@
-import Lib.DiscreteSeries.Bruhat.ComplexPlace
-import New.UpperBound.Divisibility.ChainValuation
-import New.UpperBound.Objects.PoincareMap
-import New.UpperBound.Seesaw.Cut
-import New.UpperBound.Seesaw.GoodDatum
+module
+
+public import Lib.DiscreteSeries.Bruhat.ComplexPlace
+public import New.UpperBound.Divisibility.ChainValuation
+public import New.UpperBound.Objects.PoincareMap
+public import New.UpperBound.Seesaw.Cut
+public import New.UpperBound.Seesaw.GoodDatum
 
 /-!
 # The seesaw identity and the top of the chain
@@ -49,6 +51,8 @@ conductor. Related work: Gross, Algebraic modular forms, 1999; Hsieh–Namikawa,
 non-vanishing of Yoshida lifts modulo a prime, 2015; X. Zhang, Non-vanishing mod p of theta lifts
 for (O(2n+1), Mp(4n)), 2022.
 -/
+
+@[expose] public section
 
 noncomputable section
 

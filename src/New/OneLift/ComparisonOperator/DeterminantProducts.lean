@@ -1,4 +1,6 @@
-import New.OneLift.ComparisonOperator.ExchangeData
+module
+
+public import New.OneLift.ComparisonOperator.ExchangeData
 
 /-!
 # Products of determinants and first-column coordinates under substitution
@@ -23,6 +25,8 @@ Notions from other files:
 * `New.nablaBasis`, `New.schur`: products of minors indexed by families of standard fillings
   (`New.WeylIndexFamily`), and the matrix of a substitution of rows in these polynomials.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -105,8 +109,8 @@ lemma twoSidedSubst_stackedDetProd (e : a ⊕ N ≃ L) [Fintype Φ] {ι : Φ →
       rw [stackedDet, AlgHom.map_det]
       congr 1
       ext (i | i) j : 2
-      · simp [A, mul_apply, one_apply, ← e.sum_comp]
-      · simp [A, mul_apply, mul_sum, mul_add, mul_assoc, mul_comm, ← e.sum_comp, ← C_mul']
+      · simp [A, Matrix.mul_apply, Matrix.one_apply, ← e.sum_comp]
+      · simp [A, Matrix.mul_apply, mul_sum, mul_add, mul_assoc, mul_comm, ← e.sum_comp, ← C_mul']
     simp only [h_left, det_mul, ← RingHom.map_det]
     simp [stackedDet, A, ← C_mul', mul_comm, mul_left_comm, mul_assoc]
   simp only [stackedDetProd, map_prod, h_factor, prod_smul, prod_const, card_univ]
@@ -149,7 +153,7 @@ lemma twoSidedSubst_firstColsCoord {p : ℕ} [Fintype Φ] (c : Φ → Matrix N N
   have h_split : (inFirstCols (p := p)).comp (twoSidedSubst c fun τ ↦ fromBlocks 1 0 0 (g τ)) =
       ((rowSubst fun τ ↦ ((c τ).map C)ᵀ).restrictScalars ℂ).comp
         ((mapAlgHom (twoSidedSubst c g)).comp inFirstCols) :=
-    algHom_ext <| by simp [inFirstCols, rowSubst, ← C_mul', one_apply]
+    algHom_ext <| by simp [inFirstCols, rowSubst, ← C_mul', Matrix.one_apply]
   let v : WeylIndexFamily (fun _ : Φ ↦ N) κ → MatrixPoly ((_ : Φ) × N) R := nablaBasis R _ κ
   -- `φ` passes through the pairing with a basis vector, since it fixes that vector.
   have h_pass (l' : WeylIndexFamily (fun _ : Φ ↦ N) κ) (G : MatrixPoly ((_ : Φ) × N) R) :

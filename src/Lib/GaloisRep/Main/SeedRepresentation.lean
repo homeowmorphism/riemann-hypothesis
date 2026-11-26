@@ -1,11 +1,13 @@
-import Lib.ClassField.Avatar.HeckeBaseChange
-import Lib.GaloisRep.KillingPolynomials
-import Lib.GaloisRep.Main.CuspidalTypes
-import Lib.Shimura.Eigenspace
-import Lib.Shimura.IntegralModel.PELDataExistence
-import Lib.Shimura.IntegralModel.TowerExistence
-import Lib.Shimura.ThetaModuli.UniversalFamily
-import Lib.Shimura.Transfer.WeightOccurs
+module
+
+public import Lib.ClassField.Avatar.HeckeBaseChange
+public import Lib.GaloisRep.KillingPolynomials
+public import Lib.GaloisRep.Main.CuspidalTypes
+public import Lib.Shimura.Eigenspace
+public import Lib.Shimura.IntegralModel.PELDataExistence
+public import Lib.Shimura.IntegralModel.TowerExistence
+public import Lib.Shimura.ThetaModuli.UniversalFamily
+public import Lib.Shimura.Transfer.WeightOccurs
 
 /-!
 # Seed representations: odd rank, a cuspidal type and free jumps
@@ -41,6 +43,8 @@ Notions from other files:
 
 Known; see `Lib.GaloisRep.Main.OddRank` for sources.
 -/
+
+@[expose] public section
 
 open NumberField Matrix New Variety Period IsLocalization RingHom Subgroup Gf
 
@@ -115,7 +119,7 @@ lemma New.GaloisRep.exists_frame_extension {E : Type} [Field E] [CMBase E] {n W 
     have h_scalar :
         IsScalarFrame ((invTransposeGL t.val)⁻¹ * toFinGL y * invTransposeGL u.val)⁻¹ 1 := by
       simpa [mul_assoc] using levelGU.isScalarFrame_inv_one h_mem
-    have hy : y ∈ U (1 : Matrix n n E) :=
+    have hy : y ∈ U (1 : Matrix n n E) := mem_unitaryGroupOf_iff.2 <|
       ((h_frame u).conjTranspose_mul_mul_eq_smul (h_frame t) h_scalar).trans (by simp)
     obtain ⟨c, hc_f, hc⟩ := h_rat y hy
     have h_stab : t⁻¹ * c * u ∈ rightStabilizer f :=
@@ -225,7 +229,7 @@ lemma New.GaloisRep.isSplitPrimeToDisc_below_of_prime_norm {E : Type} [Field E] 
   obtain ⟨c, hc⟩ :
       Ideal.Quotient.mk w.asIdeal (algebraMap (𝓞 (QuadField d)) (𝓞 E) (QuadField.betaK d)) ∈
         AddSubgroup.zmultiples (Ideal.Quotient.mk w.asIdeal (d : 𝓞 E)) :=
-    mem_zmultiples_of_prime_card (hp := ⟨hq_prime⟩) rfl
+    mem_zmultiples_of_prime_card (hp := ⟨hq_prime⟩) (Ideal.absNorm_eq_natCard _).symm
       (mt Ideal.Quotient.eq_zero_iff_mem.mp hd_notMem)
   have hx_mem :
       QuadField.betaK d - ((c * d : ℤ) : 𝓞 (QuadField d)) ∈ (w.below (QuadField d)).asIdeal :=
@@ -294,7 +298,7 @@ private lemma New.GaloisRep.card_eq_and_eventually_charpoly_eq_of_hasNoSmallRela
   have h_near : ∀ᶠ g : decompGroup Gal(Ω/E) A in nearOne (decompGroup Gal(Ω/E) A),
       G.aeval (T⁻¹.val * (r g).val.map (algebraMap (PadicAlgCl ℓ) ℂ_[ℓ])).uncurry = 0 := by
     rw [nearOne_eq_nhds_one hj_open]
-    exact continuousAt_subtype_val (x := (1 : decompGroup Gal(Ω/E) A)) hG
+    exact continuousAt_subtypeVal (x := (1 : decompGroup Gal(Ω/E) A)) hG
   have h_twisted : ∀ᶠ g : decompGroup Gal(Ω/E) A in nearOne (decompGroup Gal(Ω/E) A),
       G.aeval (fun i : Fin b × Fin b ↦
         (cyclotomicGp (j g) ^ (-k i.1)).val • j g • T⁻¹.val.uncurry i) = 0 := by
@@ -368,15 +372,9 @@ lemma New.GaloisRep.disjoint_iInf_primeCompl_iff {E : Type} [Field E] [NumberFie
     exact ⟨y, by simpa [Ideal.one_notMem] using hy_mem⟩
   simp only [Set.disjoint_left, Submonoid.mem_carrier, SetLike.mem_coe, Submonoid.mem_iInf,
     Ideal.mem_primeCompl_iff]
-  constructor
-  · intro h_disj
-    by_contra hG_w
-    have hy_notMem (u : FinPlace E) (hG_u : G u) : y ∉ u.asIdeal := by
-      rw [hy u]
-      rintro rfl
-      exact hG_w hG_u
-    exact h_disj hy_notMem ((hy w).mpr rfl)
-  · exact fun hG_w z hz ↦ hz w hG_w
+  refine ⟨fun h_disj ↦ ?_, fun hG_w z hz ↦ hz w hG_w⟩
+  by_contra hG_w
+  exact h_disj (fun u hu hyu ↦ hG_w ((hy u).1 hyu ▸ hu)) ((hy w).2 rfl)
 
 /-- Let `ψ ≠ 0` lie in `definiteForms 𝔑 ξ`, with `𝔑 ≠ 0`, and let the ideles `x` of `QuadField d`
 act on `ψ` through the central scalars by `ω x` (`hψ_cen`). Let the scalar matrix of `x̄`, for `x`

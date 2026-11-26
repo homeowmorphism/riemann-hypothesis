@@ -1,5 +1,7 @@
-import Lib.Weil.Periods.PointLattice
-import New.UpperBound.Seesaw.EdgePairEvaluation
+module
+
+public import Lib.Weil.Periods.PointLattice
+public import New.UpperBound.Seesaw.EdgePairEvaluation
 
 /-!
 # The shift at a nonzero constant term maps lattices into lattices
@@ -34,6 +36,8 @@ Notions from other files:
 
 See `New.UpperBound.Seesaw.SeesawIdentity` for related work.
 -/
+
+@[expose] public section
 
 open Matrix Pointwise Kronecker
 
@@ -143,7 +147,7 @@ lemma hasDegreeGe_zero_mul_mul_sub [Fintype X'] {W : Matrix ι' ι (𝔸f E)} {c
   set A : Matrix ι ι (𝔸f E) := V.ratCoordMatrixFin r
   set A' : Matrix ι' ι' (𝔸f E) := V'.ratCoordMatrixFin r'
   have h_fixed : HasDegreeGe Y'.gradeOf Y.gradeOf 0 (A' * (sh * A) - sh) := fun p q h ↦ by
-    simpa [ratCoordMatrix_inr, mul_apply, Prod.snd_sum, sh, A, A'] using
+    simpa [ratCoordMatrix_inr, Matrix.mul_apply, Prod.snd_sum, sh, A, A'] using
       congrArg Prod.snd (Y.hasDegreeGe_zero_mul_stringMap_mul_sub hr hr' p q h)
   have h_split : A' * (W * A) - c • sh = A' * ((W - c • sh) * A) + c • (A' * (sh * A) - sh) := by
     simp [Matrix.sub_mul, Matrix.mul_sub, smul_sub]

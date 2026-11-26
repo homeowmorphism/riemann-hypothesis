@@ -1,6 +1,8 @@
-import New.UpperBound.Divisibility.ChainDatumExpansion
-import New.UpperBound.Divisibility.SetupAtLevel
-import New.UpperBound.Objects.CharactersAtLevel
+module
+
+public import New.UpperBound.Divisibility.ChainDatumExpansion
+public import New.UpperBound.Divisibility.SetupAtLevel
+public import New.UpperBound.Objects.CharactersAtLevel
 
 /-!
 # N-adic valuation of the lifts between the X_j at the level prime N
@@ -35,6 +37,8 @@ Denominators at the level prime N are traded for the operator `Up`. Related work
 Schwartz functions at p for theta lifts of Hida families, arXiv 2510.21644, 2025; S. Rallis,
 Langlands' functoriality and the Weil representation, 1982.
 -/
+
+@[expose] public section
 
 namespace New.Data
 
@@ -107,7 +111,8 @@ lemma exists_mem_inducedPlace_one_le_norm : ∃ δ : 𝓞 P.K, 1 ≤ ‖ιₚ (s
     erw [eq_zero_iff_mem, mem_placeOfEmb, ιₚ.comp_apply, phi_algebraMap]
   -- The residue field has prime order `N`, so the generator `betaK P.d` reduces to some `c : ℕ`.
   have h_card : Nat.card (𝓞 D.E ⧸ (D.inducedPlace 1).asIdeal) = D.N :=
-    q_eq_of_modEq_one D.N_modEq_one (p_mem_inducedPlace ..)
+    (Ideal.absNorm_eq_natCard _).symm.trans
+      (q_eq_of_modEq_one D.N_modEq_one (p_mem_inducedPlace ..))
   obtain ⟨c, hc⟩ : ∃ c : ℕ, c • 1 = q (betaK P.d) := mem_multiples_of_prime_card h_card one_ne_zero
   let δ : 𝓞 P.K := betaK P.d - c
   refine ⟨δ, ?_, fun σ ↦ ?_⟩

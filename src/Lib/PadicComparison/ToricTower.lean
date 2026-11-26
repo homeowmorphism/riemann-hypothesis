@@ -1,4 +1,6 @@
-import Lib.PadicComparison.Descent.AlmostDescent
+module
+
+public import Lib.PadicComparison.Descent.AlmostDescent
 
 /-!
 # Wang sequence on C × Bℕ, lines, and root systems of units via periodic sequences
@@ -54,6 +56,8 @@ for rigid-analytic varieties, Forum Math. Pi 1 (2013), Lemmas 4.5 and 5.5; Bhatt
 (1988).
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-!
@@ -65,7 +69,7 @@ is bijective for all n.
 
 section WangSequence
 
-open CategoryTheory Function FreeAbelianGroup AddCommGrpCat
+open CategoryTheory Function FreeAddCommGroup AddCommGrpCat
 
 namespace New.Variety
 
@@ -127,7 +131,7 @@ lemma TimesBNat.isLine_fst {X : C ⥤ Type 1} :
 
 /-- The retraction in the Wang sequence at one object, for a map `t` of a set `X` to itself: it
 sends `(x, 0)` to `0` and `(x, k + 1)` to its value at `(t x, k)` minus `(x, k)`. -/
-private def wangRetraction {X : Type 1} (t : X → X) : ℕ → X → FreeAbelianGroup (X × ULift.{1} ℕ)
+private def wangRetraction {X : Type 1} (t : X → X) : ℕ → X → FreeAddCommGroup (X × ULift.{1} ℕ)
   | 0, _ => 0
   | k + 1, x => wangRetraction t k (t x) - of (x, ⟨k⟩)
 
@@ -159,7 +163,7 @@ lemma TimesBNat.shortExact_induced :
         (freeAb.map ((fst C ⋙ incl C ⋙ Y) ◁ { app _ := ↾ULift.map.{_, _, 1, 1} Nat.succ })))
       -- the second map, `(x, k) ↦ γ^k x`
       (freeAb.map ⟨fun D : TimesBNat C ↦ ↾fun x ↦ (shiftEnd Y x.2.down).asHom.app D.1 x.1,
-        fun _ _ f ↦ shiftEnd_naturality Y f⟩)
+        fun _ _ f ↦ by exact shiftEnd_naturality Y f⟩)
       w) := by
   -- With `t = shiftEnd Y 1` the maps are `(x, k) ↦ (t x, k) - (x, k + 1)` and `(x, k) ↦ tᵏ x`. The
   -- sequence splits at each object `A`.
@@ -207,7 +211,7 @@ def TimesBNat.wangSub :
 `γ = shiftEnd Y 1`. -/
 def TimesBNat.wangPow : freeAb.obj ((fst C ⋙ incl C ⋙ Y) ⊗ natWithShift) ⟶ freeAb.obj Y :=
   freeAb.map ⟨fun D ↦ ↾fun x ↦ (shiftEnd Y x.2.down).asHom.app D.1 x.1,
-    fun _ _ f ↦ shiftEnd_naturality Y f⟩
+    fun _ _ f ↦ by exact shiftEnd_naturality Y f⟩
 
 /-- The two maps of the Wang sequence compose to zero, as `γ^k (γ x) = γ^(k + 1) x`. -/
 lemma TimesBNat.wangSub_comp_wangPow : wangSub Y ≫ wangPow Y = 0 :=
@@ -277,9 +281,11 @@ lemma IsLine.of_acyclic {Y : TimesBNat C ⥤ Type 1} {ψ : C ⥤ C'} {A : C} {E 
     calc (S.f ≫ r z).app D (.of (x, k))
         = (r z).app D (.of ((shiftEnd Y 1).asHom.app D.1 x, k)) -
             (r z).app D (.of (x, k.map .succ)) :=
-          map_sub ((r z).app D).hom _ _
+          (congrArg ((r z).app D) (congrArg₂ HSub.hSub (freeAb.map_of _ _ _)
+            (freeAb.map_of _ _ _))).trans (map_sub ((r z).app D).hom _ _)
       _ = (r (F'.map g z - z)).app D (.of (x, k)) := by
-          rw [r_app, r_app, r_app D x (k.map .succ), h_square, map_sub, F'.map_comp_apply]
+          refine (congrArg₂ HSub.hSub (r_app D _ k z) (r_app D x (k.map .succ) z)).trans ?_
+          rw [r_app, h_square, map_sub, F'.map_comp_apply]
   have hq (y : (ψ ⋙ F').obj A) : S.g ≫ homOfValue (.restrict _ (ψ ⋙ F')) q y = r (F'.map i y) := by
     refine hom_ext fun D ⟨x, k⟩ ↦ (homOfValue_app (c := .restrict ..) q y D _).trans ?_
     -- Move `γ^k` across `q` (naturality; `ℕ` acts trivially on `reprBy A`), then use `hq_eq_comp`
@@ -560,7 +566,7 @@ lemma periodicSeq.existsUnique_hom (f : R →+* D) (s : D → E) (ζ r u : Multi
   · obtain ⟨m, h_eq, h_exp⟩ : ∃ m : ℕ,
         (x t).val (a (N (x t))) = (x t).val (a m) ∧ (ζ ^ a m * r) t = u t :=
       ((h_lim (x t)).and (h_large t)).exists
-    show s (f ((x t).val (a (N (x t))))) = u t
+    change s (f ((x t).val (a (N (x t))))) = u t
     rw [h_eq, hx, h_exp]
   · rintro ψ ⟨rfl, hψ⟩
     ext y
@@ -780,7 +786,7 @@ lemma PadicTest.isLine_compatibleRoots
     have h_x_one (k : ℕ) : ((x (ofAdd 1)).val k).untilt =
         r (ofAdd 1) * ((1 : periodicSeq c.TiltRing).val k).untilt := by
       simp [hx]
-    show (ϕ (x (ofAdd 1))).untilt = _
+    change (ϕ (x (ofAdd 1))).untilt = _
     simpa using untilt_map_eq_mul_of_forall ϕ (r (ofAdd 1)) (x (ofAdd 1)) 1 h_x_one
   -- The shift multiplies each root `(ϕ (x n))^♯` by `(ε ^ n)^♯`, read in `D`.
   have h_shift {D : PadicTest} (ϕ : Hom D) (n : Multiplicative ℚ≥0) :

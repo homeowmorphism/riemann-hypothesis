@@ -1,6 +1,8 @@
-import Lib.Adelic.Landherr
-import Lib.Adelic.TraceFormula.OrbitalUnfolding
-import Lib.DiscreteSeries.Character.FormalDegree
+module
+
+public import Lib.Adelic.Landherr
+public import Lib.Adelic.TraceFormula.OrbitalUnfolding
+public import Lib.DiscreteSeries.Character.FormalDegree
 
 /-!
 # Comparison of traces of operators on forms for different spaces and signs
@@ -60,6 +62,8 @@ zero. Source: Harish-Chandra, Discrete series II, Acta Math. 116 (1966), Thm 11;
 Brylinski, Cyclic homology and the Selberg principle, J. Funct. Anal. 109 (1992); Hochs and Wang,
 Orbital integrals and K-theory classes (2019), Cor 4.8.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -245,7 +249,8 @@ lemma isEllipticSimilitude_of_norm_eq_one {γ : U V.J} (hγ : Irreducible (γ : 
     (h_norm : ∀ (w : InfinitePlace E) (i : n),
       ‖numberedRoots (Φ w) (γ : GL n E).val.charpoly i‖ = 1) :
     IsEllipticSimilitude 1 γ V.J := by
-  refine ⟨hγ, one_ne_zero, by simp [← mem_U], fun w r hr ↦ ?_⟩
+  refine ⟨hγ, one_ne_zero, by simpa [star_eq_conjTranspose] using mem_unitaryGroupOf_iff.1 γ.2,
+    fun w r hr ↦ ?_⟩
   rw [roots_eq_map_numberedRoots hγ.separable] at hr
   obtain ⟨i, -, rfl⟩ := Multiset.mem_map.1 hr
   simp [mul_conj', h_norm]
@@ -300,7 +305,8 @@ lemma exists_ratEmbed_eq_diagTorus {x : GL n (𝔸f E)} {y : GL n E} {σ : Infin
     { J := β
       x := mkAdelicGL (k, x)
       gram_point := gram_mkAdelicGL h_gram h_frame }
-  have hy : y ∈ U β := by simpa [mem_U] using h_ell.conjTranspose_mul_mul
+  have hy : y ∈ U β := by
+    simpa [mem_unitaryGroupOf_iff, star_eq_conjTranspose] using h_ell.conjTranspose_mul_mul
   refine ⟨W, rfl, hy, fun w ↦ ?_⟩
   have h_point : W.x.map (evalInf w) = k w := rfl
   have h_torus : (diagTorus s (z w ∘ σ w)).1.1 =
@@ -321,8 +327,10 @@ lemma map_embFin_centralizer_le {s' : n → ℤˣ} (W : Space E n s') {y : GL n 
   have h_comm : Commute y a := (Subtype.ext_iff.1 (mem_centralizer_singleton_iff.1 h_cent)).symm
   -- `a` is an isometry of `V` or `W` exactly if its conjugate by the frame is unitary.
   have ha' : a ∈ U W.J := by
-    rwa [mem_U, ← W.mem_U_one_iff_gram_eq gram_xFin, ← h_conj a h_comm,
+    rw [mem_unitaryGroupOf_iff, star_eq_conjTranspose, ← W.mem_U_one_iff_gram_eq gram_xFin,
+        ← h_conj a h_comm,
       V.mem_U_one_iff_gram_eq gram_xFin]
+    exact mem_unitaryGroupOf_iff.1 ha
   refine ⟨⟨a, ha'⟩, mem_centralizer_singleton_iff.2 (Subtype.ext h_comm.symm), ?_⟩
   simp [Gf.val_ext_iff, coe_embFin, h_conj a h_comm]
 
@@ -340,7 +348,7 @@ lemma map_symm_centralizer_singleton {M N : Type*} [Group M] [Group N] (f : M �
     (centralizer {f a}).map f.symm.toMonoidHom = centralizer {a} := by
   ext b
   rw [Subgroup.mem_map_equiv, mem_centralizer_singleton_iff, mem_centralizer_singleton_iff,
-    MulEquiv.symm_symm, ← map_mul, ← map_mul, f.apply_eq_iff_eq]
+    MulEquiv.symm_symm, commute_map_iff f.injective]
 
 /-- Let `E` contain the 5040th roots of unity. Let `y` be an elliptic isometry of a positive form
 with orthonormal finite frame `u` (`HasSignType 1 1 y {1} u`), and let `z w` list the roots of its
@@ -640,7 +648,7 @@ theorem exists_geometricSide_singleton_eq [Nonempty n] (hB : 13 * card n ^ 3 ≤
       exact V.card_mem_signedClasses h_ell
     simp only [Set.indicator, ← sum_filter, sum_const, nsmul_eq_mul, h_card]
   have h_parts : HasSum (fun a ↦ ∑ σ, (S σ).indicator I a) (∑ σ, ∑' a : S σ, I a) :=
-    hasSum_sum fun σ _ ↦ hasSum_subtype_iff_indicator.1 (h_sum.summable.subtype (S σ)).hasSum
+    hasSum_sum fun σ _ ↦ hasSum_subtype_iff_indicator.1 (h_sum.summable.subtype (· ∈ S σ)).hasSum
   refine mul_left_cancel₀ hN ?_
   calc N * V.geometricSide hB he {R} φ
       = ∑ σ, ∑' a : S σ, I a := (h_sum.mul_left _).unique (by simpa only [h_count] using h_parts)

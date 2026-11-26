@@ -1,5 +1,7 @@
-import Lib.Analytic.DirichletTheta
-import Lib.Analytic.EntireLFunction
+module
+
+public import Lib.Analytic.DirichletTheta
+public import Lib.Analytic.EntireLFunction
 
 /-!
 # A prime `d` in a class whose quadratic twists have no zero in a box
@@ -44,6 +46,8 @@ Heath-Brown, A mean value estimate for real character sums, Acta Arith. 72 (1995
 density bound for the twists of the characters of a fixed modulus, by a smoothed mean square of
 Jacobi symbol sums.
 -/
+
+@[expose] public section
 
 open ArithmeticFunction DirichletCharacter Complex Moebius Finset Real ZMod vonMangoldt LSeries
   Filter jacobiSym legendreSym MeasureTheory Nat NumberTheorySymbols
@@ -241,7 +245,6 @@ theorem three_lines_bound_of_LFunction_eq_zero :
       measurable_gaussianTheta).2
   have h_pos {x : ℝ} (hx : x ∈ Set.Icc 2⁻¹ 2) : 0 < x := lt_of_lt_of_le (by norm_num) hx.1
   have h_diff : DifferentiableOn ℂ Ψ (closure (verticalStrip 2⁻¹ 2)) := by
-    have hL_diff : Differentiable ℂ χ.LFunction := differentiable_LFunction hχ_ne
     have hΨ : DifferentiableOn ℂ Ψ {z : ℂ | 0 < z.re} := by fun_prop
     rw [verticalStrip, closure_preimage_re, closure_Ioo (by norm_num)]
     exact hΨ.mono fun z hz ↦ h_pos hz
@@ -735,18 +738,12 @@ lemma zero_density_quadTwist {N : ℕ} [NeZero N] {δ : ℝ} (hδ : 0 < δ) (H :
       fun X : ℕ ↦ (X : ℝ) ^ (1 - δ / 2) := by
   -- Take `T² = N X`, pass from each `ξ` to the primitive character that induces it, and sum.
   have hN : (0 : ℝ) < N := Nat.cast_pos.2 (NeZero.pos N)
-  have h_exists (ξ : DirichletCharacter ℂ N) :
-      ∃ (M : ℕ) (hMN : M ∣ N) (ψ : DirichletCharacter ℂ M),
-        NeZero M ∧ ψ.IsPrimitive ∧ changeLevel hMN ψ = ξ :=
-    exists_isPrimitive_changeLevel_eq ξ
-  choose M hMN ψ hM hψ h_induced using h_exists
+  choose M hMN ψ hM hψ h_induced using
+    fun ξ : DirichletCharacter ℂ N ↦ exists_isPrimitive_changeLevel_eq ξ
   let S (ξ : DirichletCharacter ℂ N) (T : ℝ) : Finset ℕ :=
     {d ∈ Ioc 0 ⌊T ^ 2⌋₊ | d % 8 = 7 ∧ (M ξ).Coprime d ∧ M ξ * d ≤ T ^ 2 ∧
       IsPrimeWithTwistZero (ψ ξ) (1 / 2 + 9 * δ) H d}
-  have h_card (ξ : DirichletCharacter ℂ N) :
-      ∃ C : ℝ, ∀ᶠ T : ℝ in atTop, #(S ξ T) ≤ C * T ^ (2 - δ) :=
-    exists_card_zero_quadTwist_le hδ H (hψ ξ)
-  choose C hC using h_card
+  choose C hC using fun ξ ↦ exists_card_zero_quadTwist_le hδ H (hψ ξ)
   have h_tendsto : Tendsto (fun X : ℕ ↦ √(N * X)) atTop atTop :=
     tendsto_sqrt_atTop.comp (tendsto_natCast_atTop_atTop.const_mul_atTop hN)
   refine .of_bound ((∑ ξ, C ξ) * N ^ (1 - δ / 2)) ?_
@@ -830,7 +827,7 @@ lemma exists_entireL_quadTwist_ne_zero {N : ℕ} [NeZero N] {β : ℝ} (H : ℝ)
     (h_conv.abscissaOfAbsConv_le.trans_lt (mod_cast by simpa))
   -- The terms `Λ(p) / p` of the divergent series are those of this one, as `Λ(p) = log p`.
   refine not_summable_residueClass_prime_div ha (h_log.norm.of_norm_bounded fun n ↦ ?_)
-  show ‖(if n.Prime then residueClass a n else 0) / n‖ ≤ ‖term (logMul f) 1 n‖
+  change ‖(if n.Prime then residueClass a n else 0) / n‖ ≤ ‖term (logMul f) 1 n‖
   simp +contextual [f, Set.indicator, term, apply_ite, ite_and, ← natCast_log,
     vonMangoldt_apply_prime]
 

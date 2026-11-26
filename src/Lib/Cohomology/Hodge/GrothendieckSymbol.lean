@@ -1,6 +1,8 @@
-import Lib.Cohomology.Hodge.DepthVanishing
-import Lib.General.Groups.CongruenceSubgroups
-import Lib.PadicComparison.HodgeTate.ExtCocycles
+module
+
+public import Lib.Cohomology.Hodge.DepthVanishing
+public import Lib.General.Groups.CongruenceSubgroups
+public import Lib.PadicComparison.HodgeTate.ExtCocycles
 
 /-!
 # Grothendieck's symbol [dT/T], cut-out loci and Hodge classes of points
@@ -49,6 +51,8 @@ Notions from other files:
 Known; see `Lib.Cohomology.Hodge.FixedPointFormula` and
 `Lib.Cohomology.PointClass.LinearIndependence` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -193,11 +197,11 @@ witnesses l_i ∈ A^d, that is, (v, l_i) ∈ R for each i (the functor `witnesse
 @[simp]
 def detCochain : freeAb.obj (witnessed R d) ⟶ hodgeCoeff :=
   desc (Y := witnessed R d)
-    (fun c t ↦ det (fun i ↦ (t.val.snd i).down) • ω.app c (FreeAbelianGroup.of t.val.fst))
+    (fun c t ↦ det (fun i ↦ (t.val.snd i).down) • ω.app c (FreeAddCommGroup.of t.val.fst))
     fun c c' φ t ↦ by
       -- `φ` commutes with `det`, and `ω` is natural
-      refine congrArg up (.symm ((exteriorMap_smul ..).trans (congrArg₂ _ (map_det ..) ?_)))
-      exact (congrArg ULift.down (ω.naturality_apply φ (FreeAbelianGroup.of t.val.fst))).symm
+      refine congrArg ULift.up (.symm ((exteriorMap_smul ..).trans (congrArg₂ _ (map_det ..) ?_)))
+      exact (congrArg ULift.down (ω.naturality_apply φ (FreeAddCommGroup.of t.val.fst))).symm
 
 /-- If every row of t has dot product 1 with f, then the signed sum over j of the minors of t
 without row j and column i is f i · det t. -/
@@ -248,7 +252,7 @@ lemma pi_comp_detCocycle :
 m_1∧…∧m_d. -/
 def volumeForm : freeAb.obj (HodgeTest.sqZeroExt ⋙ affineSpace k d) ⟶ hodgeCoeff :=
   desc (fun c v ↦ ⟨(ιMulti c.baseAlg d (TrivSqZeroExt.snd ∘ v.down)).val⟩) fun _ _ _ _ ↦
-    congrArg up (exteriorMap_iotaMulti ..).symm
+    congrArg ULift.up (exteriorMap_iotaMulti ..).symm
 
 /-- The class [dT/T], in the Hodge cohomology of degree d of 𝔸^d relative to 𝔸^d ∖ 0, of the
 cocycle det(l_1, …, l_d)·dT_1 ∧ … ∧ dT_d on tuples of linear forms with l_j(T) = 1. -/
@@ -358,7 +362,7 @@ lemma smul_grothendieckSymbol_eq_fractionClass (hf : U ≤ unimodularLocus f)
   simp [volumeForm, formOfExteriorPower, w]
   -- (`erw`: the rows `l i ᵥ* σ M` are the product matrix only up to unfolding `Matrix.mul`)
   erw [det_mul, ← map_det]
-  refine congrArg up (.trans ?_
+  refine congrArg ULift.up (.trans ?_
     (congrArg (_ • ·) ((add_zero _).trans (exteriorMap_smul ..))).symm)
   simp [exteriorMap_iotaMulti, mul_smul, ← smul_comm a]
   rfl
@@ -479,7 +483,7 @@ lemma symbolClass_one :
     -- (a)
     (∀ (c : HodgeTest k) (v : unimodular.toFunctor.obj (HodgeTest.sqZeroExt.obj c)),
       ∃ w : c.Index → c.baseAlg, (v.val.down 0).fst • w = (v.val.down 0).snd ∧
-        ω.app c (FreeAbelianGroup.of v) = ⟨ExteriorAlgebra.ι c.baseAlg w⟩) ∧
+        ω.app c (FreeAddCommGroup.of v) = ⟨ExteriorAlgebra.ι c.baseAlg w⟩) ∧
     -- (b)
     symbolClass (k := k) (d := 1) = (relFreeAb.shortExact
       (unimodular.whisker HodgeTest.sqZeroExt)).2.extClass.comp (Ext.mk₀ ω) rfl := by
@@ -501,7 +505,7 @@ lemma symbolClass_one :
   · -- the boundary of `v` with the one witness `l` is `v` with no witness
     with_unfolding_all congrm .of ⟨⟨_, $(funext nofun)⟩, _⟩
   · -- the cocycle sends it to `det l • volumeForm v = l • ι m`
-    refine congrArg up ?_
+    refine congrArg ULift.up ?_
     simp [volumeForm]
     rfl
 
@@ -675,8 +679,8 @@ lemma snocRel.exists_detTensor_boundary_eq
   -- Expand the boundary as an alternating sum and apply `detTensor` term by term.
   have h_boundary :
       (detTensor k d).app c ((boundary (snocRel k d) d).app c (.of ⟨((v, x), l), hl⟩)) =
-        ((a * A.det) • volumeForm.app c (.of v)) ⊗ₜ[ℤ] FreeAbelianGroup.of x := by
-    have h_sum := congrArg (fun r ↦ (r • volumeForm.app c (.of v)) ⊗ₜ[ℤ] FreeAbelianGroup.of x)
+        ((a * A.det) • volumeForm.app c (.of v)) ⊗ₜ[ℤ] FreeAddCommGroup.of x := by
+    have h_sum := congrArg (fun r ↦ (r • volumeForm.app c (.of v)) ⊗ₜ[ℤ] FreeAddCommGroup.of x)
       h_laplace
     conv in (boundary ..).app _ _ => erw [sum_app_apply]
     -- (`using!` sees through the match in `detTensor` on the reindexed points.)
@@ -686,7 +690,7 @@ lemma snocRel.exists_detTensor_boundary_eq
   · -- Here `ω x = ι w` with `a • w` the module part of `x`; hence `volumeForm (v, x)` is
     -- `a • volumeForm v * ι w`.
     obtain ⟨w, hw, hωx⟩ := hω c ⟨x, hx⟩
-    refine ⟨_ ⊗ₜ .of ⟨x, hx⟩, rfl, congrArg up ?_⟩
+    refine ⟨_ ⊗ₜ .of ⟨x, hx⟩, rfl, congrArg ULift.up ?_⟩
     simp [volumeForm, ExteriorAlgebra.ιMulti, ↓List.ofFn_succ', a, smul_smul, ← hw, mul_comm]
     -- `erw`, because `hωx` is stated on the subtype of unimodular points.
     erw [hωx]
@@ -769,21 +773,9 @@ lemma symbolClass_succ :
       (pull_cocycleClass exists_jouanolouRel_of_unimodular exists_snocRel _
         (sqZeroExt.whiskerLeft (affineSpace.snoc k d)) { app _ := ↾Prod.snd }
         (fun _ _ ↦ And.left)
-        (by exact fun c t ↦ (FreeAbelianGroup.lift_apply_of _ _).trans (hz_val c t))
+        (by exact fun c t ↦ (FreeAddCommGroup.lift_apply_of _ _).trans (hz_val c t))
         (by exact fun _ _ ↦ rfl)).symm
     _ = _ := congr($(id_pull _) _ _)
-
-/-- The product formula in natural form: restricted to the pairs (v, x) with v or x unimodular,
-the cup product of [dT/T] in degrees d and 1 is the pull-back of [dT/T] in degree d + 1 along
-the map (v, x) ↦ (v, x) ∈ 𝔸^(d+1). -/
-lemma map_cup_symbolClass_eq_map_symbolClass :
-    HodgeH.map (relFreeAb.prod (unimodular (d := d)) (unimodular (d := 1)))
-        (cup exteriorAlg.mulPairing (symbolClass (k := k) (d := d)) symbolClass
-          (add_comm 1 d) :) =
-      HodgeH.map (relFreeAb.map (affineSpace.snoc k d) (unimodularSup_le_preimage_snoc k d))
-        symbolClass := by
-  obtain ⟨_, h_eq⟩ := symbolClass_succ k d
-  exact h_eq
 
 end
 
@@ -1057,8 +1049,12 @@ lemma IsPointSum.map_eq_sum_pointClass {s : Finset (X (CommAlgCat.of k k))}
     exact ⟨a, g, ha, cut, _, by simpa [h_sum, h_vanish] using local_eq⟩
   obtain rfl := add_eq_of_eq_sub' hy
   -- The case of one point applies to `x`, the induction hypothesis to `y`.
-  have hx_sum : IsPointSum {z} n x := h_isPointSum_of_eq_add s rfl (by simp [V]) (by grind)
-  have hy_sum : IsPointSum s n y := h_isPointSum_of_eq_add {z} (add_comm ..) rfl (by grind)
+  have hx_sum : IsPointSum {z} n x := h_isPointSum_of_eq_add s rfl (by simp [V]) (by
+    ext w
+    simp only [Set.mem_singleton_iff, Set.mem_sdiff, Finset.mem_coe, Finset.mem_insert]
+    exact ⟨fun hw ↦ ⟨Or.inl hw, hw ▸ hz⟩, fun ⟨h, hns⟩ ↦ h.resolve_right hns⟩)
+  have hy_sum : IsPointSum s n y := h_isPointSum_of_eq_add {z} (add_comm ..) rfl (by
+    rw [Finset.coe_insert, Set.insert_sdiff_self_of_notMem (by simpa only [Finset.mem_coe] using hz)])
   simp [V, hz, ← ih hy_sum, ← hx_sum.map_eq_smul_pointClass, π_map]
 
 end PointClass

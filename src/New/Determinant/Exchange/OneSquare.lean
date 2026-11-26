@@ -1,6 +1,8 @@
-import Lib.Weil.Seesaw
-import New.Determinant.Chain.SquareLaw
-import New.Determinant.Exchange.TheoremForPartners
+module
+
+public import Lib.Weil.Seesaw
+public import New.Determinant.Chain.SquareLaw
+public import New.Determinant.Exchange.TheoremForPartners
 
 /-!
 # One square: up then down against down then up
@@ -44,6 +46,8 @@ in chains. The seesaw principle and a rank-one exchange of periods are known in 
 Related work: Kudla, Seesaw dual reductive pairs, 1984; Chan, Period identities of CM forms on
 quaternion algebras, 2020; He, Compositions of theta correspondences, 2005.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -210,7 +214,7 @@ lemma exists_eq_mul_of_forall_polyVector {J : Type*} {Λ : J → fockSpace s →
   have h_span (v : fockSpace s) :
       (fun j : J ↦ Λ j v) ∈ Submodule.span ℂ {ρ} ↔ ∃ r : ℂ, ∀ j : J, Λ j v = r * ρ j := by
     simp [Submodule.mem_span_singleton, funext_iff, eq_comm]
-  exact (h_span x).1 ((Submodule.closed_of_finiteDimensional _).isSeqClosed
+  exact (h_span x).1 ((Submodule.isClosed_of_finiteDimensional _).isSeqClosed
     (fun m ↦ (h_span _).2 (h_poly (P m))) (tendsto_pi_nhds.2 h_tendsto))
 
 /-! ### The kernels multiply -/

@@ -1,6 +1,8 @@
-import New.Determinant.AuxiliaryForms.PathData
-import New.Determinant.Chain.Moduli
-import New.Determinant.Exchange.OneSquare
+module
+
+public import New.Determinant.AuxiliaryForms.PathData
+public import New.Determinant.Chain.Moduli
+public import New.Determinant.Exchange.OneSquare
 
 /-!
 # Turning path data, and turns off the diagonal
@@ -41,6 +43,8 @@ Notions from other files:
 * `New.Exchange.SquareLaw` with constant `C`, for functions `L` and `L'` on matrices over a finite
   ring: `∑ Ψ L' = C ∑ Φ L` for all matched `Φ`, `Ψ`.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -231,9 +235,6 @@ lemma newTuple_apply_of_mem (hc : c.IsTurn ϑ w) {e : GridNode × GridNode} (he 
 lemma oldTuple_low (hc : c.IsTurn ϑ w) : c.oldTuple S y v (c.low, c.fst) = y.toRows₁ := by
   simp [oldTuple, hc.fst_ne_snd]
 
-lemma newTuple_fst (hc : c.IsTurn ϑ w) : c.newTuple S x v' (c.fst, c.high) = x.toCols₁ := by
-  simp [newTuple, hc.fst_ne_snd]
-
 lemma oldMatrix_oldTuple (hc : c.IsTurn ϑ w) : c.oldMatrix (c.oldTuple S y v) = y := by
   simp [oldMatrix, oldTuple, hc.fst_ne_snd]
 
@@ -333,7 +334,7 @@ lemma columnFourier_tupleAction (hc : c.IsTurn ϑ w)
     obtain rfl | rfl | he : e = (c.lowExt, c.snd) ∨ e = (c.low, c.fst) ∨ e ∈ w := by simpa using he
     · -- On `Ṽ' → W₂` the equation holds entry by entry in the two blocks of columns.
       simp [tupleAction, oldTuple, h_ext, h_snd, ← Matrix.ext_iff, ← map_inv, Matrix.mul_apply,
-        reindex_equiv c.sndEquiv, reindex_equiv c.lowEquiv, toRows₂, one_apply]
+        reindex_equiv c.sndEquiv, reindex_equiv c.lowEquiv, toRows₂, Matrix.one_apply]
     · -- On `V' → W₁` it is the block `y₁` that moves.
       simp [tupleAction, hc.oldTuple_low, h_low, h_fst, ← Matrix.ext_iff, ← map_inv,
         Matrix.mul_apply, toRows₁]
@@ -363,7 +364,7 @@ lemma hasLeftInv_of_columnFourier_ne_zero {S : EdgeTuple ϑ} (hc : c.IsTurn ϑ w
   · -- A left inverse of `(y₂ v)` has a left inverse of `y₂` as its upper block.
     obtain ⟨L, hL⟩ : HasLeftInv (c.oldTuple S y v (c.lowExt, c.snd)) := h_inv _ (by simp) h_vert
     refine ⟨L.submatrix (c.lowEquiv ∘ .inl) c.sndEquiv, Matrix.ext fun i j ↦ ?_⟩
-    simpa [oldTuple, Matrix.mul_apply, reindex_equiv c.sndEquiv, one_apply] using
+    simpa [oldTuple, Matrix.mul_apply, reindex_equiv c.sndEquiv, Matrix.one_apply] using
       congrFun₂ hL (c.lowEquiv (.inl i)) (c.lowEquiv (.inl j))
   · simpa [hc.oldTuple_apply_of_mem _ _ he] using h_inv e (by simp [he]) h_vert
 
@@ -374,7 +375,7 @@ lemma newRow_tupleAction (hc : c.IsTurn ϑ w) {g : NodeFamily ϑ} (hg : IsAdmiss
   -- Entry by entry, as `g` fixes the line at `Ṽ`.
   ext i j
   simp [newRow, tupleAction, hc.apply_highExt g hg, ← map_inv, Matrix.mul_apply,
-    reindex_equiv c.sndEquiv, reindex_equiv c.highEquiv, toRows₂, one_apply]
+    reindex_equiv c.sndEquiv, reindex_equiv c.highEquiv, toRows₂, Matrix.one_apply]
 
 /-- Let the corner `c` be a turn (`hc`). An admissible family `g` acts on tuples by `tupleAction`.
 This moves the matrix `c.newMatrix S` read on the new edges on the left by `(g c.high)⁻¹`, the
@@ -491,7 +492,7 @@ lemma hasLeftInv_of_turned_ne_zero {S : EdgeTuple ϑ} (hc : c.IsTurn ϑ w)
     obtain ⟨L, hL⟩ : HasLeftInv (c.newMatrix S).toCols₂ := h_cols₂ (h_fst (h_opp₂ h_vert))
     refine ⟨(fromCols L 0).submatrix c.sndEquiv.symm c.highEquiv.symm, ?_⟩
     simpa [newMatrix, ← Matrix.ext_iff, Matrix.mul_apply, reindex_equiv c.sndEquiv,
-      reindex_equiv c.highEquiv, toRows₁, one_apply] using hL
+      reindex_equiv c.highEquiv, toRows₁, Matrix.one_apply] using hL
   · simpa [newMatrix] using h_cols₁ (h_snd (h_opp₁ h_vert))
 
 /-- Let the corner `c` be a turn (`hc`) and `Ψ'` a path datum (`IsPathDatum`) on the old edges,

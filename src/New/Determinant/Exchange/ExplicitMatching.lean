@@ -1,7 +1,9 @@
-import Lib.GLn.SchurModule.Polarisation
-import New.Determinant.Exchange.TheoremForPartners
-import New.OneLift.ComparisonOperator.DeterminantProducts
-import New.OneLift.ComparisonOperator.OneExchange
+module
+
+public import Lib.GLn.SchurModule.Polarisation
+public import New.Determinant.Exchange.TheoremForPartners
+public import New.OneLift.ComparisonOperator.DeterminantProducts
+public import New.OneLift.ComparisonOperator.OneExchange
 
 /-!
 # Explicit real data: the exchange identity for a definite space with determinant data
@@ -50,6 +52,8 @@ Siegel–Weil formula, 2014 (after Kudla–Rallis, 1994; Ichino, 2004); Kashiwar
 Segal–Shale–Weil representations and harmonic polynomials, 1978; Böcherer–Schulze-Pillot, Siegel
 modular forms and theta series attached to quaternion algebras, 1991.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -193,7 +197,7 @@ lemma realPairWeil_stackedDetProd {γ : InfinitePlace E → ℤ}
         (∏ τ, (u τ : Matrix a a ℂ).det ^ card (ι τ))⁻¹ • posFockVector j
           (twoSidedSubst (fun τ ↦ (u τ : Matrix a a ℂ)) (fun τ ↦ (k⁻¹ τ : Matrix m m ℂ)) P) := by
     simp [hγ, rename_eq_aeval, reindex_equiv j, principalMinor_of_forall,
-      DiscreteSeries.principalMinor_of_forall_not, ↓bind₁_bind₁, ↓coe_inv_posBlockEmb,
+      DiscreteSeries.principalMinor_of_forall_not, ↓comp_aeval_apply, ↓coe_inv_posBlockEmb,
       ↓posBlockEmb_mem_blockDiagAlg, ↓principalMinor_posBlockEmb_eq_det,
       ↓principalMinor_posBlockEmb_eq_one, ↓realPairWeil_polyVector, ↓prod_pair,
       ↓Nat.card_eq_fintype_card, ↓val_posBlockEmb_apply_coe]
@@ -345,8 +349,8 @@ lemma exists_mul_eq_circle_mean (j : m ⊕ l ≃ n) (e : p ⊕ a ≃ m)
     have h_det : ∏ τ, (u τ : Matrix a a ℂ).det ^ card (ι τ) ≠ 0 :=
       prod_ne_zero_iff.2 fun τ _ ↦ pow_ne_zero _ (GeneralLinearGroup.det_ne_zero _)
     simp [hγ, field, rename_eq_aeval, evalCols, P₀, principalMinor_of_forall,
-      DiscreteSeries.principalMinor_of_forall_not, ↓bind₁_bind₁, ↓realPairWeil_polyVector,
-      ↓prod_pair, ↓Nat.card_eq_fintype_card, Matrix.one_apply]
+      DiscreteSeries.principalMinor_of_forall_not, ← aeval_eq_bind₁, ↓comp_aeval_apply,
+      ↓realPairWeil_polyVector, ↓prod_pair, ↓Nat.card_eq_fintype_card, Matrix.one_apply]
     -- Both substitutions keep the columns `cols`, mixed by `u`, and kill the other variables.
     congr
     simp [reindex_equiv j, reindex_equiv e, cols, extend, ↓_root_.funext_iff]
@@ -525,7 +529,7 @@ lemma exists_clm_eq_thetaIntegral_modDatum {s : n → ℤˣ} (S : Space E n s) (
   let φ : 𝒮 (S.hom (stdSpace E a)) :=
     schrodingerOp (S.hom (stdSpace E a)) 𝔪.places (𝔪.liftFn (Φ ∘ vecToMatrix)) (vacElem _)
   refine ⟨fun g ↦ L g ∘L (integrated (S.hom (stdSpace E a))).flip φ, fun g w ↦ ?_⟩
-  show L g (integrated _ w φ) = thetaIntegral S (stdSpace E a) α β (integrated _ w φ) g
+  change L g (integrated _ w φ) = thetaIntegral S (stdSpace E a) α β (integrated _ w φ) g
   simp [← hL, lift, thetaIntegral, pairTheta]
 
 omit [Fintype a] [DecidableEq a] in
@@ -663,7 +667,7 @@ lemma exists_stdClassSum_eq_of_exchange (f : p ⊕ l ≃ b) (V' : Space E b (blo
     have h_translate (x : G E (blockSigns f)) :
         modKernel V' W α α 𝔪 Ψ Q₀ x (g * (y, 1)) = modKernel V' W α α 𝔪 Ψ Q x g := by
       simp [modKernel, modDatum, ← hQ, ← pairWeil_integrated_right α α, ← pairTheta_mul]
-    show L (g * (y, 1)) v = c * ℓ' Q
+    change L (g * (y, 1)) v = c * ℓ' Q
     rw [hL, h_exchange, hℓ']
     simp only [h_translate]
   rw [← integral_modKernel_stackedDetProd j W σ e h_tame η h_matched g, ← hℓ']
@@ -904,9 +908,6 @@ lemma modKernel_one_of_isEmpty [IsEmpty b] {t : b → ℤˣ} {s : n → ℤˣ} (
     modKernel V' W α β 𝔪 1 1 x g = α.val g.det := by
   obtain rfl : x = 1 := Subsingleton.eq_one x
   have h_triv : G.onHom ((1 : G E t), g) = 1 := Subsingleton.eq_one _
-  have h_coe (z : Circle) : Circle.coeHom z = (z : ℂ) := rfl
-  have h_char : pairChar α β ((1 : G E t), g) = (α.val g.det : ℂ) := by
-    simp [pairChar, h_coe]
   -- The datum is the vacuum, and the only lattice vector is `0`.
   have h_vac : (V'.hom W).vacElem 0 = 1 := by
     simp [vacElem_apply_eq_prod_lineTheta, funext_iff, Fintype.prod_empty]

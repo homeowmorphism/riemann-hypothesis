@@ -1,5 +1,7 @@
-import Lib.General.LinearAlgebra.PolarDecomposition
-import Lib.General.NumberTheory.FrobeniusOrbits
+module
+
+public import Lib.General.LinearAlgebra.PolarDecomposition
+public import Lib.General.NumberTheory.FrobeniusOrbits
 
 /-!
 # Adelic Minkowski theorems and counts of rational points in boxes
@@ -41,6 +43,8 @@ Part of a known result: Reduction theory, here the adelic Minkowski theorems. Fo
 compactness and finite covolume see `Lib.Adelic.Reduction.FiniteVolume`.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 /-! ## Minkowski's first theorem with multiplicity -/
@@ -68,7 +72,7 @@ lemma lintegral_encard_rat_points {S : Set (n → 𝔸 E)} (hS : MeasurableSet S
   have h_unfold : MeasurePreserving (fun p : (n → 𝔸 E) × ratVectors E n ↦ y⁻¹.1 *ᵥ (p.2 +ᵥ p.1))
       ((ratVectors E n).quotMeasure.prod count) (ENNReal.ofReal (ideleAbs y.det) • volume) :=
     h_scale.comp measurePreserving_addOrbitMeasure
-  rw [← smul_eq_mul, ← Measure.smul_apply, ← h_unfold.measure_preimage hS.nullMeasurableSet,
+  rw [← smul_eq_mul, ← smul_apply, ← h_unfold.measure_preimage hS.nullMeasurableSet,
     Measure.prod_apply (h_unfold.measurable hS)]
   refine lintegral_congr fun x ↦ ?_
   -- the fibre over `x` is counted in `ratVectors E n`, the image of `n → E` under `toAdele ∘ ·`

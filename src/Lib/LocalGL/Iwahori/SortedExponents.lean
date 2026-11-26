@@ -1,5 +1,7 @@
-import Lib.LocalGL.Iwahori.QuadraticRelation
-import Lib.LocalGL.Shintani.LiftingGreenCharacters
+module
+
+public import Lib.LocalGL.Iwahori.QuadraticRelation
+public import Lib.LocalGL.Shintani.LiftingGreenCharacters
 
 /-!
 # Sorted exponents at pro-p Iwahori level
@@ -42,6 +44,8 @@ Notions from other files:
 
 Known; see `Lib.LocalGL.Iwahori.SphericalExponents` for sources.
 -/
+
+@[expose] public section
 
 /-!
 ## Sorting exponents, and sorted exponents from a parahoric type
@@ -232,7 +236,7 @@ private lemma IsExponent.swap_compactMean_apply_diagGL_of_apply_eq_zero
   let U (t : Fin N → Fˣ) : Module.End ℂ ρ := ρ (diagGL t) * compactMean ρ.ρ proIwahori
   let w : Fin N → Fˣ := stepTorus ϖ j
   have hw : w ∈ dominantTorus := stepTorus_mem_dominantTorus hϖ j
-  show l_mean (U t z) = torusChar (θ ∘ Equiv.swap i j) t * l_mean z
+  change l_mean (U t z) = torusChar (θ ∘ Equiv.swap i j) t * l_mean z
   induction h_gap : (v (t j / t i).val).log.toNat generalizing t z with
   | zero =>
     -- Order `0`: `t i` and `t j` have the same valuation, so the transvections at `(i, j)` fix
@@ -496,7 +500,7 @@ lemma IsIwahoriEigen.exists_isExponent {B : ρ →ₗ⋆[ℂ] ρ →ₗ[ℂ] ℂ
       ev ((iwahoriHeckeHom ρ t).dualMap φ) = ξ t * ev φ := by
     have h_U : iwahoriHeckeHom ρ t ⟨y, hy_fix⟩ = (ξ t : ℂ) • ⟨y, hy_fix⟩ :=
       Subtype.ext (hy_eig _ t.prop)
-    show φ (iwahoriHeckeHom ρ t ⟨y, hy_fix⟩) = ξ t * φ ⟨y, hy_fix⟩
+    change φ (iwahoriHeckeHom ρ t ⟨y, hy_fix⟩) = ξ t * φ ⟨y, hy_fix⟩
     rw [h_U, map_smul, _root_.smul_eq_mul]
   -- the operators `iwahoriHeckeHom ρ t` commute, and so do their duals
   have h_comm (s t : dominantTorus) (φ : Dual ℂ W) (_ : φ ∈ S) :

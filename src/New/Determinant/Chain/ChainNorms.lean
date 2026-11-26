@@ -1,7 +1,9 @@
-import New.Determinant.Chain.Moduli
-import New.Determinant.Chain.TriangleLifts
-import New.Determinant.Chain.TriangleNorms
-import New.Determinant.Exchange.OneSquare
+module
+
+public import New.Determinant.Chain.Moduli
+public import New.Determinant.Chain.TriangleLifts
+public import New.Determinant.Chain.TriangleNorms
+public import New.Determinant.Exchange.OneSquare
 
 /-!
 # Norms along the chain of theta lifts and injectivity of ι_ϑ
@@ -60,6 +62,8 @@ Related work: Gan–Qiu–Takeda, Regularized Siegel–Weil formula and Rallis i
 1.3), 2014; Bruinier–Funke, Injectivity of the Kudla–Millson lift, 2010; He, Compositions of theta
 correspondences, 2005.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -750,14 +754,14 @@ lemma exists_stdLevelIndex_lastLevel_eq {P : Parameters} (D : Data P) :
   -- `GL (D.GridIndex false 0 1)` and `GL (D.GridIndex false 0 D.m)` at `w ∈ TwistIndex` by the flag
   -- count, and clear denominators. The index that enters `DescentPair.gramFactor` is that of the
   -- flag group of `D.GridIndex false 0 1`.
-  let := Prop.linearOrder
   simp +instances [κ, index_rangeParabolic_inl_eq, no_places, ← card_GL_eq 1, ← card_GL_eq D.m,
     DescentPair.gramFactor, descentPair, DescentPair.rankDiff, descentResidueLevel,
     card_levelModulus_residueRing, card_ResField, relIndex_levelOf, Nat.card_pi,
       Seesaw.index_pi_univ,
     div_pow, prod_eq_zero_iff, zpow_sub₀, zpow_add₀, zpow_mul, prod_pow,
-    -Nat.card_eq_fintype_card, prod_mul_distrib]
-  field_simp [prod_eq_zero_iff, NeZero.ne, index_ne_zero_of_finite]
+    -Nat.card_eq_fintype_card, prod_mul_distrib, IsDedekindDomain.HeightOneSpectrum.ne_bot]
+  field_simp [prod_eq_zero_iff, NeZero.ne, index_ne_zero_of_finite,
+    IsDedekindDomain.HeightOneSpectrum.ne_bot]
   -- The factors at the chosen places for `ϑ` and for the trivial twist agree by definition.
   ring!
 

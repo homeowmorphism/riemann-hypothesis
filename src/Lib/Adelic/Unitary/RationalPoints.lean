@@ -1,4 +1,6 @@
-import Lib.Adelic.Unitary.WeakApproximation
+module
+
+public import Lib.Adelic.Unitary.WeakApproximation
 
 /-!
 # Rational points and vectors of spaces under sums, moves and block embeddings
@@ -31,6 +33,8 @@ Witt's extension theorem for hermitian forms is classical; `New.Space.witt` is i
 `New.witt` applied to the matrix of a space.
 -/
 
+@[expose] public section
+
 open Matrix Topology
 
 namespace New
@@ -59,11 +63,13 @@ lemma U.mem_range_sum_left {R : Type*} [CommRing R] [StarRing R] {J : Matrix n n
   obtain ⟨rfl, rfl⟩ : B = 0 ∧ D = 1 := by
     simpa [hg, ← fromCols_fromRows_eq_fromBlocks, fromRows_ext_iff] using h_cols
   obtain ⟨hA, -, hC⟩ : Aᴴ * J * A + Cᴴ * J' * C = J ∧ Cᴴ * J' = 0 ∧ J' * C = 0 := by
-    simpa [hg, fromBlocks_conjTranspose, fromBlocks_multiply] using mem_U.1 g.property
+    simpa [hg, fromBlocks_conjTranspose, fromBlocks_multiply, star_eq_conjTranspose] using
+      mem_unitaryGroupOf_iff.1 g.property
   obtain rfl : C = 0 := by
     rw [← nonsing_inv_mul_cancel_left J' C ((isUnit_iff_isUnit_det _).1 hJ'), hC, Matrix.mul_zero]
   lift A to GL n R using by simpa [hg] using g.val.isUnit
-  exact ⟨⟨A, mem_U.2 (by simpa using hA)⟩, Subtype.ext (Units.ext (by simp [sum, hg]))⟩
+  exact ⟨⟨A, mem_unitaryGroupOf_iff.2 (by simpa [star_eq_conjTranspose] using hA)⟩,
+      Subtype.ext (Units.ext (by simp [sum, hg]))⟩
 
 /-- Let `J''` be the block diagonal sum of `J` and `J'` with `J` invertible. An element `g` of the
 unitary group `U J''` is `diag(1, a)` with `a` in `U J'` if and only if its first block of columns
@@ -83,11 +89,13 @@ lemma U.mem_range_sum_right {R : Type*} [CommRing R] [StarRing R] {J : Matrix n 
   obtain ⟨rfl, rfl⟩ : A = 1 ∧ C = 0 := by
     simpa [hg, ← fromCols_fromRows_eq_fromBlocks, fromRows_ext_iff] using h_cols
   obtain ⟨hB, -, hD⟩ : J * B = 0 ∧ Bᴴ * J = 0 ∧ Bᴴ * J * B + Dᴴ * J' * D = J' := by
-    simpa [hg, fromBlocks_conjTranspose, fromBlocks_multiply] using mem_U.1 g.property
+    simpa [hg, fromBlocks_conjTranspose, fromBlocks_multiply, star_eq_conjTranspose] using
+      mem_unitaryGroupOf_iff.1 g.property
   obtain rfl : B = 0 := by
     rw [← nonsing_inv_mul_cancel_left J B ((isUnit_iff_isUnit_det _).1 hJ), hB, Matrix.mul_zero]
   lift D to GL m R using by simpa [hg] using g.val.isUnit
-  exact ⟨⟨D, mem_U.2 (by simpa using hD)⟩, Subtype.ext (Units.ext (by simp [sum, hg]))⟩
+  exact ⟨⟨D, mem_unitaryGroupOf_iff.2 (by simpa [star_eq_conjTranspose] using hD)⟩,
+      Subtype.ext (Units.ext (by simp [sum, hg]))⟩
 
 /-- Let `J''` be the block diagonal sum of `J` and `J'`, and let `g` be in `U J''`. If `J'` is
 invertible, `g` is `diag(a, 1)` with `a` in `U J` if and only if its second block of columns is

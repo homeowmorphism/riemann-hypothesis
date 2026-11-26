@@ -1,8 +1,10 @@
-import Lib.Cohomology.WoodsHole
-import Lib.PadicComparison.CrystallineFrobenius
-import Lib.PadicHodge.Limit.CrystallineLimit
-import Lib.Shimura.CongruenceRelation.EichlerShimura
-import Lib.Shimura.Transfer.Lefschetz
+module
+
+public import Lib.Cohomology.WoodsHole
+public import Lib.PadicComparison.CrystallineFrobenius
+public import Lib.PadicHodge.Limit.CrystallineLimit
+public import Lib.Shimura.CongruenceRelation.EichlerShimura
+public import Lib.Shimura.Transfer.Lefschetz
 
 /-!
 # Eigenquotients for Hecke eigensystems and the Galois representations they cut out
@@ -101,6 +103,8 @@ et représentations l-adiques, Sém. Bourbaki 355 (1969), Thm 4.9; Harris and Ta
 cohomology of some simple Shimura varieties (2001), ch. VII; Wedhorn, Congruence relations on some
 Shimura varieties, J. reine angew. Math. 524 (2000).
 -/
+
+@[expose] public section
 
 /-!
 ## The largest quotient on which Hecke operators act by an eigensystem
@@ -300,7 +304,7 @@ lemma IsEigenQuotient.exists_sum_baseChange_eq_zero_of_jump_eq_zero [Fintype ι]
   let Φ (v : ℤ) (L : List σ) :
       End (PadicAlgCl ℓ) (∀ i, hodgeTateMaps (ρ i) (toAlgHom ..) v) :=
     piMap fun i ↦ hodgeTateMaps.pull (L.map (T i)).prod
-      (by simp [← End.mul_apply, (Commute.list_prod_left ..).eq, *])
+      (by simp [← mul_apply_eq_comp, -FunLike.coe_mul_eq_comp, (Commute.list_prod_left ..).eq, *])
   have h_alg : Algebra.IsAlgebraic ℤ_[ℓ] ℚ_[ℓ] := IsLocalization.isAlgebraic ℚ_[ℓ] ℤ_[ℓ]⁰
   have h_no_eigen (f : ∀ i : ι, hodgeTateMaps (ρ i) (toAlgHom ℤ_[ℓ] ℚ_[ℓ] ℂ_[ℓ]) u)
       (hf : ∀ s : σ, Φ u [s] f = (a ∘ θ) s • f) : f = 0 := by
@@ -357,6 +361,8 @@ lemma IsEigenQuotient.exists_sum_baseChange_eq_zero_of_jump_eq_zero [Fintype ι]
     have h_pair : Λ (tensorAction ℂ_[ℓ] (toGp g) (ρ i g) (∑ k, e k ⊗ₜ[ℤ_[ℓ]] x k)) z =
         Λ ((cyclotomicGp (toGp g) ^ (-u)).val • ∑ k, e k ⊗ₜ[ℤ_[ℓ]] x k) z :=
       congrArg (fun y' ↦ Λ y' z) (hy g)
+    -- Only the underlying form and its transformation law matter in this calculation.
+    generalize (z.val) = form at hg h_pair ⊢
     simpa [Λ, hg, Finset.smul_sum, tensorAction] using h_pair
   -- Every linear form on `ℂ_ℓ ⊗ V i` is the pairing with some form.
   refine (forall_dual_apply_eq_zero_iff ℂ_[ℓ] _).1 fun φ ↦ ?_
@@ -570,13 +576,8 @@ lemma New.Variety.Model.aeval_heckePoly_eq_zero_of_isEigenQuotient {E : Type} [F
   have Z_smooth := X.smooth
   have Z_proper := X.proper
   have W_projective := X.projective
-  have W_reduced := X.isReduced
-  have W_smooth i := (X.covering i).smoothOfRelativeDimension_baseChange X.dimension
   have R_noetherian : IsNoetherianRing R := isNoetherianRing M R inferInstance
   have Z_charted_int : IsCharted X.base R := ⟨(hasAtlas_algPointsOf X.dimension).exists_isCharting⟩
-  have Z_charted : IsCharted X.base Ω := ⟨(hasAtlas_algPointsOf X.dimension).exists_isCharting⟩
-  have W_charted i : IsCharted (X.cover i) Ω :=
-    ⟨(hasAtlas_algPointsOf X.dimension).exists_isCharting⟩
   obtain ⟨hF_gal, hF_span, hF_hecke, -⟩ := h_eig
   -- the residue characteristic `t` with `N w = t ^ f`, and the congruence relation above `A`
   obtain ⟨t, f, -, ht_mem, ht_prime, hq⟩ := w.val.val.asIdeal.exists_prime_and_absNorm_eq_pow
@@ -657,10 +658,7 @@ lemma New.Variety.Model.isKilledBy_heckePoly_of_isEigenQuotient {E : Type} [Fiel
   have Z_charted : IsCharted X.base Ω := ⟨(hasAtlas_algPointsOf X.dimension).exists_isCharting⟩
   have W_charted i : IsCharted (X.cover i) Ω :=
     ⟨(hasAtlas_algPointsOf X.dimension).exists_isCharting⟩
-  -- the residue characteristic `t` with `N w = t ^ f`, and the congruence relation above `A`
-  obtain ⟨t, f, -, ht_mem, ht_prime, hq⟩ := w.val.val.asIdeal.exists_prime_and_absNorm_eq_pow
-  have t_prime : Fact t.Prime := ⟨ht_prime⟩
-  have ht_val : A.valuation t < 1 := hA.valuation_natCast_lt_one_iff.mpr ht_mem
+  -- the congruence relation above `A`
   have h_cong := X.congruence _ w.prop _ (algebraMap R Ω ⁻¹' A.nonunits) (fun c ↦ (hA c).mpr) (hl w)
   rw [heckePoly]
   norm_cast at h_cong ⊢
@@ -705,13 +703,9 @@ lemma New.Variety.Model.exists_galois_rep {E : Type} [Field E] [CMBase E] {a d�
   have Z_smooth := X.smooth
   have Z_proper := X.proper
   have W_projective := X.projective
-  have W_reduced := X.isReduced
-  have W_smooth i := (X.covering i).smoothOfRelativeDimension_baseChange X.dimension
   have R_noetherian : IsNoetherianRing R := isNoetherianRing M R inferInstance
   have Z_charted_int : IsCharted X.base R := ⟨(hasAtlas_algPointsOf X.dimension).exists_isCharting⟩
   have Z_charted : IsCharted X.base Ω := ⟨(hasAtlas_algPointsOf X.dimension).exists_isCharting⟩
-  have W_charted i : IsCharted (X.cover i) Ω :=
-    ⟨(hasAtlas_algPointsOf X.dimension).exists_isCharting⟩
   -- pull-back along the leg `u₁ = X.leg i ⟦1⟧` is injective with image containing the invariants
   choose h_inj h_descent using fun n i ↦ transfer (X.covering i) ℓ n
   -- a level `l w` that carries all the Hecke legs `u_U` at `w`, for subspaces `U` over the residue

@@ -1,4 +1,6 @@
-import Lib.General.LinearAlgebra.MatrixPolynomials
+module
+
+public import Lib.General.LinearAlgebra.MatrixPolynomials
 
 /-!
 # Hilbert 90 for GL_n and units under tame actions on Artinian, finite or profinite rings
@@ -33,6 +35,8 @@ J.-P. Serre, Corps locaux, 1962, Ch. X §1 Prop. 3 and Ch. V §2; S. Chase, D. H
 Galois theory and Galois cohomology of commutative rings, Mem. AMS 52, 1965; for the norm on O[γ],
 P. Scholze, The Langlands-Kottwitz approach for some simple Shimura varieties, 2013, Lemma 2.2.
 -/
+
+@[expose] public section
 
 section TameDescent
 
@@ -228,7 +232,7 @@ lemma IsProfiniteRing.eqLocus (hR : IsProfiniteRing R) (h_tame : IsTameAtLevel �
       Subtype.ext (by simp [mul_add, sum_add_distrib])
   refine hR.of_retract (σ.eqLocus 1).subtype.toAddMonoidHom retract fun x ↦ Subtype.ext ?_
   -- for a fixed `x` the sum is the trace of `e` times `x`
-  show ∑ i ∈ range p, σ^[i] (e * x) = x
+  change ∑ i ∈ range p, σ^[i] (e * x) = x
   have hx_iter (i : ℕ) : σ^[i] (x : R) = x := iterate_fixed x.prop i
   simp only [iterate_map_mul, hx_iter, ← sum_mul, h_trace, one_mul]
 
@@ -316,7 +320,7 @@ lemma isTameAtLevel_quotientNatMap (h_tame : IsTameAtLevel σ p m) (N : ℕ) :
     IsTameAtLevel (quotientNatMap σ N) p (mk (span {(N : R)}) m) := by
   have hq : Semiconj (mk (span {(N : R)})) σ (quotientNatMap σ N) := fun _ ↦ rfl
   have h_per (y : R) : IsPeriodicPt σ p y := by
-    show σ^[p] y = y
+    change σ^[p] y = y
     simp [← RingHom.coe_pow, h_tame.pow_eq_one]
   have hq_pow : quotientNatMap σ N ^ p = 1 :=
     ringHom_ext (RingHom.ext fun y ↦ (h_per y).map hq)
@@ -575,7 +579,7 @@ lemma IsTameAtLevel.hilbert90_gl (h_tame : IsTameAtLevel σ p m)
   let π (N : ℕ) : R →+* R ⧸ span {(N ! : R)} := mk (span {(N ! : R)})
   have hY_map (N : ℕ) : (GeneralLinearGroup.map (π N) c).val = 1 + π N m • Y.map (π N) := by
     ext
-    simp_all [one_apply]
+    simp_all [Matrix.one_apply]
   -- reduction modulo `N !` turns `σ` into `q N !`, so it keeps the twisted norm `1`
   have h_comm (N : ℕ) (δ : GL n R) : GeneralLinearGroup.map (π N) (GeneralLinearGroup.map σ δ) =
       GeneralLinearGroup.map (q N !) (GeneralLinearGroup.map (π N) δ) :=
@@ -648,7 +652,7 @@ lemma IsTameAtLevel.exists_norm_of_finite (h_tame : IsTameAtLevel σ p m) [Finit
       Set.MapsTo (Units.map ((σ ^ i : R →+* R) : R →* R)) (H : Set Rˣ) (H : Set Rˣ) := by
     intro y hy
     have h_dvd : (σ ^ i) m ∣ (σ ^ i) ((y : R) - 1) := map_dvd (σ ^ i) hy
-    show m ∣ ((Units.map ↑(σ ^ i) y : Rˣ) : R) - 1
+    change m ∣ ((Units.map ↑(σ ^ i) y : Rˣ) : R) - 1
     simpa [iterate_fixed h_tame.apply_eq_self] using h_dvd
   let s (i : ℕ) : H →* H := (Units.map ↑(σ ^ i)).restrict (h_stable i)
   let norm : H →* H := (range p).prod s
@@ -703,7 +707,8 @@ lemma IsTameAtLevel.exists_prod_range_pow_apply_eq (h_tame : IsTameAtLevel σ p 
       ∀ N : ℕ, Finite (R ⧸ span {(N ! : R)}) ∧ IsTameAtLevel (q N !) p m :=
     h_tame.exists_algHom_semiconj_quotientNatMap hR
   choose h_finite h_tame_quotient using h_quotient
-  have hx_fixed (N : ℕ) : q N ! (mk _ x) = mk _ x := by rw [quotientNatMap_mk, hσx]
+  have hx_fixed (N : ℕ) : q N ! (Ideal.Quotient.mk _ x) = Ideal.Quotient.mk _ x := by
+    rw [quotientNatMap_mk, hσx]
   choose z hz hz_inv hz_norm using fun N ↦
     (h_tame_quotient N).exists_norm_of_finite (hx.map _) (hx_fixed N) (map_dvd _ hx_one)
   -- `Λ` keeps congruences modulo `m`

@@ -1,5 +1,7 @@
-import Lib.Weil.DualPair.MixedModel
-import Lib.Weil.Unramified.HeckeTransfer
+module
+
+public import Lib.Weil.DualPair.MixedModel
+public import Lib.Weil.Unramified.HeckeTransfer
 
 /-!
 # Lagrangians, zero terms of the Weil representation and vanishing of dominated functionals
@@ -47,6 +49,8 @@ Notions from other files:
 
 Known; see `Lib.SiegelWeil.Formula.WeilRange` for sources.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -212,7 +216,8 @@ lemma zeroTerm_lagrangian_eq_theta (f : 𝒮 (S.hom T)) :
 /-- For a rational isometry `γ` of `S`, the splitting of `S` with no hyperbolic planes whose
 complement is `S` itself, mapped in by `γ`. -/
 def isometrySplitting : S.Splitting S Empty := by
-  use 0, 0, γ <;> simp [↓← mem_U, ← ext_iff]
+  use 0, 0, γ <;>
+    simp [show γ.val.valᴴ * _ * _ = _ from mem_unitaryGroupOf_iff.1 γ.2, ← ext_iff]
 
 /-- For a rational isometry `γ` of `S`, the zero term on `Hom(S, T)` of the splitting without planes
 given by `γ` is the Weil operator of `(γ⁻¹, 1)`, where `S.ratEmbed` embeds the rational points. -/
@@ -396,7 +401,7 @@ lemma theta_normalisedTorus_le (hm : 2 * card p < card m) :
     (hB.isClosed.preimage_of_continuous
       (f := fun h : G E t ↦ T.x.val * (h⁻¹.adeleMatrix * T.x⁻¹.val) * ξ.map toAdele)).measurableSet
   have meas : Measurable fun h : G E t ↦ ((near h).encard : ℝ≥0∞) :=
-    .comp .of_discrete (measurable_encard.comp (measurable_pi_iff.2 fun ξ ↦ (meas_mem ξ).mem))
+    .comp .of_discrete (measurable_encard.comp (Measurable.of_mem fun ξ ↦ (meas_mem ξ).mem))
   refine ⟨fun h ↦ (near h).encard * (‖θ ((stdSpace E Empty).hom T)‖ₑ * M), meas.mul_const _, ?_,
     fun h x f ↦ ?_⟩
   · -- The count has a finite integral by reduction theory; here the rank condition is used.
@@ -418,7 +423,7 @@ lemma theta_normalisedTorus_le (hm : 2 * card p < card m) :
     rw [← ofReal_norm, norm_mixedValue_normalisedTorus, ofReal_norm, h_point, mixedValue,
       ContinuousLinearMap.comp_apply, homSlice_eq_slice, AddMonoidHom.mk'_apply]
   calc _ ≤ ∑' ξ, ‖θ ((stdSpace E Empty).hom T) ((P.homSource T).slice (pt ξ) f)‖ₑ := by
-        grw [← (hasSum_mixedValue_theta_splitWeil T P h _).tsum_eq, enorm_tsum_le_tsum_enorm]
+        grw [← (hasSum_mixedValue_theta_splitWeil T P h _).tsum_eq, eNorm_tsum_le_tsum_eNorm]
         exact (tsum_congr term_eq).le
     _ ≤ ‖θ ((stdSpace E Empty).hom T)‖ₑ * ((pt ⁻¹' Ω).encard * M * ‖f‖ₑ) := by
         grw [← hM pt, ← ENNReal.tsum_mul_left, ← ContinuousLinearMap.le_opENorm]

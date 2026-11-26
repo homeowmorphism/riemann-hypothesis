@@ -1,6 +1,8 @@
-import Lib.Adelic.AutomorphicForms.RealConvolution
-import Lib.Adelic.TraceFormula.Stretch
-import Lib.Adelic.TraceFormula.TestFunction
+module
+
+public import Lib.Adelic.AutomorphicForms.RealConvolution
+public import Lib.Adelic.TraceFormula.Stretch
+public import Lib.Adelic.TraceFormula.TestFunction
 
 /-!
 # The sum of a majorant over the rational points
@@ -32,6 +34,8 @@ Notions from other files:
 Known result: Sum over the rational points of a majorant of a test function, bounded by a power of
 the height. This is the standard estimate for the kernel of a trace formula.
 -/
+
+@[expose] public section
 
 open NumberField MeasureTheory Matrix Fintype Norms.L2Operator ENNReal
 

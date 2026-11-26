@@ -1,6 +1,8 @@
-import Lib.ClassField.GaloisCohomology.TameSelmerCocycles
-import Lib.General.NumberTheory.PadicLimitsValuation
-import New.Congruences.Selmer.AuxiliaryPrimes
+module
+
+public import Lib.ClassField.GaloisCohomology.TameSelmerCocycles
+public import Lib.General.NumberTheory.PadicLimitsValuation
+public import New.Congruences.Selmer.AuxiliaryPrimes
 
 /-!
 # Even classes and auxiliary places for Selmer cocycles
@@ -42,6 +44,8 @@ Notions from other files:
   given by scalars through a character.
 -/
 
+@[expose] public section
+
 namespace New.Selmer
 
 open PadicInt
@@ -72,12 +76,6 @@ def IsTameGeneratorFamily (ν : ℕ) (w : J → FinPlace E) (τ φ : J → Gal(�
 `(conjGal (τ j))⁻¹` at `(j, false)`; see `withConjInv_true` and `withConjInv_false`. -/
 noncomputable abbrev withConjInv (τ : J → Gal(Ω/E)) (k : J × Bool) : Gal(Ω/E) :=
   idOrConjInv k.2 (τ k.1)
-
-lemma withConjInv_true (τ : J → Gal(Ω/E)) (j : J) : withConjInv τ (j, true) = τ j := rfl
-
-lemma withConjInv_false (τ : J → Gal(Ω/E)) (j : J) :
-    withConjInv τ (j, false) = (conjGal (τ j))⁻¹ :=
-  rfl
 
 /-- A triangle of primes: places `w j` off `ℓ`, with elements `τ j` and `φ j`, indexed by a finite
 linear order `J`. The place `w j` serves the exponent `ty j`, where `0 < ty j < t` and `ty` is

@@ -1,5 +1,7 @@
-import Lib.GaloisRep.BaseChange.PrimeDegreeTransfer
-import Lib.LocalGL.Shintani.LiftingGreenCharacters
+module
+
+public import Lib.GaloisRep.BaseChange.PrimeDegreeTransfer
+public import Lib.LocalGL.Shintani.LiftingGreenCharacters
 
 /-!
 # Base change at an inert place carries a label to its Shintani lift
@@ -31,6 +33,8 @@ Notions from other files:
 
 Known; see `Lib.GaloisRep.BaseChange.PrimeDegreeTransfer` for sources.
 -/
+
+@[expose] public section
 
 namespace New
 
@@ -221,7 +225,7 @@ private lemma exists_ne_one_and_frobeniusAlgEquivOfAlgebraic_apply_eq
   have hσ (x : 𝓞 E') : φ (algebraMap _ _ x) = algebraMap _ _ (σ • x) := by
     rw [hφ, eq_comm]
     simpa [card_ResField, ← Nat.card_eq_fintype_card, ← algebraMap_ResField_eq_zero,
-      sub_eq_zero] using! h_frob x
+      ← Ideal.absNorm_eq_natCard, sub_eq_zero] using! h_frob x
   -- `φ ≠ 1`, so `σ` moves some residue class
   have h_moves : ∃ x : 𝓞 E', algebraMap _ (ResField u) (σ • x) ≠ algebraMap _ _ x := by
     simpa [hσ, AlgEquiv.ext_iff, (algebraMap_ResField_surjective u).forall] using hφ_ne

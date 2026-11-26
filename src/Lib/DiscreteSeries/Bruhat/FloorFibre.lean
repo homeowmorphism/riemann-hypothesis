@@ -1,5 +1,7 @@
-import Lib.DiscreteSeries.Bruhat.ComplexPlace
-import Lib.General.Measure.FibreMeasure
+module
+
+public import Lib.DiscreteSeries.Bruhat.ComplexPlace
+public import Lib.General.Measure.FibreMeasure
 
 /-!
 # Measures of a floor below fibre measures, at the place ℂ
@@ -42,6 +44,8 @@ Notions from other files:
 Known; see `Lib.DiscreteSeries.Bruhat.ComplexPlace` for sources.
 -/
 
+@[expose] public section
+
 namespace New.Floors
 
 open Matrix MeasureTheory Measure RealPlace FloorGroups
@@ -76,7 +80,7 @@ lemma leFibreMeasure_coords {α β ι : Type} [Fintype α] [Fintype β] [Fintype
     exact (measurePreserving_inclMatrix (.ofBijective _ h_bij)).comp measurePreserving_sumElim
   have h_fibre (t : α → ℂ) (v : β → ℂ) : φ (t, v) ∘ f = t := by
     ext a
-    simp [φ, inclMatrix, mulVec, dotProduct, one_apply, hf.eq_iff, h_ne a]
+    simp [φ, inclMatrix, mulVec, dotProduct, Matrix.one_apply, hf.eq_iff, h_ne a]
   exact .of_measurePreserving h_vol (by fun_prop) h_fibre
     fun _ ↦ Continuous.continuousAt (by fun_prop)
 
@@ -87,12 +91,10 @@ lemma involutive_oppositeIndex : (oppositeIndex (𝔰 := 𝔰)).Involutive :=
 exchanges `e_a` with `e*_a`, consists of the indices whose opposite has property `p`. -/
 lemma range_oppositeIndex_val (p : 𝔰.BesselIndex → Prop) :
     (Set.range fun i : Subtype p ↦ oppositeIndex i.1) =
-      {i : 𝔰.BesselIndex | p (oppositeIndex i)} := by
-  ext i
-  constructor
-  · rintro ⟨j, rfl⟩
-    simpa [involutive_oppositeIndex j.1] using j.2
-  · exact fun hi ↦ ⟨⟨oppositeIndex i, hi⟩, involutive_oppositeIndex i⟩
+      {i : 𝔰.BesselIndex | p (oppositeIndex i)} :=
+  (Set.range_comp oppositeIndex Subtype.val).trans <| by
+    rw [Subtype.range_coe_subtype, involutive_oppositeIndex.image_eq_preimage_symm]
+    rfl
 
 /-- The skew element `i t / 2`, which indexes the quadric `h(v, v) = t` at the place `ℂ`. -/
 noncomputable def skewOfLevel (t : ℝ) : skewAdjoint ℂ :=
@@ -310,14 +312,14 @@ lemma leFibreMeasure_dualPoint (a : Fin 𝔰.ϱ) :
       simp [c, I, h_low, Pi.single_apply, Subtype.ext_iff, involutive_oppositeIndex.eq_iff]
     rw [hc, mulVec_single_one]
     ext i
-    simp [inclMatrix, f, one_apply, Pi.single_apply]
+    simp [inclMatrix, f, Matrix.one_apply, Pi.single_apply]
   have h_point : dualPoint a = (fun v ↦ inclMatrix ℂ f *ᵥ c + inclMatrix ℂ g *ᵥ v) ∘
       fun p : ℂ × (S → ℂ) ↦ Sum.elim (fun _ : Unit ↦ p.1) p.2 := by
     funext p
     have h_single : inclMatrix ℂ (fun _ : Unit ↦ (.inl a : 𝔰.BesselIndex)) *ᵥ (fun _ ↦ p.1) =
         p.1 • Pi.single (.inl a) 1 := by
       ext i
-      simp [inclMatrix, mulVec, dotProduct, one_apply, Pi.single_apply]
+      simp [inclMatrix, mulVec, dotProduct, Matrix.one_apply, Pi.single_apply]
     rw [Function.comp_apply, h_base, inclMatrix_sumElim_mulVec, h_single, dualPoint, add_assoc,
       add_comm (p.1 • _)]
   rw [h_point, ← Measure.map_map (by fun_prop) h_param.measurable, h_param.map_eq]
@@ -331,9 +333,9 @@ lemma re_skewAdjoint_complex (β : skewAdjoint ℂ) : (β : ℂ).re = 0 := by
   exact self_eq_neg.1 h_re_neg
 
 /-- The integral against the image of `dμ dv` under `dualPoint a`, in the coordinates `(v, t, β)`
-with `μ = t / 2 + β - q v`, for a continuous shift `q`, `t` real and `β` skew. -/
+with `μ = t / 2 + β - q v`, for a shift `q`, `t` real and `β` skew. -/
 lemma lintegral_map_dualPoint (a : Fin 𝔰.ϱ)
-    {q : ({i : 𝔰.BesselIndex // a + 1 ≤ floorOf i} → ℂ) → ℂ} (_hq : Continuous q)
+    {q : ({i : 𝔰.BesselIndex // a + 1 ≤ floorOf i} → ℂ) → ℂ}
     {K : (𝔰.BesselIndex → ℂ) → ENNReal} (hK : Measurable K) :
     ∫⁻ y : 𝔰.BesselIndex → ℂ, K y ∂volume.map (dualPoint a) =
       ∫⁻ v : { i : 𝔰.BesselIndex // a + 1 ≤ floorOf i } → ℂ,
@@ -375,7 +377,6 @@ lemma leFibreMeasure_heisenbergMeasure (a : Fin 𝔰.ϱ) :
     rw [Function.comp_apply, heisenbergElem_mulVec, h_orth]
     simp [ψ, q, dualPoint]
   have h_norm (t : ℝ) (p : (S → ℂ) × skewAdjoint ℂ) : (star (ψ t p) ⬝ᵥ 𝔰.J₁ *ᵥ ψ t p).re = t := by
-
     have h_re : (t / 2 + p.2 - q p.1 : ℂ).re = t / 2 -
         (star (inclMatrix ℂ Subtype.val *ᵥ p.1) ⬝ᵥ
           𝔰.J₁ *ᵥ inclMatrix ℂ Subtype.val *ᵥ p.1).re / 2 := by
@@ -400,7 +401,7 @@ lemma leFibreMeasure_heisenbergMeasure (a : Fin 𝔰.ϱ) :
           ∂((2 : ENNReal)⁻¹ • volume).prod complexPlace.skewMeasure := by
         simp (disch := first | fun_prop | finiteness) only [prod_smul_left,
           lintegral_const_mul', lintegral_prod, lintegral_smul_measure, smul_eq_mul]
-    _ = ∫⁻ y, K y ∂volume.map (dualPoint a) := (lintegral_map_dualPoint a hq hK).symm
+    _ = ∫⁻ y, K y ∂volume.map (dualPoint a) := (lintegral_map_dualPoint a hK).symm
 
 /-- The dual vector `e*_a` of floor `a`, of index `eStar a`. For the form `h` of matrix `J₁`, on the
 isotropic vectors `y` with `h(e_a, y) = 1` that are orthogonal to the basis vectors of lower floors
